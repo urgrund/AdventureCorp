@@ -153,8 +153,8 @@ public class PlatformMover : MonoBehaviour
             {
                 t += Time.deltaTime * (1f / _previousDetails.timeToNextTarget);
 
-                transform.position = Vector3.Lerp(_previousDetails.positon, _nextDetails.positon, GetEasingFloat(_previousDetails.easingToNextTarget, t));
-                transform.rotation = Quaternion.Lerp(_previousDetails.rotation, _nextDetails.rotation, GetEasingFloat(_previousDetails.easingToNextTarget, t));
+                transform.position = Vector3.LerpUnclamped(_previousDetails.positon, _nextDetails.positon, GetEasingFloat(_previousDetails.easingToNextTarget, t));
+                transform.rotation = Quaternion.LerpUnclamped(_previousDetails.rotation, _nextDetails.rotation, GetEasingFloat(_previousDetails.easingToNextTarget, t));
 
                 // if spin, then add additional rotation each frame
                 if (details.spin.isSpinToTarget)

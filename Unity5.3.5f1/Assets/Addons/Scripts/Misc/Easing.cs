@@ -181,116 +181,103 @@ public static class Easing
 	}
 
 
-	public static class Bounce
-	{
-		public static float easeIn( float t )
-		{
-			return 1 - easeOut( 1 - t );
-		}
-		
-		
-		public static float easeOut( float t )
-		{
-            if ((t /= 1f) < (1 / 2.75f))
+
+    public static class Bounce
+    {
+        //static float d = 2f;
+
+        public static float easeIn(float k)
+        {
+            return 1f - easeOut(1f - k);
+        }
+
+        public static float easeOut(float k)
+        {
+            if (k < (1f / 2.75f))
             {
-                return (7.5625f * t * t);
+                return 7.5625f * k * k;
             }
-            else if (t < (2 / 2.75f))
+            else if (k < (2f / 2.75f))
             {
-                return (7.5625f * (t -= (1.5f / 2.75f)) * t + .75f);
+                return 7.5625f * (k -= (1.5f / 2.75f)) * k + 0.75f;
             }
-            else if (t < (2.5 / 2.75))
+            else if (k < (2.5f / 2.75f))
             {
-                return (7.5625f * (t -= (2.25f / 2.75f)) * t + .9375f);
+                return 7.5625f * (k -= (2.25f / 2.75f)) * k + 0.9375f;
             }
             else
             {
-                return (7.5625f * (t -= (2.625f / 2.75f)) * t + .984375f);
+                return 7.5625f * (k -= (2.625f / 2.75f)) * k + 0.984375f;
             }
         }
-		
-		
-		public static float easeInOut( float t )
-		{
-			if( t <= 0.5f )
-				return Bounce.easeIn( t * 2 ) / 2;
-			else
-				return ( Bounce.easeOut( ( t - 0.5f ) * 2.0f ) / 2 ) + 0.5f;
-		}
-	}
+
+        public static float easeInOut(float k)
+        {
+            if (k < 0.5f) return easeIn(k * 2f) * 0.5f;
+            return easeOut(k * 2f - 1f) * 0.5f + 0.5f;
+        }
+
+        //public static float easeIn(float t)
+        //{
+        //    return 1 - easeOut(1 - t);
+        //}
 
 
-	public static class Elastic
-	{
-		private const float p = 0.3f;
-		private static float a = 1;
-
-	
-		private static float calc( float t, bool easingIn )
-		{
-			if( t == 0 || t == 1 )
-				return t;
-		
-			float s;
-			
-			if( a < 1 )
-				s = p / 4;
-			else
-				s = p / ( 2 * Mathf.PI ) * Mathf.Asin( 1 / a );
-			
-			if( easingIn )
-			{
-				t -= 1;
-				return -( a * Mathf.Pow( 2, 10 * t ) ) * Mathf.Sin( ( t - s ) * ( 2 * Mathf.PI ) / p );
-			}
-			else
-			{
-				return a * Mathf.Pow( 2, -10 * t ) * Mathf.Sin( ( t - s ) * ( 2 * Mathf.PI ) / p ) + 1;
-			}
-		}
+        //public static float easeOut(float t)
+        //{
+        //    if (t < (1 / 2.75f))
+        //    {
+        //        return 1;
+        //    }
+        //    else if (t < (2 / 2.75f))
+        //    {
+        //        t -= (1.5f / 2.75f);
+        //        return 7.5625f * t * t + 0.75f;
+        //    }
+        //    else if (t < (2.5f / 2.75f))
+        //    {
+        //        t -= (2.5f / 2.75f);
+        //        return 7.5625f * t * t + 0.9375f;
+        //    }
+        //    else
+        //    {
+        //        t -= (2.625f / 2.75f);
+        //        return 7.5625f * t * t + 0.984375f;
+        //    }
+        //}
 
 
-		
-        //
-        // Original Elastic easing functions
-        //
-		public static float easeIn( float t )
-		{
-			return 1 - easeOut( 1 - t );
-		}
-		
-		
-		public static float easeOut( float t )
-		{
-			if( t < ( 1 / 2.75f ) )
-			{
-				return 1;
-			}
-			else if( t < ( 2 / 2.75f ) )
-			{
-				t -= ( 1.5f / 2.75f );
-				return 7.5625f * t * t + 0.75f;
-			}
-			else if( t < ( 2.5f / 2.75f ) )
-			{
-				t -= ( 2.5f / 2.75f );
-				return 7.5625f * t * t + 0.9375f;
-			}
-			else
-			{
-				t -= ( 2.625f / 2.75f );
-				return 7.5625f * t * t + 0.984375f;
-			}			
-		}
-		
-		
-		public static float easeInOut( float t )
-		{
-			if( t <= 0.5f )
-				return Elastic.easeIn( t * 2 ) / 2;
-			else
-				return ( Elastic.easeOut( ( t - 0.5f ) * 2.0f ) / 2 ) + 0.5f;
-		}
-	}
+        //public static float easeInOut(float t)
+        //{
+        //    if (t <= 0.5f)
+        //        return Bounce.easeIn(t * 2) / 2;
+        //    else
+        //        return (Bounce.easeOut((t - 0.5f) * 2.0f) / 2) + 0.5f;
+        //}
+    }
+
+
+    public static class Elastic
+    {
+        public static float easeIn(float k)
+        {
+            if (k == 0) return 0;
+            if (k == 1) return 1;
+            return -Mathf.Pow(2f, 10f * (k -= 1f)) * Mathf.Sin((k - 0.1f) * (2f * Mathf.PI) / 0.4f);
+        }
+
+        public static float easeOut(float k)
+        {
+            if (k == 0) return 0;
+            if (k == 1) return 1;
+            return Mathf.Pow(2f, -10f * k) * Mathf.Sin((k - 0.1f) * (2f * Mathf.PI) / 0.4f) + 1f;
+        }
+
+        public static float easeInOut(float k)
+        {
+            if ((k *= 2f) < 1f) return -0.5f * Mathf.Pow(2f, 10f * (k -= 1f)) * Mathf.Sin((k - 0.1f) * (2f * Mathf.PI) / 0.4f);
+            return Mathf.Pow(2f, -10f * (k -= 1f)) * Mathf.Sin((k - 0.1f) * (2f * Mathf.PI) / 0.4f) * 0.5f + 1f;
+        }
+    }
 
 }

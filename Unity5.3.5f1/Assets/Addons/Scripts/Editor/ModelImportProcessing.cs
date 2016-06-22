@@ -5,27 +5,28 @@ using UnityEditor;
 
 
 
-public class ModelImportProcessing : AssetPostprocessor {
+public class ModelImportProcessing : AssetPostprocessor
+{
 
     void OnPreprocessModel()
     {
-        ModelImporter i = (assetImporter as ModelImporter);        
+        ModelImporter i = (assetImporter as ModelImporter);
         //i.generateMaterials = ModelImporterGenerateMaterials.PerSourceMaterial;
         //if (!(assetPath.Contains("Anim")))
         {
             //i.globalScale = 0.0254f;
-          //  i.importAnimation = false;
+            //  i.importAnimation = false;
             //i.generateAnimations = ModelImporterGenerateAnimations.None;
             //i.meshCompression = ModelImporterMeshCompression.High;
             i.importMaterials = false;
             i.swapUVChannels = false;
         }
-        
-        CheckForAnimations(i);        
+
+        CheckForAnimations(i);
     }
 
 
-    
+
     void CheckForAnimations(ModelImporter assetImporter)
     {
         // Get the actual name of the asset
@@ -37,8 +38,8 @@ public class ModelImportProcessing : AssetPostprocessor {
         //Debug.Log(assetName);
 
         string testPath = assetPath;
-       testPath = testPath.Substring(0, testPath.Length - trimExt);
-        testPath += ".txt"; 
+        testPath = testPath.Substring(0, testPath.Length - trimExt);
+        testPath += ".txt";
         //Debug.Log(testPath);
         foreach (TextAsset t in Resources.FindObjectsOfTypeAll<TextAsset>())
         {
@@ -68,7 +69,7 @@ public class ModelImportProcessing : AssetPostprocessor {
         // the text file as they start with 'frame:'
         foreach (string s in lines)
         {
-			if (s.ToLower().Contains("frame:"))
+            if (s.ToLower().Contains("frame:"))
                 validFrames.Add(s);
         }
 
@@ -78,15 +79,15 @@ public class ModelImportProcessing : AssetPostprocessor {
         foreach (string s in validFrames)
         {
             string[] elements = s.Split(null);
-            string[] times = elements[1].Split(new char[]{'-', ':'});  //('-');
+            string[] times = elements[1].Split(new char[] { '-', ':' });  //('-');
             int start, end;
-            
+
             //for(int i=0; i<times.Length;i++)
-                
+
             start = int.Parse(times[0]);
             end = int.Parse(times[1]);
-            
-            Debug.Log("Name "+ elements[2]);
+
+            Debug.Log("Name " + elements[2]);
             Debug.Log("s " + start + "   e " + end);
 
             ModelImporterClipAnimation c = new ModelImporterClipAnimation();
@@ -127,15 +128,15 @@ public class ModelImportProcessing : AssetPostprocessor {
                     foreach (Object o in Resources.FindObjectsOfTypeAll(typeof(Material)))
                         if ((o as Material).name == mats[i].name) //matName)
                             mats[i] = (o as Material);
-                }             
+                }
                 gameObject.transform.GetComponent<Renderer>().sharedMaterials = mats;
             }
         }
 
         GameObject.DestroyImmediate(gameObject.GetComponent<Animator>());
 
-        if(gameObject.GetComponent<Animation>() == null)
-            gameObject.AddComponent<Animation>();        
+        if (gameObject.GetComponent<Animation>() == null)
+            gameObject.AddComponent<Animation>();
     }
 }
 

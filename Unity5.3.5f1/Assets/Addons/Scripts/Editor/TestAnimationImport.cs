@@ -51,11 +51,10 @@ public class TestAnimationImport
 
 
     // Note that we pass the same path, and also pass "true" to the second argument.
-    [MenuItem("Assets/TestAnims", true)]
-    private static bool NewMenuOptionValidation()
-    {
-        Debug.Log(Selection.objects[0].GetType());
-        return true;
-        //return Selection.objects[0].GetType() == typeof(TextAsset);
-    }
+    //[MenuItem("Assets/TestAnims", true)]
+    //private static bool NewMenuOptionValidation()
+    //{
+    //    Debug.Log(Selection.objects[0].GetType());
+    //    return true;        
+    //}
 }

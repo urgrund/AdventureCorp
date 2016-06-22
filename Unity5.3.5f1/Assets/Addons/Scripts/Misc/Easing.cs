@@ -191,26 +191,23 @@ public static class Easing
 		
 		public static float easeOut( float t )
 		{
-			if( t < ( 1 / 2.75f ) )
-			{
-				return 1;
-			}
-			else if( t < ( 2 / 2.75f ) )
-			{
-				t -= ( 1.5f / 2.75f );
-				return 7.5625f * t * t + 0.75f;
-			}
-			else if( t < ( 2.5f / 2.75f ) )
-			{
-				t -= ( 2.5f / 2.75f );
-				return 7.5625f * t * t + 0.9375f;
-			}
-			else
-			{
-				t -= ( 2.625f / 2.75f );
-				return 7.5625f * t * t + 0.984375f;
-			}			
-		}
+            if ((t /= 1f) < (1 / 2.75f))
+            {
+                return (7.5625f * t * t);
+            }
+            else if (t < (2 / 2.75f))
+            {
+                return (7.5625f * (t -= (1.5f / 2.75f)) * t + .75f);
+            }
+            else if (t < (2.5 / 2.75))
+            {
+                return (7.5625f * (t -= (2.25f / 2.75f)) * t + .9375f);
+            }
+            else
+            {
+                return (7.5625f * (t -= (2.625f / 2.75f)) * t + .984375f);
+            }
+        }
 		
 		
 		public static float easeInOut( float t )
@@ -252,7 +249,11 @@ public static class Easing
 			}
 		}
 
+
 		
+        //
+        // Original Elastic easing functions
+        //
 		public static float easeIn( float t )
 		{
 			return 1 - easeOut( 1 - t );

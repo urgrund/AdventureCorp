@@ -31,9 +31,9 @@ public class ModelImportProcessing : AssetPostprocessor {
         // Get the actual name of the asset
         // Can't unity doesn't just provide this :(
         int trimExt = 4; // 4 = ".fbx" 
-        int start = assetImporter.assetPath.LastIndexOf('/')+1;
-        int end = assetImporter.assetPath.Length - trimExt - start;
-        string assetName = assetImporter.assetPath.Substring(start, end);
+        //int start = assetImporter.assetPath.LastIndexOf('/')+1;
+        //int end = assetImporter.assetPath.Length - trimExt - start;
+        //string assetName = assetImporter.assetPath.Substring(start, end);
         //Debug.Log(assetName);
 
         string testPath = assetPath;

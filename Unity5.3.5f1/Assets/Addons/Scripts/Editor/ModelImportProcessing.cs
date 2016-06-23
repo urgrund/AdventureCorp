@@ -109,7 +109,11 @@ public class ModelImportProcessing : AssetPostprocessor
     {
         // sets scale and rotation 
         gameObject.transform.localScale = Vector3.one;
-        gameObject.transform.rotation = Quaternion.Euler(0, 0, 0);
+
+        // 2016 Matt - just let it be -90 as it became an ongoing battle with
+        // Unity rotating and 3dsMax not, and making sure import/export of 
+        // the same mesh was consistent 
+        //gameObject.transform.rotation = Quaternion.Euler(0, 0, 0);
 
 
         // Materials

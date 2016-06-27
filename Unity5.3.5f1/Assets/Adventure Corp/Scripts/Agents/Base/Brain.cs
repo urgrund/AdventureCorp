@@ -1,52 +1,27 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class Brain : MonoBehaviour
+/// <summary>
+/// Brain
+/// Defines the logic that sends commands to an Agent
+/// </summary>
+[RequireComponent(typeof(Agent))]
+public abstract class Brain : MonoBehaviour
 {
-    [HideInInspector]
-    public Agent agent;
-    [HideInInspector]
-    public Vector3 currentVelocity;
-    [HideInInspector]
-    public Quaternion currentRotation;
+    private Agent _agent;
+    public Agent agent {  get { return _agent; } set { _agent = value; } }
 
-    float gravitySpeed = 0;
-
-	protected virtual void Update()
+    protected virtual void Awake()
     {
-        if (!agent.controller.isGrounded)
-            gravitySpeed -= agent.gravity;
-        else
-            gravitySpeed = -agent.controller.stepOffset/Time.deltaTime*5;
-
-        currentVelocity.y = gravitySpeed*Time.deltaTime;
-        agent.controller.Move(currentVelocity*Time.deltaTime);
-        agent.Rotate(currentRotation);
+        _agent = GetComponent<Agent>();
+        _agent.PlugBrain(this);
     }
 
-    public void SetAgent(Agent a)
+    protected virtual void Start()
     {
-        agent = a;
     }
 
-    public Quaternion CalculateRotationRelativeToVelocity(float rotationSpeed)
+    protected virtual void Update()
     {
-        Vector3 v = currentVelocity;
-        v.y = 0;
-        return Quaternion.Lerp(agent.transform.rotation, MathLab.CreateRotationToLookAt(v.normalized + agent.transform.position, agent.transform.position), rotationSpeed * Time.deltaTime);
-    }
-
-    public Quaternion LookAt(Vector3 target, float rotationSpeed)
-    {
-        return Quaternion.Lerp(agent.transform.rotation, MathLab.CreateRotationToLookAt((target - agent.transform.position).normalized + agent.transform.position, agent.transform.position), rotationSpeed * Time.deltaTime);
-    }
-
-    public void SetVelocity(Vector3 velocity)
-    {
-        Vector3 v = currentVelocity;
-        v.y = 0;
-        v = Vector3.MoveTowards(v, velocity, agent.acceleration * Time.deltaTime);
-        v = Vector3.ClampMagnitude(v, agent.speed);
-        currentVelocity = v;
     }
 }

@@ -30,15 +30,12 @@ public class PlayerBrain : Brain
         //Idle
         if(directionalInput.magnitude == 0)
         {
-            SetVelocity(Vector3.zero);
+            agent.SetVelocity(Vector3.zero);
         }
         //Walk
         else
         {
-            SetVelocity(directionalInput * agent.speed);
-            if (currentVelocity != Vector3.zero)
-                currentRotation = CalculateRotationRelativeToVelocity(agent.rotationSpeed);
-        }
-       
+            agent.SetVelocity(directionalInput * agent.properties.speed.max);            
+        }       
     }
 }

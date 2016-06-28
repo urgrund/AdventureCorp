@@ -35,7 +35,9 @@ public class PlayerBrain : Brain
         //Walk
         else
         {
-            agent.SetVelocity(directionalInput * agent.properties.speed.max);            
+            agent.SetVelocity(directionalInput * agent.properties.speed.max);
+            if (agent.currentVelocity != Vector3.zero)
+                agent.currentRotation = agent.LookAt(Vector3.zero, agent.properties.rotation.max);    
         }       
     }
 }

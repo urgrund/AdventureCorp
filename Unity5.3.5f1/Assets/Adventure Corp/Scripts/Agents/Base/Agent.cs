@@ -154,9 +154,6 @@ public class Agent : MonoBehaviour
         v = Vector3.ClampMagnitude(v, properties.speed.max);
         currentVelocity = v;
 
-        //if (currentVelocity != Vector3.zero)
-            currentRotation = CalculateRotationRelativeToVelocity(properties.rotation.max);
-
         _isBrainSetVelocityThisFrame = true;
     }
 

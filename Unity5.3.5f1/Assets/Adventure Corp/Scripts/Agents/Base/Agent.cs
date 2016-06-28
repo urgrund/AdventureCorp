@@ -128,15 +128,20 @@ public class Agent : MonoBehaviour
     }
     
 
-    public Quaternion CalculateRotationRelativeToVelocity(float rotationSpeed)
+    /// <summary>
+    /// Rotate agent to look along the velocity vector using rotation speed
+    /// </summary>    
+    public Quaternion RotateToVelocityDirection(float rotationSpeed)
     {
         Vector3 v = currentVelocity;
         v.y = 0;
         return Quaternion.Lerp(transform.rotation, MathLab.CreateRotationToLookAt(v.normalized + transform.position, transform.position), rotationSpeed * Time.deltaTime);
     }
 
-
-    public Quaternion LookAt(Vector3 target, float rotationSpeed)
+    /// <summary>
+    /// Rotate agent to look at a target position using rotation speed
+    /// </summary>    
+    public Quaternion RotateToLookAt(Vector3 target, float rotationSpeed)
     {
         return Quaternion.Lerp(transform.rotation, MathLab.CreateRotationToLookAt((target - transform.position).normalized + transform.position, transform.position), rotationSpeed * Time.deltaTime);
     }
@@ -145,17 +150,25 @@ public class Agent : MonoBehaviour
     /// <summary>
     /// Will start the Agent moving along the velocity passed in using acceleration properties
     /// </summary>
-    /// <param name="velocity"></param>
-    public void SetVelocity(Vector3 velocity)
+    public void SetDesiredVelocity(Vector3 velocity)
     {
+        // TODO - might be interesting to consider different surfaces
+        // such as ice.  This could simply be scalars to acceleartion/damping etc
+
         Vector3 v = currentVelocity;
         v.y = 0;
+
+        // TODO - blend between accelearation & damping based on dot of current/desired
+        // this is so that if the desired direction is BEHIND you, you use damping values
+        // to first STOP then Accelerate 
         v = Vector3.MoveTowards(v, velocity, properties.speed.acceleration * Time.deltaTime);
         v = Vector3.ClampMagnitude(v, properties.speed.max);
         currentVelocity = v;
 
         _isBrainSetVelocityThisFrame = true;
     }
+  
+    
 
     void OnDrawGizmos()
     {

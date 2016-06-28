@@ -88,9 +88,7 @@ public abstract class NPCBrain : Brain
     public Vector3 DirectionToPosition(Vector3 position) { return (position - transform.position).normalized; }
     public bool CheckAtPosition(Vector3 position) { return CheckAtPosition(position, 0.01f); }
     public bool CheckAtPosition(Vector3 position, float bias) { return Helpers.InRadius(transform.position, position, bias); }
-
-
-
+    
     protected override void Awake()
     {
         onArrivedAtDestination += OnArrivedAtDestination;
@@ -119,9 +117,16 @@ public abstract class NPCBrain : Brain
                     if (onArrivedAtNavMeshPosition != null)
                         onArrivedAtNavMeshPosition();
                 }
-            }           
-            else            
-                agent.SetVelocity(DirectionToPosition(nextPosition) * agent.properties.speed.max);
+            }
+            else
+            {
+                agent.SetDesiredVelocity(DirectionToPosition(nextPosition) * agent.properties.speed.max);
+                //agent.RotateToVelocityDirection(agent.properties.speed.max);
+                // hacky & temp :)
+                agent.currentRotation = Quaternion.LookRotation(DirectionToPosition(nextPosition));
+
+                //agent.SetDesiredRotation(DirectionToPosition(nextPosition));
+            }
             
         }
         base.Update();

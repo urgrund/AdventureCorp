@@ -22,7 +22,7 @@ public class NPCSkeletonGrunt : NPCBrain
         while (true)
         {             
             yield return new WaitForSeconds(1f);
-            agent.animatedGameObject.Play(animRoar.clip.name);
+            //agent.animatedGameObject.Play(animRoar.clip.name);
         }
     }
     

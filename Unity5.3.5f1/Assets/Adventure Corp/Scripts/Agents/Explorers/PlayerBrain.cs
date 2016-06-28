@@ -24,20 +24,21 @@ public class PlayerBrain : Brain
         directionalInput = new Vector3(Input.GetAxis("Horizontal"), 0, Input.GetAxis("Vertical"));
         directionalInput = GrabMovementDirRelativeToCam(directionalInput);
     }
-
+    
+       
     void UpdateState()
     {
         //Idle
         if(directionalInput.magnitude == 0)
         {
-            agent.SetVelocity(Vector3.zero);
+            agent.SetDesiredVelocity(Vector3.zero);
         }
         //Walk
         else
         {
-            agent.SetVelocity(directionalInput * agent.properties.speed.max);
+            agent.SetDesiredVelocity(directionalInput * agent.properties.speed.max);
             if (agent.currentVelocity != Vector3.zero)
-                agent.currentRotation = agent.LookAt(Vector3.zero, agent.properties.rotation.max);    
+                agent.currentRotation = (agent.RotateToVelocityDirection(agent.properties.rotation.max));   //-Vector3.up* 30, agent.properties.rotation.max);    
         }       
     }
 }

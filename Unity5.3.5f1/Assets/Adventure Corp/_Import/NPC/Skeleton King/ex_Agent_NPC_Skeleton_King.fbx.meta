@@ -1,6 +1,6 @@
 fileFormatVersion: 2
 guid: e63d63a77250c4349bc1f2cdc731178a
-timeCreated: 1450100202
+timeCreated: 1467079020
 licenseType: Free
 ModelImporter:
   serializedVersion: 19
@@ -199,10 +199,26 @@ ModelImporter:
     optimizeGameObjects: 0
     motionNodeName: 
     animationImportErrors: 
-    animationImportWarnings: 
+    animationImportWarnings: "\nInbetween bone default rotation found in this file
+      is different from the one found in the source avatar:\n\t'Character1_Neck' :
+      rotation error = 15.476771 deg\n\nClip 'Take 001' has import animation warnings
+      that might lower retargeting quality:\nNote: Activate translation DOF on avatar
+      to improve retargeting quality.\n\t'Character1_LeftUpLeg' has translation animation
+      that will be discarded.\n\t'Character1_LeftFoot' has translation animation that
+      will be discarded.\n\t'Character1_RightUpLeg' has translation animation that
+      will be discarded.\n\t'Character1_RightFoot' has translation animation that
+      will be discarded.\n\t'Character1_Spine' has translation animation that will
+      be discarded.\n\t'Character1_Spine1' has translation animation that will be
+      discarded.\n\t'Character1_LeftShoulder' has translation animation that will
+      be discarded.\n\t'Character1_LeftArm' has translation animation that will be
+      discarded.\n\t'Character1_LeftHandThumb1' has translation animation that will
+      be discarded.\n\t'Character1_RightShoulder' has translation animation that will
+      be discarded.\n\t'Character1_Neck' has translation animation that will be discarded.\n\t'Character1_Neck'
+      is inbetween humanoid transforms and has rotation animation that will be discarded.\n\t'Character1_Head'
+      has translation animation that will be discarded.\n"
     animationRetargetingWarnings: 
     animationDoRetargetingWarnings: 0
-    animationCompression: 1
+    animationCompression: 3
     animationRotationError: 0.5
     animationPositionError: 0.5
     animationScaleError: 0.5
@@ -220,7 +236,7 @@ ModelImporter:
       cycleOffset: 0
       loop: 0
       hasAdditiveReferencePose: 0
-      loopTime: 0
+      loopTime: 1
       loopBlend: 0
       loopBlendOrientation: 0
       loopBlendPositionY: 0
@@ -236,7 +252,7 @@ ModelImporter:
       transformMask: []
       maskType: 0
       maskSource: {instanceID: 0}
-      additiveReferencePoseFrame: 0
+      additiveReferencePoseFrame: 0.9
     - serializedVersion: 16
       name: hit
       takeName: 
@@ -612,7 +628,7 @@ ModelImporter:
       cycleOffset: 0
       loop: 0
       hasAdditiveReferencePose: 0
-      loopTime: 0
+      loopTime: 1
       loopBlend: 0
       loopBlendOrientation: 0
       loopBlendPositionY: 0
@@ -628,7 +644,7 @@ ModelImporter:
       transformMask: []
       maskType: 0
       maskSource: {instanceID: 0}
-      additiveReferencePoseFrame: 0
+      additiveReferencePoseFrame: 0.9
     - serializedVersion: 16
       name: run
       takeName: 
@@ -640,7 +656,7 @@ ModelImporter:
       cycleOffset: 0
       loop: 0
       hasAdditiveReferencePose: 0
-      loopTime: 0
+      loopTime: 1
       loopBlend: 0
       loopBlendOrientation: 0
       loopBlendPositionY: 0
@@ -656,7 +672,7 @@ ModelImporter:
       transformMask: []
       maskType: 0
       maskSource: {instanceID: 0}
-      additiveReferencePoseFrame: 0
+      additiveReferencePoseFrame: 0.9
     - serializedVersion: 16
       name: backpedal
       takeName: 
@@ -775,10 +791,10 @@ ModelImporter:
     armStretch: 0.05
     legStretch: 0.05
     feetSpacing: 0
-    rootMotionBoneName: 
+    rootMotionBoneName: king
     hasTranslationDoF: 0
   lastHumanDescriptionAvatarSource: {instanceID: 0}
-  animationType: 1
+  animationType: 2
   humanoidOversampling: 1
   additionalBone: 0
   userData: 

@@ -2,7 +2,7 @@
 using System.Collections;
 
 
-public class NPCSkeletonSwordsman : NPCBrain
+public class NPCSkeletonGrunt : NPCBrain
 {
     public Transform target;
 
@@ -10,8 +10,9 @@ public class NPCSkeletonSwordsman : NPCBrain
     {
         StartCoroutine(TestPathFind());
         base.Start();
-    }   
+    }
 
+    public AnimationClipProperties animRoar;
 
     NavMeshPath p;
     IEnumerator TestPathFind()
@@ -19,13 +20,10 @@ public class NPCSkeletonSwordsman : NPCBrain
         yield return new WaitForSeconds(Random.Range(0,2f));
         
         while (true)
-        {            
-            if (target != null)
-            {
-                destination = target.position;          
-            }
+        {             
             yield return new WaitForSeconds(1f);
+            agent.animatedGameObject.Play(animRoar.clip.name);
         }
     }
-   
+    
 }

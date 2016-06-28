@@ -10,15 +10,13 @@ public class Agent : MonoBehaviour
     private CharacterController _controller;
     public CharacterController controller {  get { return _controller; } }
 
-    // TODO
-    // I think the animatedProperties might be better
-    // as part of the NPCBrain as animations become
-    // unique to the NPC (a Grunt can 'push' but an archer 'fires')
-    // this also leaves the Agent purely as a "moving system"
-    // independant 
+    
     public AgentProperties properties;
     public AgentAnimationProperties animationProperties;
-
+    private Animation _animatedGameObject;
+    public Animation animatedGameObject { get { return _animatedGameObject; } }
+    
+    
     private float gravitySpeed = 0f;
 
     [HideInInspector]
@@ -44,11 +42,16 @@ public class Agent : MonoBehaviour
 
     void Awake ()
     {
-        if (animationProperties.animatedGameObject != null)
-        {           
-            animationProperties.animatedGameObject = Helpers.InstantiateAndParent(animationProperties.animatedGameObject.gameObject.transform, transform, true).GetComponent<Animation>();            
-            _isWithAnimatedObject = true;
+        if (animationProperties != null)
+        {
+            if (animationProperties.animatedGameObject != null)
+            {
+                _animatedGameObject = Helpers.InstantiateAndParent(animationProperties.animatedGameObject.gameObject.transform, transform, true).GetComponent<Animation>();
+                _isWithAnimatedObject = true;
+            }
         }
+        else
+            Debug.LogError(name.ToString() + " has no animation properties.");
 
         brain = GetComponent<Brain>();
         _controller = GetComponent<CharacterController>();
@@ -61,6 +64,13 @@ public class Agent : MonoBehaviour
 
     void Update()
     {
+        UpdateController();
+        UpdateAnimations();        
+    }
+
+
+    void UpdateController()
+    {
         // Apply gravity
         if (!controller.isGrounded)
             gravitySpeed -= properties.gravity;
@@ -70,31 +80,33 @@ public class Agent : MonoBehaviour
         currentVelocity.y = gravitySpeed * Time.deltaTime;
         _controller.Move(currentVelocity * Time.deltaTime);
         Rotate(currentRotation);
+    }
 
 
-
-        // Anim
+    void UpdateAnimations()
+    {        
         // This is pretty simple at the moment. Based on velocity (gravity cancelled) 
         // blend between idle walk and run animations 
         if (_isWithAnimatedObject)
-        {            
+        {
             // Use the real controller velocity, not the desired
             // this avoids "running constantly at a wall" effect
             Vector3 v = _controller.velocity;
             v.y = 0;
-            if (v.magnitude < 0.05f)
+            if (v.magnitude < 0.05f) // <- hacky
             {
-                animationProperties.animatedGameObject.CrossFade(animationProperties.idle.clip.name, animationProperties.run.blendSpeed);
+                _animatedGameObject.CrossFade(animationProperties.idle.clip.name, animationProperties.run.blendTime);
             }
             else
             {
                 if ((v.magnitude / properties.speed.max) < animationProperties.walkToRunSpeedRatio)
-                    animationProperties.animatedGameObject.CrossFade(animationProperties.walk.clip.name, animationProperties.walk.blendSpeed);
+                    _animatedGameObject.CrossFade(animationProperties.walk.clip.name, animationProperties.walk.blendTime);
                 else
-                    animationProperties.animatedGameObject.CrossFade(animationProperties.run.clip.name, animationProperties.run.blendSpeed);
+                    _animatedGameObject.CrossFade(animationProperties.run.clip.name, animationProperties.run.blendTime);
             }
         }
     }
+
 
     void LateUpdate()
     {

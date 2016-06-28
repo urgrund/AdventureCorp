@@ -140,14 +140,16 @@ public abstract class NPCBrain : Brain
             if(_navMeshNextPosition != null)
                 Gizmos.DrawLine(transform.position, (Vector3)_navMeshNextPosition);
 
-
-            NavMeshPath p = _navMeshPathToDestination;
-            Gizmos.color = Color.red;
-            for (int i = 0; i < p.corners.Length; i++)
+            if (_navMeshPathToDestination != null)
             {
-                if ((i + 1) < p.corners.Length)
-                    Gizmos.DrawLine(p.corners[i], p.corners[i + 1]);
-                Gizmos.DrawWireSphere(p.corners[i], 0.25f);
+                NavMeshPath p = _navMeshPathToDestination;
+                Gizmos.color = Color.red;
+                for (int i = 0; i < p.corners.Length; i++)
+                {
+                    if ((i + 1) < p.corners.Length)
+                        Gizmos.DrawLine(p.corners[i], p.corners[i + 1]);
+                    Gizmos.DrawWireSphere(p.corners[i], 0.25f);
+                }
             }
         }
     }

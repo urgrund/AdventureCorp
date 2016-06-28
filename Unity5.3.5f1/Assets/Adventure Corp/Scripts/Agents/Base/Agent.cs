@@ -150,7 +150,7 @@ public class Agent : MonoBehaviour
     /// <summary>
     /// Will start the Agent moving along the velocity passed in using acceleration properties
     /// </summary>
-    public void SetDesiredVelocity(Vector3 velocity)
+    void CalculateDesiredVelocity(Vector3 velocity)
     {
         // TODO - might be interesting to consider different surfaces
         // such as ice.  This could simply be scalars to acceleartion/damping etc
@@ -167,8 +167,28 @@ public class Agent : MonoBehaviour
 
         _isBrainSetVelocityThisFrame = true;
     }
-  
-    
+
+    /// <summary>
+    /// Set player velocity and rotate the character towards velocity direction. If no rotation is needed set the bool isRotate to false
+    /// </summary>
+    public void SetDesiredVelocity(Vector3 velocity, bool isRotate)
+    {
+        CalculateDesiredVelocity(velocity);
+
+        if (currentVelocity != Vector3.zero && isRotate)
+            currentRotation = RotateToVelocityDirection(properties.rotation.max);
+    }
+
+    /// <summary>
+    /// Set player velocity and rotate the character towards a vector3 target
+    /// </summary>
+    public void SetDesiredVelocity(Vector3 velocity, Vector3 LookAtTarget)
+    {
+        CalculateDesiredVelocity(velocity);
+        currentRotation= RotateToLookAt(LookAtTarget, properties.rotation.max);
+    }
+
+
 
     void OnDrawGizmos()
     {

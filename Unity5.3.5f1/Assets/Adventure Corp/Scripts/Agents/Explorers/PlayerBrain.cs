@@ -31,14 +31,12 @@ public class PlayerBrain : Brain
         //Idle
         if(directionalInput.magnitude == 0)
         {
-            agent.SetDesiredVelocity(Vector3.zero);
+            agent.SetDesiredVelocity(Vector3.zero,true);
         }
         //Walk
         else
         {
-            agent.SetDesiredVelocity(directionalInput * agent.properties.speed.max);
-            if (agent.currentVelocity != Vector3.zero)
-                agent.currentRotation = (agent.RotateToVelocityDirection(agent.properties.rotation.max));   //-Vector3.up* 30, agent.properties.rotation.max);    
+            agent.SetDesiredVelocity(directionalInput * agent.properties.speed.max, true);
         }       
     }
 }

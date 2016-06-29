@@ -2,6 +2,7 @@
 using System.Collections;
 
 [RequireComponent(typeof(CharacterController))]
+[RequireComponent(typeof(Health))]
 public class Agent : MonoBehaviour
 {    
     private Brain _brain;

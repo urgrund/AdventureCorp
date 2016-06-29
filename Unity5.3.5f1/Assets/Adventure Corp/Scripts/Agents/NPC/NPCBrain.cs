@@ -230,19 +230,18 @@ public abstract class NPCBrain : Brain
 
     void AddAllPlayersInSceneToPotentialHostileTargets()
     {
-        PlayerBrain[] p = FindObjectsOfType<PlayerBrain>() as PlayerBrain[];
-        for (int i = 0; i < p.Length; i++)
+    
+        for (int i = 0; i < LevelManager.players.Count; i++)
         {
-            potentialHostileTargets.Add(p[i].transform);
+            potentialHostileTargets.Add(LevelManager.players[i].transform);
         }
     }
 
     void AddAllNPCInSceneToPotentialHostileTargets()
     {
-        NPCBrain[] npc = FindObjectsOfType<NPCBrain>() as NPCBrain[];
-        for (int i = 0; i < npc.Length; i++)
+        for (int i = 0; i < LevelManager.players.Count; i++)
         {
-            potentialHostileTargets.Add(npc[i].transform);
+            potentialHostileTargets.Add(LevelManager.players[i].transform);
         }
     }
 

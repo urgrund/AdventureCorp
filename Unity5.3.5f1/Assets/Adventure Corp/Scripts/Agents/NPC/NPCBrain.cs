@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEditor;
 /// <summary>
@@ -17,7 +18,7 @@ public abstract class NPCBrain : Brain
     public event ArrivedAtDestination onArrivedAtDestination;
     public event ArrivedAtDestination onArrivedAtNavMeshPosition;
 
-    public AIProperties properties;
+    public AIProperties properties;    
 
     //---------------------------------------------------------------------------------------------------------------//
     //Hostile targets variables and functions
@@ -93,41 +94,58 @@ public abstract class NPCBrain : Brain
     List<PatrolPoint> myPatrolPoints = new List<PatrolPoint>();
 
     protected virtual void OnArrivedAtDestination()
-    {   
-        _destination = null;
-        _isArrivedAtDestination = true;
+    {        
+        _navMeshNextPosition = null;
+        _isNavMeshPositionFinal = false;
+        _isArrivedAtDestination = false;
     }
 
     protected virtual void OnArrivedAtNavMeshPosition()
     {
-        if (_navMeshNextPositionIndex < (_navMeshPathToDestination.corners.Length - 1))
+        if (_navMeshNextPositionIndex < _navMeshPathToDestination.corners.Length - 1)
         {
             _navMeshNextPositionIndex++;
-            _navMeshNextPosition = _navMeshPathToDestination.corners[_navMeshNextPositionIndex];
 
-            if(_navMeshNextPositionIndex == _navMeshPathToDestination.corners.Length)
-                _isNavMeshPositionFinal = true;
-        }        
+            if (_navMeshNextPositionIndex == _navMeshPathToDestination.corners.Length - 1)            
+                _isNavMeshPositionFinal = true;            
+            
+            _navMeshNextPosition = _navMeshPathToDestination.corners[_navMeshNextPositionIndex];
+        }
+        //else
+        //{
+        //    Debug.LogWarning ("Position Index larger than points! " + " i:" + _navMeshNextPositionIndex + " p:" + _navMeshPathToDestination.corners.Length);
+        //    Debug.Break();
+        //}
+        Debug.Assert(_navMeshNextPositionIndex <= _navMeshPathToDestination.corners.Length);
     }
 
 
     // TODO - this should go into a properties container?
     private float _destinationBias = 1f;
 
-    public NavMeshPath _navMeshPathToDestination;
-    public Vector3? _navMeshNextPosition;     
-    public int _navMeshNextPositionIndex = 0;
-    public bool _isNavMeshPositionFinal = false;
+    protected Vector3 _desiredVelocity = Vector3.zero;
+
+
+    private NavMeshPath _navMeshPathToDestination;
+    private Vector3[] debugPoints;
+            
+    private Vector3? _navMeshNextPosition;
+    private int _navMeshNextPositionIndex = 0;
+    private bool _isNavMeshPositionFinal = false;
 
     protected bool _isArrivedAtDestination = false;
-    protected Vector3? _destination = null;
+    private Vector3? _destination = null;
     public Vector3? destination
     {
         set
         {
             // If already there, exit
             if (CheckAtPosition((Vector3)value, _destinationBias))
+            {
+                print("Already at destination.");
+                _destination = null;
                 return;
+            }
             
             // Otherwise setup path to the new destination             
             FindPathToPosition((Vector3)value, false);
@@ -142,14 +160,18 @@ public abstract class NPCBrain : Brain
     protected void FindPathToPosition(Vector3 position) { FindPathToPosition(position, false); }  
     protected void FindPathToPosition(Vector3 position, bool addToCurrentPath)
     {
+        // Clear up current path
+        _navMeshNextPosition = null;
         _isNavMeshPositionFinal = false;
         _isArrivedAtDestination = false;
+
         _navMeshPathToDestination = new NavMeshPath();
         if (NavMesh.CalculatePath(transform.position, position, NavMesh.AllAreas, _navMeshPathToDestination))
         {
             _navMeshNextPositionIndex = 1;
             _navMeshNextPosition = _navMeshPathToDestination.corners[_navMeshNextPositionIndex];
             _destination = _navMeshPathToDestination.corners[_navMeshPathToDestination.corners.Length - 1];
+            debugPoints = _navMeshPathToDestination.corners;
         }
         else
         {
@@ -162,7 +184,7 @@ public abstract class NPCBrain : Brain
     public Vector3 directionToDestination { get { return ((Vector3)_destination - transform.position).normalized; } }
     public Vector3 DirectionToPosition(Vector3 position) { return (position - transform.position).normalized; }
     public bool CheckAtPosition(Vector3 position) { return CheckAtPosition(position, 0.01f); }
-    public bool CheckAtPosition(Vector3 position, float bias) { return Helpers.InRadius(transform.position, position, bias); }
+    public bool CheckAtPosition(Vector3 position, float bias) { return Helpers.InRadiusGrounded(transform.position, position, bias); }
     
     protected override void Awake()
     {
@@ -224,44 +246,43 @@ public abstract class NPCBrain : Brain
         }
     }
 
-
+      
     protected override void Update()
-    {
+    {               
         if (_destination != null && _navMeshNextPosition != null)
         {
             // Is this the final destination, or just another position along the path?
-            Vector3 nextPosition = _isNavMeshPositionFinal ? (Vector3)_destination : (Vector3)_navMeshNextPosition;
+            //Vector3 nextPosition = _isNavMeshPositionFinal ? (Vector3)_destination : (Vector3)_navMeshNextPosition;
+            Vector3 nextPosition = (Vector3)_navMeshNextPosition;
 
             // Check if at this position and fire off appropriate delegate
             if (CheckAtPosition(nextPosition, _destinationBias))
             {
                 if (_isNavMeshPositionFinal)
-                {
+                {                    
                     if (onArrivedAtDestination != null)
                         onArrivedAtDestination();
                 }
                 else
                 {
+                    //print("point " + _navMeshNextPositionIndex);
                     if (onArrivedAtNavMeshPosition != null)
                         onArrivedAtNavMeshPosition();
                 }
             }
             else
             {
-                agent.SetDesiredVelocity(DirectionToPosition(nextPosition) * agent.properties.speed.max, true); //This is limiting to have here because AI speed can change depending on behaviour
-
-                // Moodie: The below is not needed anymore since the rotation is handled automatically in agent now.
-
-                //agent.RotateToVelocityDirection(agent.properties.speed.max);
-                // hacky & temp :)
-               // agent.currentRotation = Quaternion.LookRotation(DirectionToPosition(nextPosition));
-
-                //agent.SetDesiredRotation(DirectionToPosition(nextPosition));
+                _desiredMoveDirection = DirectionToPosition(nextPosition);
+                base.MoveAgent();                
             }
             
         }
         base.Update();
+
     }
+
+
+
 
     //Patrol Logic
     public void Patrol()
@@ -350,11 +371,13 @@ public abstract class NPCBrain : Brain
             Gizmos.color = Color.yellow;
             if (_destination != null)
             {
-                Gizmos.DrawLine(transform.position, (Vector3)_destination);
+                //Gizmos.DrawLine(transform.position, (Vector3)_destination);
                 Helpers.GizmoDrawRing((Vector3)_destination, _destinationBias);
             }
-            if(_navMeshNextPosition != null)
-                Gizmos.DrawLine(transform.position, (Vector3)_navMeshNextPosition);
+
+            Gizmos.color = Color.cyan;
+            if (_navMeshNextPosition != null)
+                Gizmos.DrawLine(transform.position + Vector3.up, (Vector3)_navMeshNextPosition);
 
             if (_navMeshPathToDestination != null)
             {
@@ -364,10 +387,12 @@ public abstract class NPCBrain : Brain
                 {
                     if ((i + 1) < p.corners.Length)
                         Gizmos.DrawLine(p.corners[i], p.corners[i + 1]);
-                    Gizmos.DrawWireSphere(p.corners[i], 0.25f);
+                    Helpers.GizmoDrawRing(p.corners[i], _destinationBias);
                 }
             }
         }
+
+
 
         if(ShowGizmoz)
         {
@@ -399,4 +424,4 @@ public abstract class NPCBrain : Brain
             Handles.DrawLine(t.position + Vector3.Reflect(v, t.right), t.position);
         }
     }
-}
+  }

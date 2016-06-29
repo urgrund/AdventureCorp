@@ -3,9 +3,8 @@ using System.Collections;
 
 [RequireComponent(typeof(CharacterController))]
 public class Agent : MonoBehaviour
-{
-    [HideInInspector]
-    public Brain brain;
+{    
+    private Brain _brain;
 
     private CharacterController _controller;
     public CharacterController controller {  get { return _controller; } }
@@ -53,13 +52,13 @@ public class Agent : MonoBehaviour
         else
             Debug.LogError(name.ToString() + " has no animation properties.");
 
-        brain = GetComponent<Brain>();
+        //brain = GetComponent<Brain>();
         _controller = GetComponent<CharacterController>();
 
-        if (brain)
-            PlugBrain(brain);
-        else
-            Debug.LogError("There is no Brain attached on me, how am I supposed to function?");
+        //if (brain)
+          //  PlugBrain(brain);
+        //else
+          //  Debug.LogError("There is no Brain attached on me, how am I supposed to function?");
     }
 
     void Update()
@@ -116,10 +115,9 @@ public class Agent : MonoBehaviour
         _isBrainSetVelocityThisFrame = false;
     }
 
-	public void PlugBrain(Brain b)
+	public void PlugBrain(Brain brain)
     {
-        brain = b;
-        b.agent = this;
+        this._brain = brain;        
     }
 
     private void Rotate(Quaternion rotation)

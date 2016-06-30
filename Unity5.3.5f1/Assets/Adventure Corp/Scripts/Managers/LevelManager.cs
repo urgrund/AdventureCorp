@@ -5,7 +5,19 @@ using System.Collections.Generic;
 public class LevelManager : MonoBehaviour
 {
     private static LevelManager _instance = null; // LevelManager is a singleton
-    public static LevelManager instance { get { return _instance; } }
+
+    
+    public static LevelManager instance
+    {
+        get
+        {
+            if (_instance == null)
+            {
+                ; ;
+            }
+            return _instance;
+        }
+    }
 
     private List<Health> _healthObjects = new List<Health>(); // All objects with a health script are found here
     public static List<Health> healthObjects{ get { return _instance._healthObjects; } }

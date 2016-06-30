@@ -8,6 +8,9 @@ using UnityEditor;
 public class ModelImportProcessing : AssetPostprocessor
 {
 
+    static readonly string MAX_FILE_STRING = "_MAX_";
+
+
     void OnPreprocessModel()
     {
         ModelImporter i = (assetImporter as ModelImporter);
@@ -19,10 +22,27 @@ public class ModelImportProcessing : AssetPostprocessor
             //i.generateAnimations = ModelImporterGenerateAnimations.None;
             //i.meshCompression = ModelImporterMeshCompression.High;
             i.importMaterials = false;
+            i.importAnimation = false;
             i.swapUVChannels = false;
         }
 
-        CheckForAnimations(i);
+        // Settings to import models from 3dsMax
+        if (assetPath.Contains(MAX_FILE_STRING))
+        {
+            i.importMaterials = true;
+            i.materialName = ModelImporterMaterialName.BasedOnMaterialName;
+            i.materialSearch = ModelImporterMaterialSearch.Everywhere;
+
+            i.importAnimation = false;
+            i.animationType = ModelImporterAnimationType.None;
+            i.meshCompression = ModelImporterMeshCompression.High;            
+        }
+        else
+        {
+            i.importAnimation = true;
+            i.importMaterials = false;
+            CheckForAnimations(i);
+        }
     }
 
 
@@ -103,12 +123,56 @@ public class ModelImportProcessing : AssetPostprocessor
 
 
 
+    void ScaleMesh(Mesh m, float scaleFactor)
+    {
+
+        Vector3[] baseVertices = m.vertices;
+        Vector3[] vertices = new Vector3[baseVertices.Length];
+
+        for (int i = 0; i < vertices.Length; i++)
+            vertices[i] = Vector3.Scale(baseVertices[i], Vector3.one * scaleFactor);
+
+        m.vertices = vertices;
+        m.RecalculateBounds();
+        
+        //       var scale = 1.0;
+        //       var recalculateNormals = false;
+
+
+        //private var baseVertices : Vector3[];
+
+
+        //function Update()
+        //   {
+        //       var mesh : Mesh = GetComponent(MeshFilter).mesh;
+
+        //       if (baseVertices == null)
+        //           baseVertices = mesh.vertices;
+
+        //       var vertices = new Vector3[baseVertices.Length];
+
+        //       for (var i = 0; i < vertices.Length; i++)
+        //       {
+        //           var vertex = baseVertices[i];
+        //           vertex.x = vertex.x * scale;
+        //           vertex.y = vertex.y * scale;
+        //           vertex.z = vertex.z * scale;
+
+        //           vertices[i] = vertex;
+        //       }
+
+        //       mesh.vertices = vertices;
+
+        //       if (recalculateNormals)
+        //           mesh.RecalculateNormals();
+        //       mesh.RecalculateBounds();
+    }
 
 
     void OnPostprocessModel(GameObject gameObject)
     {
-        // sets scale and rotation 
-        gameObject.transform.localScale = Vector3.one;
+        // sets scale 
+        // gameObject.transform.localScale = Vector3.one;
 
         // 2016 Matt - just let it be -90 as it became an ongoing battle with
         // Unity rotating and 3dsMax not, and making sure import/export of 
@@ -116,7 +180,39 @@ public class ModelImportProcessing : AssetPostprocessor
         //gameObject.transform.rotation = Quaternion.Euler(0, 0, 0);
 
 
-        // Materials
+
+        // Some hacking with scale.
+        // It is so damn annoying that 'scale factor' in the importer
+        // just adds a soft scaling to the gameobject.  The below code
+        // literally scales the mesh vertices so that we can just sanely
+        // have 1 : 1 units from Max/Unity
+        float scaleFactor = 0.0254f;
+        if (gameObject.name.Contains(MAX_FILE_STRING))
+        {
+            foreach (MeshFilter mf in gameObject.GetComponents<MeshFilter>())
+            {
+                Debug.Log("Scaling for " + mf.name);
+                ScaleMesh(mf.sharedMesh, scaleFactor);
+            }
+            foreach (MeshFilter mf in gameObject.GetComponentsInChildren<MeshFilter>())
+            {
+                Debug.Log("Scaling for " + mf.name);
+                ScaleMesh(mf.sharedMesh, scaleFactor);
+            }
+        }
+            
+
+        GameObject.DestroyImmediate(gameObject.GetComponent<Animator>());
+        if (gameObject.GetComponent<Animation>() == null)
+            gameObject.AddComponent<Animation>();
+    }
+}
+
+
+
+/*
+ 
+   // Materials
         // For each material, find it's 'real' name then see if it exists in 
         // resources and set this as the material        
         if (gameObject.transform.GetComponent(typeof(Renderer)) != null)
@@ -136,13 +232,4 @@ public class ModelImportProcessing : AssetPostprocessor
                 gameObject.transform.GetComponent<Renderer>().sharedMaterials = mats;
             }
         }
-
-        GameObject.DestroyImmediate(gameObject.GetComponent<Animator>());
-
-        if (gameObject.GetComponent<Animation>() == null)
-            gameObject.AddComponent<Animation>();
-    }
-}
-
-
-
+*/

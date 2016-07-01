@@ -148,6 +148,13 @@ public static class Helpers
     }
 
 
+    public static void ParentAndCenterOnTransform(Transform transform, Transform parent)
+    {
+        transform.position = parent.position;
+        transform.rotation = parent.rotation;
+        transform.parent = parent;
+    }
+
     /// <summary>
     /// Instantiates a prefab and parents it to another with the option to 
     /// snap it to the same position and rotation

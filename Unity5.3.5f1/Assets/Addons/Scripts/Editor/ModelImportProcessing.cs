@@ -66,12 +66,12 @@ public class ModelImportProcessing : AssetPostprocessor
             //Debug.Log(AssetDatabase.GetAssetPath(t));
             //Debug.Log(testPath.Equals(AssetDatabase.GetAssetPath(t).ToString()));
             //Debug.Log(AssetDatabase.GetAssetPath(t) == testPath);
-            //Debug.Log(string.Compare(AssetDatabase.GetAssetPath(t), testPath) == 0);
-
+            //Debug.Log(string.Compare(AssetDatabase.GetAssetPath(t), testPath) == 0);            
+            
             if (AssetDatabase.GetAssetPath(t).Equals(testPath))
-            {
-                //Debug.Log("Found! " + t.name);
+            {                
                 assetImporter.clipAnimations = ExtractAnimsFromTxt(t.text).ToArray();
+                Debug.Log("Imported " + t.name + " with " + assetImporter.clipAnimations.Length + " animations.");
                 break;
             }
         }
@@ -98,22 +98,44 @@ public class ModelImportProcessing : AssetPostprocessor
         // start and end times, and a string for name
         foreach (string s in validFrames)
         {
+            bool isClipLooping = false; 
+
             string[] elements = s.Split(null);
             string[] times = elements[1].Split(new char[] { '-', ':' });  //('-');
+
+            // Get the clip name
+            // Clean out white space and capitalize each
+            // word for presentation sake in Project view
+            // Also find out if this is a looping clip
+            string clipName = "";
+            for (int i = 2; i < elements.Length; i++)
+            {
+                string e = elements[i].Trim();
+                if (e.Equals("(loop)"))
+                {
+                    isClipLooping = true;
+                    continue;
+                }
+                if (e == "")
+                    continue;
+                
+                e = char.ToUpper(e[0]) + e.Substring(1);
+                clipName = string.Concat(clipName, e);                
+            }
+            //Debug.Log(clipName);
+
+            // Start & End times of the clip
             int start, end;
-
-            //for(int i=0; i<times.Length;i++)
-
             start = int.Parse(times[0]);
             end = int.Parse(times[1]);
 
-            Debug.Log("Name " + elements[2]);
-            Debug.Log("s " + start + "   e " + end);
+            //Debug.Log("Name: " + clipName + "    s:" + start + "   e:" + end);
 
             ModelImporterClipAnimation c = new ModelImporterClipAnimation();
             c.firstFrame = start;
             c.lastFrame = end;
-            c.name = elements[2];
+            c.name = clipName;
+            c.loop = isClipLooping;
             clips.Add(c);
         }
 
@@ -134,38 +156,6 @@ public class ModelImportProcessing : AssetPostprocessor
 
         m.vertices = vertices;
         m.RecalculateBounds();
-        
-        //       var scale = 1.0;
-        //       var recalculateNormals = false;
-
-
-        //private var baseVertices : Vector3[];
-
-
-        //function Update()
-        //   {
-        //       var mesh : Mesh = GetComponent(MeshFilter).mesh;
-
-        //       if (baseVertices == null)
-        //           baseVertices = mesh.vertices;
-
-        //       var vertices = new Vector3[baseVertices.Length];
-
-        //       for (var i = 0; i < vertices.Length; i++)
-        //       {
-        //           var vertex = baseVertices[i];
-        //           vertex.x = vertex.x * scale;
-        //           vertex.y = vertex.y * scale;
-        //           vertex.z = vertex.z * scale;
-
-        //           vertices[i] = vertex;
-        //       }
-
-        //       mesh.vertices = vertices;
-
-        //       if (recalculateNormals)
-        //           mesh.RecalculateNormals();
-        //       mesh.RecalculateBounds();
     }
 
 
@@ -191,12 +181,12 @@ public class ModelImportProcessing : AssetPostprocessor
         {
             foreach (MeshFilter mf in gameObject.GetComponents<MeshFilter>())
             {
-                Debug.Log("Scaling for " + mf.name);
+               // Debug.Log("Scaling for " + mf.name);
                 ScaleMesh(mf.sharedMesh, scaleFactor);
             }
             foreach (MeshFilter mf in gameObject.GetComponentsInChildren<MeshFilter>())
             {
-                Debug.Log("Scaling for " + mf.name);
+                //Debug.Log("Scaling for " + mf.name);
                 ScaleMesh(mf.sharedMesh, scaleFactor);
             }
         }

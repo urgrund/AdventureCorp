@@ -142,7 +142,7 @@ public abstract class NPCBrain : Brain
             // If already there, exit
             if (CheckAtPosition((Vector3)value, _destinationBias))
             {
-                print("Already at destination.");
+                //print("Already at destination.");
                 _destination = null;
                 return;
             }

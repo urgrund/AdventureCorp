@@ -163,6 +163,31 @@ ModelImporter:
     7400046: swing
     7400048: swing
     7400050: walk
+    7400052: Backpedal
+    7400054: Death
+    7400056: DefaultAttack
+    7400058: GetHitFromBack
+    7400060: GetHitFromFront
+    7400062: GetHitFromLeft
+    7400064: GetHitFromRight
+    7400066: Idle
+    7400068: Jump
+    7400070: Push
+    7400072: Roar
+    7400074: Run
+    7400076: ShoulderBash
+    7400078: ShuffleLeft
+    7400080: ShuffleRight
+    7400082: Slam
+    7400084: Spawn
+    7400086: Spin
+    7400088: Spin2
+    7400090: StrafeLeft
+    7400092: StrafeRight
+    7400094: SwingStart
+    7400096: Swing
+    7400098: SwingEnd
+    7400100: Walk
     11100000: //RootNode
     13700000: chain_n_ball
     13700002: skeleton_grunt
@@ -188,7 +213,7 @@ ModelImporter:
     extraExposedTransformPaths: []
     clipAnimations:
     - serializedVersion: 16
-      name: backpedal
+      name: Backpedal
       takeName: 
       firstFrame: 30
       lastFrame: 59
@@ -196,7 +221,7 @@ ModelImporter:
       orientationOffsetY: 0
       level: 0
       cycleOffset: 0
-      loop: 0
+      loop: 1
       hasAdditiveReferencePose: 0
       loopTime: 0
       loopBlend: 0
@@ -216,7 +241,7 @@ ModelImporter:
       maskSource: {instanceID: 0}
       additiveReferencePoseFrame: 0
     - serializedVersion: 16
-      name: death
+      name: Death
       takeName: 
       firstFrame: 90
       lastFrame: 119
@@ -244,7 +269,7 @@ ModelImporter:
       maskSource: {instanceID: 0}
       additiveReferencePoseFrame: 0
     - serializedVersion: 16
-      name: default
+      name: DefaultAttack
       takeName: 
       firstFrame: 125
       lastFrame: 204
@@ -272,7 +297,7 @@ ModelImporter:
       maskSource: {instanceID: 0}
       additiveReferencePoseFrame: 0
     - serializedVersion: 16
-      name: get
+      name: GetHitFromBack
       takeName: 
       firstFrame: 210
       lastFrame: 239
@@ -300,7 +325,7 @@ ModelImporter:
       maskSource: {instanceID: 0}
       additiveReferencePoseFrame: 0
     - serializedVersion: 16
-      name: get
+      name: GetHitFromFront
       takeName: 
       firstFrame: 240
       lastFrame: 269
@@ -328,7 +353,7 @@ ModelImporter:
       maskSource: {instanceID: 0}
       additiveReferencePoseFrame: 0
     - serializedVersion: 16
-      name: get
+      name: GetHitFromLeft
       takeName: 
       firstFrame: 270
       lastFrame: 299
@@ -356,7 +381,7 @@ ModelImporter:
       maskSource: {instanceID: 0}
       additiveReferencePoseFrame: 0
     - serializedVersion: 16
-      name: get
+      name: GetHitFromRight
       takeName: 
       firstFrame: 300
       lastFrame: 329
@@ -384,15 +409,15 @@ ModelImporter:
       maskSource: {instanceID: 0}
       additiveReferencePoseFrame: 0
     - serializedVersion: 16
-      name: idle
+      name: Idle
       takeName: 
       firstFrame: 379
       lastFrame: 428
-      wrapMode: 2
+      wrapMode: 0
       orientationOffsetY: 0
       level: 0
       cycleOffset: 0
-      loop: 0
+      loop: 1
       hasAdditiveReferencePose: 0
       loopTime: 0
       loopBlend: 0
@@ -412,7 +437,7 @@ ModelImporter:
       maskSource: {instanceID: 0}
       additiveReferencePoseFrame: 0
     - serializedVersion: 16
-      name: jump
+      name: Jump
       takeName: 
       firstFrame: 480
       lastFrame: 529
@@ -440,7 +465,7 @@ ModelImporter:
       maskSource: {instanceID: 0}
       additiveReferencePoseFrame: 0
     - serializedVersion: 16
-      name: push
+      name: Push
       takeName: 
       firstFrame: 530
       lastFrame: 574
@@ -468,7 +493,7 @@ ModelImporter:
       maskSource: {instanceID: 0}
       additiveReferencePoseFrame: 0
     - serializedVersion: 16
-      name: roar
+      name: Roar
       takeName: 
       firstFrame: 575
       lastFrame: 614
@@ -496,15 +521,15 @@ ModelImporter:
       maskSource: {instanceID: 0}
       additiveReferencePoseFrame: 0
     - serializedVersion: 16
-      name: run
+      name: Run
       takeName: 
       firstFrame: 638
       lastFrame: 661
-      wrapMode: 2
+      wrapMode: 0
       orientationOffsetY: 0
       level: 0
       cycleOffset: 0
-      loop: 0
+      loop: 1
       hasAdditiveReferencePose: 0
       loopTime: 0
       loopBlend: 0
@@ -524,7 +549,7 @@ ModelImporter:
       maskSource: {instanceID: 0}
       additiveReferencePoseFrame: 0
     - serializedVersion: 16
-      name: shoulder
+      name: ShoulderBash
       takeName: 
       firstFrame: 685
       lastFrame: 734
@@ -552,7 +577,7 @@ ModelImporter:
       maskSource: {instanceID: 0}
       additiveReferencePoseFrame: 0
     - serializedVersion: 16
-      name: shuffle
+      name: ShuffleLeft
       takeName: 
       firstFrame: 754
       lastFrame: 773
@@ -560,7 +585,7 @@ ModelImporter:
       orientationOffsetY: 0
       level: 0
       cycleOffset: 0
-      loop: 0
+      loop: 1
       hasAdditiveReferencePose: 0
       loopTime: 0
       loopBlend: 0
@@ -580,7 +605,7 @@ ModelImporter:
       maskSource: {instanceID: 0}
       additiveReferencePoseFrame: 0
     - serializedVersion: 16
-      name: shuffle
+      name: ShuffleRight
       takeName: 
       firstFrame: 814
       lastFrame: 833
@@ -588,7 +613,7 @@ ModelImporter:
       orientationOffsetY: 0
       level: 0
       cycleOffset: 0
-      loop: 0
+      loop: 1
       hasAdditiveReferencePose: 0
       loopTime: 0
       loopBlend: 0
@@ -608,7 +633,7 @@ ModelImporter:
       maskSource: {instanceID: 0}
       additiveReferencePoseFrame: 0
     - serializedVersion: 16
-      name: slam
+      name: Slam
       takeName: 
       firstFrame: 855
       lastFrame: 954
@@ -636,7 +661,7 @@ ModelImporter:
       maskSource: {instanceID: 0}
       additiveReferencePoseFrame: 0
     - serializedVersion: 16
-      name: spawn
+      name: Spawn
       takeName: 
       firstFrame: 955
       lastFrame: 1069
@@ -664,7 +689,7 @@ ModelImporter:
       maskSource: {instanceID: 0}
       additiveReferencePoseFrame: 0
     - serializedVersion: 16
-      name: spin
+      name: Spin
       takeName: 
       firstFrame: 1070
       lastFrame: 1159
@@ -692,7 +717,7 @@ ModelImporter:
       maskSource: {instanceID: 0}
       additiveReferencePoseFrame: 0
     - serializedVersion: 16
-      name: spin2
+      name: Spin2
       takeName: 
       firstFrame: 1160
       lastFrame: 1249
@@ -720,7 +745,7 @@ ModelImporter:
       maskSource: {instanceID: 0}
       additiveReferencePoseFrame: 0
     - serializedVersion: 16
-      name: strafe
+      name: StrafeLeft
       takeName: 
       firstFrame: 1279
       lastFrame: 1308
@@ -728,7 +753,7 @@ ModelImporter:
       orientationOffsetY: 0
       level: 0
       cycleOffset: 0
-      loop: 0
+      loop: 1
       hasAdditiveReferencePose: 0
       loopTime: 0
       loopBlend: 0
@@ -748,7 +773,7 @@ ModelImporter:
       maskSource: {instanceID: 0}
       additiveReferencePoseFrame: 0
     - serializedVersion: 16
-      name: strafe
+      name: StrafeRight
       takeName: 
       firstFrame: 1369
       lastFrame: 1398
@@ -756,7 +781,7 @@ ModelImporter:
       orientationOffsetY: 0
       level: 0
       cycleOffset: 0
-      loop: 0
+      loop: 1
       hasAdditiveReferencePose: 0
       loopTime: 0
       loopBlend: 0
@@ -776,7 +801,7 @@ ModelImporter:
       maskSource: {instanceID: 0}
       additiveReferencePoseFrame: 0
     - serializedVersion: 16
-      name: swing
+      name: SwingStart
       takeName: 
       firstFrame: 1430
       lastFrame: 1454
@@ -804,7 +829,7 @@ ModelImporter:
       maskSource: {instanceID: 0}
       additiveReferencePoseFrame: 0
     - serializedVersion: 16
-      name: swing
+      name: Swing
       takeName: 
       firstFrame: 1473
       lastFrame: 1492
@@ -812,7 +837,7 @@ ModelImporter:
       orientationOffsetY: 0
       level: 0
       cycleOffset: 0
-      loop: 0
+      loop: 1
       hasAdditiveReferencePose: 0
       loopTime: 0
       loopBlend: 0
@@ -832,7 +857,7 @@ ModelImporter:
       maskSource: {instanceID: 0}
       additiveReferencePoseFrame: 0
     - serializedVersion: 16
-      name: swing
+      name: SwingEnd
       takeName: 
       firstFrame: 1511
       lastFrame: 1597
@@ -860,15 +885,15 @@ ModelImporter:
       maskSource: {instanceID: 0}
       additiveReferencePoseFrame: 0
     - serializedVersion: 16
-      name: walk
+      name: Walk
       takeName: 
       firstFrame: 1629
       lastFrame: 1658
-      wrapMode: 2
+      wrapMode: 0
       orientationOffsetY: 0
       level: 0
       cycleOffset: 0
-      loop: 0
+      loop: 1
       hasAdditiveReferencePose: 0
       loopTime: 0
       loopBlend: 0

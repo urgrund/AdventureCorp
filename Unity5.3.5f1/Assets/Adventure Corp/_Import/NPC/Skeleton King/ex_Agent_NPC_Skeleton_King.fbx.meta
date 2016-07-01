@@ -185,6 +185,25 @@ ModelImporter:
     7400034: backpedal
     7400036: spawn
     7400038: death
+    7400040: Idle
+    7400042: HitLeft
+    7400044: HitRight
+    7400046: HitBack
+    7400048: TurnLeft
+    7400050: TurnRight
+    7400052: StrafeRight
+    7400054: StrafeLeft
+    7400056: Jump
+    7400058: Attack1
+    7400060: Attack2
+    7400062: RaiseDeadStart
+    7400064: RaiseDead
+    7400066: RaiseDeadEnd
+    7400068: Walk
+    7400070: Run
+    7400072: Backpedal
+    7400074: Spawn
+    7400076: Death
     11100000: //RootNode
     13700000: alpha
     13700002: king
@@ -199,23 +218,7 @@ ModelImporter:
     optimizeGameObjects: 0
     motionNodeName: 
     animationImportErrors: 
-    animationImportWarnings: "\nInbetween bone default rotation found in this file
-      is different from the one found in the source avatar:\n\t'Character1_Neck' :
-      rotation error = 15.476771 deg\n\nClip 'Take 001' has import animation warnings
-      that might lower retargeting quality:\nNote: Activate translation DOF on avatar
-      to improve retargeting quality.\n\t'Character1_LeftUpLeg' has translation animation
-      that will be discarded.\n\t'Character1_LeftFoot' has translation animation that
-      will be discarded.\n\t'Character1_RightUpLeg' has translation animation that
-      will be discarded.\n\t'Character1_RightFoot' has translation animation that
-      will be discarded.\n\t'Character1_Spine' has translation animation that will
-      be discarded.\n\t'Character1_Spine1' has translation animation that will be
-      discarded.\n\t'Character1_LeftShoulder' has translation animation that will
-      be discarded.\n\t'Character1_LeftArm' has translation animation that will be
-      discarded.\n\t'Character1_LeftHandThumb1' has translation animation that will
-      be discarded.\n\t'Character1_RightShoulder' has translation animation that will
-      be discarded.\n\t'Character1_Neck' has translation animation that will be discarded.\n\t'Character1_Neck'
-      is inbetween humanoid transforms and has rotation animation that will be discarded.\n\t'Character1_Head'
-      has translation animation that will be discarded.\n"
+    animationImportWarnings: 
     animationRetargetingWarnings: 
     animationDoRetargetingWarnings: 0
     animationCompression: 3
@@ -226,7 +229,7 @@ ModelImporter:
     extraExposedTransformPaths: []
     clipAnimations:
     - serializedVersion: 16
-      name: idle
+      name: Idle
       takeName: 
       firstFrame: 60
       lastFrame: 119
@@ -234,9 +237,9 @@ ModelImporter:
       orientationOffsetY: 0
       level: 0
       cycleOffset: 0
-      loop: 0
+      loop: 1
       hasAdditiveReferencePose: 0
-      loopTime: 1
+      loopTime: 0
       loopBlend: 0
       loopBlendOrientation: 0
       loopBlendPositionY: 0
@@ -252,9 +255,9 @@ ModelImporter:
       transformMask: []
       maskType: 0
       maskSource: {instanceID: 0}
-      additiveReferencePoseFrame: 0.9
+      additiveReferencePoseFrame: 0
     - serializedVersion: 16
-      name: hit
+      name: HitLeft
       takeName: 
       firstFrame: 178
       lastFrame: 207
@@ -282,7 +285,7 @@ ModelImporter:
       maskSource: {instanceID: 0}
       additiveReferencePoseFrame: 0
     - serializedVersion: 16
-      name: hit
+      name: HitRight
       takeName: 
       firstFrame: 207
       lastFrame: 236
@@ -310,7 +313,7 @@ ModelImporter:
       maskSource: {instanceID: 0}
       additiveReferencePoseFrame: 0
     - serializedVersion: 16
-      name: hit
+      name: HitBack
       takeName: 
       firstFrame: 236
       lastFrame: 265
@@ -338,7 +341,7 @@ ModelImporter:
       maskSource: {instanceID: 0}
       additiveReferencePoseFrame: 0
     - serializedVersion: 16
-      name: turn
+      name: TurnLeft
       takeName: 
       firstFrame: 294
       lastFrame: 323
@@ -346,7 +349,7 @@ ModelImporter:
       orientationOffsetY: 0
       level: 0
       cycleOffset: 0
-      loop: 0
+      loop: 1
       hasAdditiveReferencePose: 0
       loopTime: 0
       loopBlend: 0
@@ -366,7 +369,7 @@ ModelImporter:
       maskSource: {instanceID: 0}
       additiveReferencePoseFrame: 0
     - serializedVersion: 16
-      name: turn
+      name: TurnRight
       takeName: 
       firstFrame: 381
       lastFrame: 410
@@ -374,7 +377,7 @@ ModelImporter:
       orientationOffsetY: 0
       level: 0
       cycleOffset: 0
-      loop: 0
+      loop: 1
       hasAdditiveReferencePose: 0
       loopTime: 0
       loopBlend: 0
@@ -394,7 +397,7 @@ ModelImporter:
       maskSource: {instanceID: 0}
       additiveReferencePoseFrame: 0
     - serializedVersion: 16
-      name: strafe
+      name: StrafeRight
       takeName: 
       firstFrame: 468
       lastFrame: 497
@@ -402,7 +405,7 @@ ModelImporter:
       orientationOffsetY: 0
       level: 0
       cycleOffset: 0
-      loop: 0
+      loop: 1
       hasAdditiveReferencePose: 0
       loopTime: 0
       loopBlend: 0
@@ -422,7 +425,7 @@ ModelImporter:
       maskSource: {instanceID: 0}
       additiveReferencePoseFrame: 0
     - serializedVersion: 16
-      name: strafe
+      name: StrafeLeft
       takeName: 
       firstFrame: 555
       lastFrame: 584
@@ -430,7 +433,7 @@ ModelImporter:
       orientationOffsetY: 0
       level: 0
       cycleOffset: 0
-      loop: 0
+      loop: 1
       hasAdditiveReferencePose: 0
       loopTime: 0
       loopBlend: 0
@@ -450,7 +453,7 @@ ModelImporter:
       maskSource: {instanceID: 0}
       additiveReferencePoseFrame: 0
     - serializedVersion: 16
-      name: jump
+      name: Jump
       takeName: 
       firstFrame: 613
       lastFrame: 647
@@ -478,7 +481,7 @@ ModelImporter:
       maskSource: {instanceID: 0}
       additiveReferencePoseFrame: 0
     - serializedVersion: 16
-      name: attack
+      name: Attack1
       takeName: 
       firstFrame: 647
       lastFrame: 699
@@ -506,7 +509,7 @@ ModelImporter:
       maskSource: {instanceID: 0}
       additiveReferencePoseFrame: 0
     - serializedVersion: 16
-      name: attack
+      name: Attack2
       takeName: 
       firstFrame: 699
       lastFrame: 752
@@ -534,7 +537,7 @@ ModelImporter:
       maskSource: {instanceID: 0}
       additiveReferencePoseFrame: 0
     - serializedVersion: 16
-      name: raise
+      name: RaiseDeadStart
       takeName: 
       firstFrame: 752
       lastFrame: 783
@@ -562,7 +565,7 @@ ModelImporter:
       maskSource: {instanceID: 0}
       additiveReferencePoseFrame: 0
     - serializedVersion: 16
-      name: raise
+      name: RaiseDead
       takeName: 
       firstFrame: 825
       lastFrame: 867
@@ -570,7 +573,7 @@ ModelImporter:
       orientationOffsetY: 0
       level: 0
       cycleOffset: 0
-      loop: 0
+      loop: 1
       hasAdditiveReferencePose: 0
       loopTime: 0
       loopBlend: 0
@@ -590,7 +593,7 @@ ModelImporter:
       maskSource: {instanceID: 0}
       additiveReferencePoseFrame: 0
     - serializedVersion: 16
-      name: raise
+      name: RaiseDeadEnd
       takeName: 
       firstFrame: 909
       lastFrame: 934
@@ -618,7 +621,7 @@ ModelImporter:
       maskSource: {instanceID: 0}
       additiveReferencePoseFrame: 0
     - serializedVersion: 16
-      name: walk
+      name: Walk
       takeName: 
       firstFrame: 983
       lastFrame: 1032
@@ -626,63 +629,7 @@ ModelImporter:
       orientationOffsetY: 0
       level: 0
       cycleOffset: 0
-      loop: 0
-      hasAdditiveReferencePose: 0
-      loopTime: 1
-      loopBlend: 0
-      loopBlendOrientation: 0
-      loopBlendPositionY: 0
-      loopBlendPositionXZ: 0
-      keepOriginalOrientation: 0
-      keepOriginalPositionY: 0
-      keepOriginalPositionXZ: 0
-      heightFromFeet: 0
-      mirror: 0
-      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
-      curves: []
-      events: []
-      transformMask: []
-      maskType: 0
-      maskSource: {instanceID: 0}
-      additiveReferencePoseFrame: 0.9
-    - serializedVersion: 16
-      name: run
-      takeName: 
-      firstFrame: 1110
-      lastFrame: 1139
-      wrapMode: 0
-      orientationOffsetY: 0
-      level: 0
-      cycleOffset: 0
-      loop: 0
-      hasAdditiveReferencePose: 0
-      loopTime: 1
-      loopBlend: 0
-      loopBlendOrientation: 0
-      loopBlendPositionY: 0
-      loopBlendPositionXZ: 0
-      keepOriginalOrientation: 0
-      keepOriginalPositionY: 0
-      keepOriginalPositionXZ: 0
-      heightFromFeet: 0
-      mirror: 0
-      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
-      curves: []
-      events: []
-      transformMask: []
-      maskType: 0
-      maskSource: {instanceID: 0}
-      additiveReferencePoseFrame: 0.9
-    - serializedVersion: 16
-      name: backpedal
-      takeName: 
-      firstFrame: 1197
-      lastFrame: 1226
-      wrapMode: 0
-      orientationOffsetY: 0
-      level: 0
-      cycleOffset: 0
-      loop: 0
+      loop: 1
       hasAdditiveReferencePose: 0
       loopTime: 0
       loopBlend: 0
@@ -702,7 +649,63 @@ ModelImporter:
       maskSource: {instanceID: 0}
       additiveReferencePoseFrame: 0
     - serializedVersion: 16
-      name: spawn
+      name: Run
+      takeName: 
+      firstFrame: 1110
+      lastFrame: 1139
+      wrapMode: 0
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
+      loop: 1
+      hasAdditiveReferencePose: 0
+      loopTime: 0
+      loopBlend: 0
+      loopBlendOrientation: 0
+      loopBlendPositionY: 0
+      loopBlendPositionXZ: 0
+      keepOriginalOrientation: 0
+      keepOriginalPositionY: 0
+      keepOriginalPositionXZ: 0
+      heightFromFeet: 0
+      mirror: 0
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      events: []
+      transformMask: []
+      maskType: 0
+      maskSource: {instanceID: 0}
+      additiveReferencePoseFrame: 0
+    - serializedVersion: 16
+      name: Backpedal
+      takeName: 
+      firstFrame: 1197
+      lastFrame: 1226
+      wrapMode: 0
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
+      loop: 1
+      hasAdditiveReferencePose: 0
+      loopTime: 0
+      loopBlend: 0
+      loopBlendOrientation: 0
+      loopBlendPositionY: 0
+      loopBlendPositionXZ: 0
+      keepOriginalOrientation: 0
+      keepOriginalPositionY: 0
+      keepOriginalPositionXZ: 0
+      heightFromFeet: 0
+      mirror: 0
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      events: []
+      transformMask: []
+      maskType: 0
+      maskSource: {instanceID: 0}
+      additiveReferencePoseFrame: 0
+    - serializedVersion: 16
+      name: Spawn
       takeName: 
       firstFrame: 1254
       lastFrame: 1303
@@ -730,7 +733,7 @@ ModelImporter:
       maskSource: {instanceID: 0}
       additiveReferencePoseFrame: 0
     - serializedVersion: 16
-      name: death
+      name: Death
       takeName: 
       firstFrame: 1303
       lastFrame: 1377

@@ -1,5 +1,24 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
+
+public enum DamageType
+{
+    Generic,
+    Fire,
+    Ice
+}
+
+[System.Serializable]
+public class Damage
+{
+    public bool isActive = true;
+    public DamageType type= DamageType.Generic;
+    public int amount = 1;
+    public bool isDamageOverTime = false;
+    public float damageOverTimeFrequency = 1f;
+    public float damageOverTimeDuration = 10f;
+}
 
 public class Health : MonoBehaviour
 {
@@ -26,34 +45,51 @@ public class Health : MonoBehaviour
     public event OnHealthLost onHealthLost;
 
 
-    // TODO
-    // The 'attacker' could be a struct containing 
-    // attack info (who was it, whats the damage, etc)
-    // and the health component evaluates it
-    public void TakeDamage(int amount, GameObject attacker)
+    // Matt
+    // Idea for resistances here so its contained within a Health
+    [System.Serializable]
+    public class Resistance
     {
+        public DamageType type = DamageType.Generic;
+        public int resistance = 0;        
+    }
+    public List<Resistance> resistances = new List<Resistance>();
+    
+    
+    public void TakeDamage(Damage damage, GameObject attacker)
+    {        
+        if (damage.isDamageOverTime)
+            StartCoroutine(DamageOverTime(damage));          
+        else
+            ApplyDamageToHealth(damage);
+    }
+
+    void ApplyDamageToHealth(Damage damage)
+    {
+        // Already below zero
         if (currentHealth <= 0)
             return;
+
         // If invincible or no amount
-        if (invincible || amount == 0)
+        if (invincible || damage.amount == 0)
             return;
 
         _lastDamageTime = Time.time;
-        _lastDamageAmount = amount;
+        _lastDamageAmount = damage.amount;
 
         // Fire events
-        if (amount < 0)
+        if (damage.amount < 0)
         {
             if (onHealthGained != null)
-                onHealthGained(amount);
+                onHealthGained(damage.amount);
         }
         else
         {
             if (onHealthLost != null)
-                onHealthLost(amount);
+                onHealthLost(damage.amount);
         }
 
-        _currentHealth -= amount;
+        _currentHealth -= damage.amount;
 
         if (_currentHealth <= 0)
         {
@@ -71,6 +107,16 @@ public class Health : MonoBehaviour
         _currentHealth = startingHealth;
 
         LevelManager.Register(this);
+    }
+
+    IEnumerator DamageOverTime(Damage damage)
+    {
+        float t = Time.time;
+        while (Time.time - t < damage.damageOverTimeDuration)
+        {
+            ApplyDamageToHealth(damage);
+            yield return new WaitForSeconds(damage.damageOverTimeFrequency);
+        }
     }
 
     void OnDestroy()

@@ -11,7 +11,6 @@ public class NPCSkeletonSwordsmanMoodie : NPCBrain
 
     protected override void Update ()
     {
-        Patrol();
         base.Update();
 	}
 }

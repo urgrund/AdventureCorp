@@ -192,7 +192,6 @@ public abstract class NPCBrain : Brain
         onArrivedAtNavMeshPosition += OnArrivedAtNavMeshPosition;
 
         FindAllPotentialHostileTargets(); // Finds all potential hostile targets in scene and adds it to the array
-        FindMyPatrolPoints();
 
         base.Awake();
     }
@@ -218,19 +217,8 @@ public abstract class NPCBrain : Brain
         }
     }
 
-    public void FindMyPatrolPoints()
-    {
-        //TODO, maybe have a level manager decide on the patrol points instead of this
-        PatrolPoint[] p = FindObjectsOfType<PatrolPoint>() as PatrolPoint[];
-        for(int i = 0; i <p.Length; i++)
-        {
-            myPatrolPoints.Add(p[i]);
-        }
-    }
-
     void AddAllPlayersInSceneToPotentialHostileTargets()
     {
-    
         for (int i = 0; i < LevelManager.players.Count; i++)
         {
             potentialHostileTargets.Add(LevelManager.players[i].transform);
@@ -278,86 +266,6 @@ public abstract class NPCBrain : Brain
         }
         base.Update();
 
-    }
-
-
-
-
-    //Patrol Logic
-    public void Patrol()
-    {
-        //If patrol point exists set it as the destination
-        if (_currentPatrolPoint)
-            destination = _currentPatrolPoint.transform.position;
-        //If patrol point does not exist grab one
-        else
-        {
-            _currentPatrolPoint = GrabPatrolPoint();
-
-            //If no patrol point was found set your destination to your position otherwise set it to the patrol point
-            if (!_currentPatrolPoint)
-                destination = transform.position;
-            else
-                destination = _currentPatrolPoint.transform.position;
-        }
-
-        print(_isArrivedAtDestination);
-    }
-
-    List<PatrolPoint> _nonBusyPoints = new List<PatrolPoint>(); // All patrol points that are not occupied by AI
-    PatrolPoint _currentPatrolPoint; // My current patrol point
-    public PatrolPoint GrabPatrolPoint()
-    {
-        _nonBusyPoints.Clear(); //Clear all non busy patrol points
-
-        //If no patrol point exist in scene simply return null
-        if (myPatrolPoints.Count == 0)
-            return null;
-
-        //Grab all patrol points that are not busy and place them in the nonbusy patrol points
-        for (int i = 0; i < myPatrolPoints.Count; i++)
-        {
-            if (!myPatrolPoints[i].isBusy)
-                _nonBusyPoints.Add(myPatrolPoints[i]);
-        }
-
-        //If no nonbusy patrol points were found simply return my currentPatrolPoint or null if does not exist
-        if (_nonBusyPoints.Count == 0)
-        {
-            if (_currentPatrolPoint)
-                return _currentPatrolPoint;
-            else
-                return null;
-        }
-        //Otherwise pick a random patrol point and set the last patrol point status to false
-        else
-        {
-            if (_currentPatrolPoint)
-                _currentPatrolPoint.SetStatus(false);
-
-            int randomIndex = Random.Range(0, _nonBusyPoints.Count);
-
-            _currentPatrolPoint = _nonBusyPoints[randomIndex];
-            _currentPatrolPoint.SetStatus(true);
-        }
-
-        return _currentPatrolPoint;
-    }
-
-    //Clears the current patrol point by reseting status and nullifying it
-    public void ClearPatrolPoint()
-    {
-        if (_currentPatrolPoint)
-        {
-            _currentPatrolPoint.SetStatus(false);
-            _currentPatrolPoint = null;
-        }    
-    }
-
-    //Chase hostile target logic
-    public void ChaseHostileTarget()
-    {
-       
     }
 
     //------------------------------------------------------------------------------------------------------------------//

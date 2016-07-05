@@ -1,6 +1,5 @@
 ﻿using UnityEngine;
 
-//[System.Serializable]
 [CreateAssetMenu(fileName = "AP_Anim_Clip_Properties", menuName = "Adventure Corp/Animation Clip Properties")]
 public class AnimationClipProperties : ScriptableObject
 { 
@@ -9,5 +8,6 @@ public class AnimationClipProperties : ScriptableObject
     public float blendTime = 0.2f;
     public AnimationBlendMode blendMode = AnimationBlendMode.Blend;
     public PlayMode playMode = PlayMode.StopAll;
-    public Animation animatedGameObject;
+    //public Animation animatedGameObject;
+    public Agent agent;
 }

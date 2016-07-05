@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 
 [CreateAssetMenu(fileName = "ad_AttackDescriptor", menuName = "Adventure Corp/Attack Descriptor")]
 public class AttackDescriptor : ScriptableObject
@@ -10,5 +11,8 @@ public class AttackDescriptor : ScriptableObject
     public Vector2 validDamageRange = new Vector2(0.25f, 0.75f);
     public Damage damage;
 
-    public AnimationClipProperties clipProperties;
+    // Volumes that will be used for this attack
+    public List<AttackVolumeDescriptor> volumes = new List<AttackVolumeDescriptor>();
+
+    public AnimationClipProperties clipProperties;    
 }

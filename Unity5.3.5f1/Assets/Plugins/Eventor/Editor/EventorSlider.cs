@@ -212,7 +212,7 @@ public class EventorSlider
 		
 		
 		Handles.BeginGUI();
-		Handles.color = (job.isActive ? Color.yellow : Color.grey) * new Color(1,1,1,0.125f);
+		Handles.color = (job.isActive ? Color.blue : Color.grey) * new Color(1,1,1,0.5f);
 		Handles.DrawLine(
 			new Vector3(nodeRect.xMin, 0),
 			new Vector3(nodeRect.xMin,

@@ -6,7 +6,7 @@ public enum DamageType
     Generic,
     Fire,
     Ice,
-    Peircing
+    Piercing
 }
 
 

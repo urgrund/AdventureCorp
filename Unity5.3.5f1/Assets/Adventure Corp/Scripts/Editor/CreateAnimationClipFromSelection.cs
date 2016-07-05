@@ -48,7 +48,7 @@ public class CreateAnimationClipFromSelection
         {
             AnimationClipProperties p = ScriptableObject.CreateInstance<AnimationClipProperties>();
             p.clip = s.clip;
-            p.animatedGameObject = a;
+            //p.animatedGameObject = a;
 
             // Prepeare clip name
             string clipName = s.clip.name;

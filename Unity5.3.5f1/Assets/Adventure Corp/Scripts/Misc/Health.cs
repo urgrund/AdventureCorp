@@ -37,7 +37,7 @@ public class Health : MonoBehaviour
         public DamageType type = DamageType.Generic;
         public int resistance = 0;        
     }
-    public List<Resistance> resistances = new List<Resistance>();
+    //public List<Resistance> resistances = new List<Resistance>();
     
     
     public void TakeDamage(Damage damage, GameObject attacker)

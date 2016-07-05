@@ -14,6 +14,9 @@ public class Damager : MonoBehaviour
 
     void OnTriggerEnter(Collider other)
     {
+        if (!enabled)
+            return;
+
         if (other.GetComponent<Health>())
             other.GetComponent<Health>().TakeDamage(damage, this.gameObject);
     }

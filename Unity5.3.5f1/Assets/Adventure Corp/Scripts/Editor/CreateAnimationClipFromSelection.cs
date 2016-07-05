@@ -3,7 +3,7 @@ using UnityEditor;
 using System.IO;
 using System.Linq;
 
-public class AdventureCorpEditorHelpers
+public class CreateAnimationClipFromSelection
 {
     T CreateOrReplaceAsset<T>(T asset, string path) where T : Object
     {
@@ -38,23 +38,21 @@ public class AdventureCorpEditorHelpers
             {
                 hasDirectory = true;
                 targetDirectory = path + "/";
-                Debug.Log("Will create files in " + targetDirectory);
                 break;
             }
         }
 
         Animation a = (Selection.activeObject as GameObject).GetComponent<Animation>();
+        bool success = false;
         foreach (AnimationState s in a)
         {
             AnimationClipProperties p = ScriptableObject.CreateInstance<AnimationClipProperties>();
-            p.clip = s.clip;           
+            p.clip = s.clip;
+            p.animatedGameObject = a;
 
             // Prepeare clip name
             string clipName = s.clip.name;
-
-            clipName = char.ToUpper(clipName[0]) + clipName.Substring(1);
-
-            //clipName = clipName.First().ToString().ToUpper() + System.String.Join("", clipName.Skip(1));
+            clipName = char.ToUpper(clipName[0]) + clipName.Substring(1);            
 
             // Prepare object name
             string name = Selection.activeGameObject.name;
@@ -74,15 +72,13 @@ public class AdventureCorpEditorHelpers
             }
             else
             {
-            //    //outputAnimClip = new AnimationClipProperties();
-            //    //EditorUtility.CopySerialized(animClip, outputAnimClip);
                 AssetDatabase.CreateAsset(p, assetPath);
             }
-
-
-            //AssetDatabase.CreateAsset(p, assetPath);
-            //AssetDatabase.SaveAssets();
+            success = true;            
         }
+
+        if (success)
+            Debug.Log("Created " + a.GetClipCount() + " Animation Clip Properties for " + a.name);
 
         EditorUtility.FocusProjectWindow();
         

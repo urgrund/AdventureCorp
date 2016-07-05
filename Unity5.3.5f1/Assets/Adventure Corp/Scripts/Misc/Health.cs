@@ -2,23 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 
-public enum DamageType
-{
-    Generic,
-    Fire,
-    Ice
-}
 
-[System.Serializable]
-public class Damage
-{
-    public bool isActive = true;
-    public DamageType type= DamageType.Generic;
-    public int amount = 1;
-    public bool isDamageOverTime = false;
-    public float damageOverTimeFrequency = 1f;
-    public float damageOverTimeDuration = 10f;
-}
 
 public class Health : MonoBehaviour
 {

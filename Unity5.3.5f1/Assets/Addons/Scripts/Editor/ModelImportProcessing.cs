@@ -136,6 +136,7 @@ public class ModelImportProcessing : AssetPostprocessor
             c.lastFrame = end;
             c.name = clipName;
             c.loop = isClipLooping;
+            c.wrapMode = isClipLooping ? WrapMode.Loop : WrapMode.Default;
             clips.Add(c);
         }
 

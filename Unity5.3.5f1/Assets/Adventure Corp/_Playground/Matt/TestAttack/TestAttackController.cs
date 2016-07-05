@@ -4,9 +4,38 @@ using System.Collections;
 public class TestAttackController : MonoBehaviour
 {
     public Animation animObj;
-    public AttackChain[] chains;    
+    public AttackChain[] chains;
+
+    public EventorSchedule schedule;
+
+    void Start()
+    {
+        if (schedule != null)
+        {
+            foreach (EventorJob job in schedule.jobs)
+            {
+                if (job.GetType() == typeof(EventorAttackDescriptor))
+                {
+                    (job as EventorAttackDescriptor).animatedObject = animObj;
+                    foreach (Damager d in (job as EventorAttackDescriptor).damageVolumes)
+                        d.enabled = false;
+                }
+            }
+        }
+    }
 
     void OnGUI()
+    {
+        EventorGUI();
+    }
+
+    void EventorGUI()
+    {
+    }
+
+
+
+    void AttackChainGUI()
     {
         if (chains == null)
             return;
@@ -27,6 +56,11 @@ public class TestAttackController : MonoBehaviour
     }
 
 
+
+
+
+
+
     bool isChainRunning = false;
     void ExecuteAttackChain(AttackChain chain)
     {
@@ -38,13 +72,10 @@ public class TestAttackController : MonoBehaviour
     {
         isChainRunning = true;
         foreach (AttackDescriptor ad in chain.attacks)
-        {
-            foreach (AnimationClipProperties p in ad.animations)
-            {
-                animObj.CrossFade(p.clip.name, p.blendTime, p.playMode);
-                while (animObj.IsPlaying(p.clip.name))
-                    yield return null;                
-            }
+        {   
+                animObj.CrossFade(ad.clipProperties.clip.name, ad.clipProperties.blendTime, ad.clipProperties.playMode);
+                while (animObj.IsPlaying(ad.clipProperties.clip.name))
+                    yield return null;                            
         }
         isChainRunning = false;
     }

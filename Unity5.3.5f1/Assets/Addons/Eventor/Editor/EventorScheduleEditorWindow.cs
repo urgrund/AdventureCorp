@@ -360,7 +360,8 @@ public class EventorScheduleEditorWindow : EditorWindow
 				GUI.contentColor = Color.gray;
 
 			s.jobEditor = Editor.CreateEditor(s.job);
-			s.jobEditor.DrawDefaultInspector();
+            if(s.jobEditor != null)
+                s.jobEditor.DrawDefaultInspector();
 			GUI.contentColor = guiContentColor;
 		}     
 		

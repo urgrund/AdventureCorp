@@ -167,7 +167,7 @@ public abstract class NPCBrain : Brain
 
         _navMeshPathToDestination = new NavMeshPath();
         if (NavMesh.CalculatePath(transform.position, position, NavMesh.AllAreas, _navMeshPathToDestination))
-        {
+        {            
             _navMeshNextPositionIndex = 1;
             _navMeshNextPosition = _navMeshPathToDestination.corners[_navMeshNextPositionIndex];
             _destination = _navMeshPathToDestination.corners[_navMeshPathToDestination.corners.Length - 1];

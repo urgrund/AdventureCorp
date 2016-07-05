@@ -1,6 +1,6 @@
 fileFormatVersion: 2
-guid: e8ac693c794e02c43be9a45e44ad2669
-timeCreated: 1467265099
+guid: a9f6ac5ee4a61564dba31b231275a40e
+timeCreated: 1467597496
 licenseType: Free
 ModelImporter:
   serializedVersion: 19
@@ -9,12 +9,12 @@ ModelImporter:
     400000: //RootNode
     2300000: //RootNode
     3300000: //RootNode
-    4300000: Box001
+    4300000: ex_TestWorldParts_002
     11100000: //RootNode
   materials:
-    importMaterials: 1
-    materialName: 1
-    materialSearch: 2
+    importMaterials: 0
+    materialName: 0
+    materialSearch: 1
   animations:
     legacyGenerateAnimations: 4
     bakeSimulation: 0
@@ -36,7 +36,7 @@ ModelImporter:
   meshes:
     lODScreenPercentages: []
     globalScale: 1
-    meshCompression: 3
+    meshCompression: 0
     addColliders: 0
     importBlendShapes: 1
     swapUVChannels: 0
@@ -54,7 +54,7 @@ ModelImporter:
     normalSmoothAngle: 60
     normalImportMode: 0
     tangentImportMode: 3
-  importAnimation: 0
+  importAnimation: 1
   copyAvatar: 0
   humanDescription:
     human: []
@@ -69,7 +69,7 @@ ModelImporter:
     rootMotionBoneName: 
     hasTranslationDoF: 0
   lastHumanDescriptionAvatarSource: {instanceID: 0}
-  animationType: 0
+  animationType: 2
   humanoidOversampling: 1
   additionalBone: 0
   userData: 

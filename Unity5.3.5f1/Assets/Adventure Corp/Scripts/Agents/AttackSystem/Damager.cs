@@ -1,10 +1,10 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class TestDamager : MonoBehaviour
+public class Damager : MonoBehaviour
 {
     public Transform parent;
-    public Damage myDamage;
+    public Damage damage;    
 
     void Start()
     {
@@ -14,17 +14,20 @@ public class TestDamager : MonoBehaviour
 
     void OnTriggerEnter(Collider other)
     {
-        print("Entered");
         if (other.GetComponent<Health>())
-            other.GetComponent<Health>().TakeDamage(myDamage, this.gameObject);
+            other.GetComponent<Health>().TakeDamage(damage, this.gameObject);
     }
 
     void OnDrawGizmos()
     {
+        // TODO - we will need other shapes :) 
         if (GetComponent<SphereCollider>())
         {
+            if (damage == null)
+                return;
+            
             SphereCollider c = GetComponent<SphereCollider>();
-            Gizmos.color = myDamage.isActive ?  Color.red : Color.grey;
+            Gizmos.color = enabled ? Color.red : Color.grey;
             Gizmos.DrawWireSphere(transform.TransformPoint(c.center), c.radius);
         }
     }

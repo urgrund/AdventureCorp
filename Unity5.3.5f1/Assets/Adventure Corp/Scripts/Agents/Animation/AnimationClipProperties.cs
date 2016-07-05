@@ -9,4 +9,5 @@ public class AnimationClipProperties : ScriptableObject
     public float blendTime = 0.2f;
     public AnimationBlendMode blendMode = AnimationBlendMode.Blend;
     public PlayMode playMode = PlayMode.StopAll;
+    public Animation animatedGameObject;
 }

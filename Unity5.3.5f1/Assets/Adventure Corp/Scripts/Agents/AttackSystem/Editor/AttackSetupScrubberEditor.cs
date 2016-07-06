@@ -6,10 +6,10 @@ using System.Collections.Generic;
 [CustomEditor(typeof(AttackSetupScrubber))]
 [CanEditMultipleObjects]
 public class AttackSetupScrubberEditor : Editor
-{     
+{  
 
     public override void OnInspectorGUI()
-    {        
+    {
         //base.DrawDefaultInspector();
 
         AttackSetupScrubber c = target as AttackSetupScrubber;
@@ -21,6 +21,22 @@ public class AttackSetupScrubberEditor : Editor
         Animation a = c.animatedGO;  
         if (a != null && c.attackDescriptor != null)
         {
+            if (!c.hasSetVolumes)
+            {
+                Debug.Log("Setting up...");
+                c.volumeIndices = new bool[c.attackVolumeCollection.volumes.Length];
+                for (int i = 0; i < c.volumeIndices.Length; i++)
+                {
+                    if(i > c.attackDescriptor.volumeIndices.Count-1)
+                        c.volumeIndices[i] = false;
+                    else
+                        c.volumeIndices[i] = c.attackDescriptor.volumeIndices[i];
+                }
+                c.hasSetVolumes = true;
+            }
+
+
+
             // Attack Properties   
             EditorGUILayout.Space();
             EditorGUILayout.Space();
@@ -30,9 +46,7 @@ public class AttackSetupScrubberEditor : Editor
             c.attackDescriptor.canBeBroken = EditorGUILayout.Toggle("Can Be Broken", c.attackDescriptor.canBeBroken);
             c.attackDescriptor.minMaxRange = EditorGUILayout.Vector2Field("Suggested Use Range", c.attackDescriptor.minMaxRange);
             c.attackDescriptor.coolDownRange = EditorGUILayout.Vector2Field("Cool Down", c.attackDescriptor.coolDownRange);
-            c.attackDescriptor.clipProperties = EditorGUILayout.ObjectField("Animation", c.animatedGO, typeof(AnimationClipProperties), true) as AnimationClipProperties;
-
-
+            //c.attackDescriptor.clipProperties = EditorGUILayout.ObjectField("Animation", c.attackDescriptor.clipProperties, typeof(AnimationClipProperties), true) as AnimationClipProperties;
 
 
 
@@ -43,22 +57,11 @@ public class AttackSetupScrubberEditor : Editor
             EditorGUILayout.Space();
 
             Color guiColor = GUI.color;
-            foreach (AttackVolumeDescriptor v in c.attackVolumeCollection.volumes)
-            {
-                bool isAdded = c.attackDescriptor.volumes.Contains(v);
-
-                GUI.color = isAdded ? Color.yellow : Color.gray;
-                if (GUILayout.Button(v.boneName))
-                {
-                    if (isAdded)                                            
-                        c.attackDescriptor.volumes.Remove(v);                    
-                    else                                            
-                        c.attackDescriptor.volumes.Add(v);                    
-                }
-            }
+            for (int i = 0; i < c.volumeIndices.Length; i++)
+                c.volumeIndices[i] = GUILayout.Toggle(c.volumeIndices[i], c.attackVolumeCollection.volumes[i].boneName);
             GUI.color = guiColor;
 
-
+           
 
 
 
@@ -82,9 +85,24 @@ public class AttackSetupScrubberEditor : Editor
             c.animatedGO = EditorGUILayout.ObjectField("Animation", c.animatedGO, typeof(Animation), true) as Animation;
             c.attackDescriptor = EditorGUILayout.ObjectField("Attack Descriptor", c.animatedGO, typeof(AttackDescriptor), true) as AttackDescriptor;
         }
-    }   
+    }
 
-    
+
+    public void OnDestroy()
+    {
+        if (Application.isEditor)
+        {
+            AttackSetupScrubber c = target as AttackSetupScrubber;
+            if (c == null)
+            {
+                if (c.hasSetVolumes)
+                {
+                    (target as AttackSetupScrubber).attackDescriptor.volumeIndices = new List<bool>(c.volumeIndices);
+                }
+                AssetDatabase.SaveAssets();
+            }
+        }
+    }
 
 
     void OnSceneGUI()

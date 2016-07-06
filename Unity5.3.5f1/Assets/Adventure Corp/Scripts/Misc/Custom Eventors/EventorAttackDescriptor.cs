@@ -1,12 +1,14 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 using System;
 
 public class EventorAttackDescriptor : EventorJob
 {
     public AttackDescriptor attack;
-    public Animation animatedObject;    
-    public Damager[] damageVolumes;
+    public Animation animatedObject;
+    public TestAttackController attackManager;
+    public List<Damager> damagers;
 
     float t;
     protected override IEnumerator RunJobRoutine()
@@ -27,8 +29,8 @@ public class EventorAttackDescriptor : EventorJob
 
     void ActivateDamageVolumes(bool isEnabled)
     {
-        for (int i = 0; i < damageVolumes.Length; i++)
-            damageVolumes[i].enabled = isEnabled;
+        for (int i = 0; i < damagers.Count; i++)
+            damagers[i].enabled = isEnabled;
     }
 }
 

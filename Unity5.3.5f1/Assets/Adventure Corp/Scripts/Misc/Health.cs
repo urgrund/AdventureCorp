@@ -41,7 +41,10 @@ public class Health : MonoBehaviour
     
     
     public void TakeDamage(Damage damage, GameObject attacker)
-    {        
+    {
+        if (damage == null)
+            return;
+
         if (damage.isDamageOverTime)
             StartCoroutine(DamageOverTime(damage));          
         else

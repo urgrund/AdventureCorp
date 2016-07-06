@@ -3,13 +3,13 @@ using System.Collections;
 
 public class Damager : MonoBehaviour
 {
-    public Transform parent;
+    //public Transform parent;
     public Damage damage;    
 
     void Start()
     {
-        if (parent != null)
-            Helpers.ParentAndCenterOnTransform(transform, parent);
+        //if (parent != null)
+        //    Helpers.ParentAndCenterOnTransform(transform, parent);
     }
 
     void OnTriggerEnter(Collider other)

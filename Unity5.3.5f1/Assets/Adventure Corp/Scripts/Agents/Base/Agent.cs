@@ -10,9 +10,9 @@ public class Agent : MonoBehaviour
     private CharacterController _controller;
     public CharacterController controller {  get { return _controller; } }
 
-    
     public AgentProperties properties;
     public AgentAnimationProperties animationProperties;
+
     private Animation _animatedGameObject;
     public Animation animatedGameObject { get { return _animatedGameObject; } }
     

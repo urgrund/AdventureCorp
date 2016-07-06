@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 
+[System.Serializable]
 [CreateAssetMenu(fileName = "ad_AttackDescriptor", menuName = "Adventure Corp/Attack Descriptor")]
 public class AttackDescriptor : ScriptableObject
 {
@@ -12,7 +13,8 @@ public class AttackDescriptor : ScriptableObject
     public Damage damage;
 
     // Volumes that will be used for this attack
-    public List<AttackVolumeDescriptor> volumes = new List<AttackVolumeDescriptor>();
+    //public List<AttackVolumeDescriptor> volumes;
 
+    public List<bool> volumeIndices = new List<bool>();
     public AnimationClipProperties clipProperties;    
 }

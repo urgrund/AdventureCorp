@@ -1,7 +1,7 @@
 using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
-
+using System.Linq;
 
 /// <summary>
 /// Helpers
@@ -65,7 +65,21 @@ public static class Helpers
         return target + cross + (-dir * (distance - Mathf.Abs(newdist)));
     }
 
-    public static List<T> ShuffleList<T>(List<T> list)
+
+
+
+
+    public static List<T> ListResize<T>(List<T> list, int sz, T c = default(T))
+    {
+        int cur = list.Count;
+        if (sz < cur)
+            list.RemoveRange(sz, cur - sz);
+        else if (sz > cur)
+            list.AddRange(Enumerable.Repeat(c, sz - cur));
+        return list;
+    }     
+
+    public static List<T> ListShuffle<T>(List<T> list)
     {
         if (list.Count > 1)
         {
@@ -79,6 +93,8 @@ public static class Helpers
         }
         return list;
     }
+
+
 
     /// <summary>
     /// Check to see if a position is off screen

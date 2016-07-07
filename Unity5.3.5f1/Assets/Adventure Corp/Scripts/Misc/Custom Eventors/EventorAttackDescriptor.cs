@@ -34,12 +34,15 @@ public class EventorAttackDescriptor : EventorJob
         ActivateDamageVolumes(false);
     }
 
+
+
     // Apply the appropriate Damage object to the volumes    
     void SetDamageToDamageVolumes()
     {
         for (int i = 0; i < controller.damagers.Length; i++)        
             controller.damagers[i].damage = attack.damage;                
     }
+
 
 
     // This assumes the attack indices match the NPC's damager indices
@@ -53,6 +56,7 @@ public class EventorAttackDescriptor : EventorJob
                 controller.damagers[i].enabled = attack.volumeIndices[i];
             else
                 controller.damagers[i].enabled = false;
+            controller.damagers[i].GetComponent<Collider>().enabled = controller.damagers[i].enabled;
         }            
     }
 }

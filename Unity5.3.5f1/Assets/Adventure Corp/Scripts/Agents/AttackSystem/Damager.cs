@@ -1,17 +1,14 @@
 ﻿using UnityEngine;
 using System.Collections;
 
+
 public class Damager : MonoBehaviour
 {
     //public Transform parent;
-    public Damage damage;    
+    public Damage damage;
+    public SphereCollider sphereCollider; 
 
-    void Start()
-    {
-        //if (parent != null)
-        //    Helpers.ParentAndCenterOnTransform(transform, parent);
-    }
-
+    
     void OnTriggerEnter(Collider other)
     {
         if (!enabled)
@@ -23,6 +20,7 @@ public class Damager : MonoBehaviour
         if (other.GetComponent<Health>())
             other.GetComponent<Health>().TakeDamage(damage, this.gameObject);
     }
+
 
     void OnDrawGizmos()
     {

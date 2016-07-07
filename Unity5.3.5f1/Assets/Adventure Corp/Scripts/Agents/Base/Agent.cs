@@ -265,8 +265,8 @@ public class Agent : MonoBehaviour
         float t = 0;
         while (t < 1f)
         {
-            t += Time.deltaTime;
-            _desiredRotation = Quaternion.Lerp(transform.rotation, rotTarget, Time.deltaTime);
+            t += Time.deltaTime * 8f;
+            _desiredRotation = Quaternion.Lerp(transform.rotation, rotTarget, Time.deltaTime * 8f );
             yield return null;
         }
     }

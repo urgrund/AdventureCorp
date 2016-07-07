@@ -47,6 +47,8 @@ public class AttackVolumeCollection : MonoBehaviour
                     sc.radius = attackVolumes.volumes[i].radius;
                     sc.center = attackVolumes.volumes[i].center;
                     sc.isTrigger = true;
+                    sc.enabled = false;
+                    damager.sphereCollider = sc;                   
                 }
                 d[i] = damager;
             }            

@@ -9,7 +9,7 @@ using System.Collections;
 public class AttackSetupScrubber : MonoBehaviour
 {
     public bool[] volumeIndices;
-    public bool hasSetVolumes = false;
+    public Vector3[] volumePositions; 
     public Animation animatedGO;
     public AttackDescriptor attackDescriptor;
     public AttackVolumeCollection attackVolumeCollection;
@@ -17,40 +17,45 @@ public class AttackSetupScrubber : MonoBehaviour
     public float scrubTime = 0;
 
 
+    public static Color c_inActive = Color.grey;
+    public static Color c_inRange = Color.red;
+    public static Color c_inUse = Color.cyan;
+
     void OnDrawGizmos()
     {
         // Draw valid damage volume attachments
         if (attackVolumeCollection != null)
         {
-            if (hasSetVolumes)
+            volumePositions = new Vector3[volumeIndices.Length];
+            for (int i = 0; i < volumeIndices.Length; i++)
             {
-                for (int i = 0; i < volumeIndices.Length; i++)
-                {
-                    AttackVolumeDescriptor d = attackVolumeCollection.volumes[i];
-                    Transform tf = Helpers.SearchHierarchyForTransform(animatedGO.transform, d.boneName);
-                    Vector3 p = tf.TransformPoint(d.center);
+                AttackVolumeDescriptor d = attackVolumeCollection.volumes[i];
+                Transform tf = Helpers.SearchHierarchyForTransform(animatedGO.transform, d.boneName);
+                Vector3 p = tf.TransformPoint(d.center);
+                volumePositions[i] = p;
 
-                    // This has been ticked for use in this attack 
-                    if (volumeIndices[i] == true)
+                // This has been ticked for use in this attack 
+                if (volumeIndices[i] == true)
+                {
+                    float t = animatedGO[animatedGO.clip.name].normalizedTime;
+                    if (t < attackDescriptor.validDamageRange.y && t > attackDescriptor.validDamageRange.x)
                     {
-                        float t = animatedGO[animatedGO.clip.name].normalizedTime;
-                        if (t < attackDescriptor.validDamageRange.y && t > attackDescriptor.validDamageRange.x)
-                        {
-                            Gizmos.color = Color.red * new Color(1, 1, 1, 0.25f);
-                            Gizmos.DrawSphere(p, d.radius);
-                            DrawWireSphere(p, d.radius, Color.red);
-                        }
-                        else
-                        {
-                            DrawWireSphere(p, d.radius, Color.cyan);
-                        }
+                        Gizmos.color = c_inRange * new Color(1, 1, 1, 0.25f);
+                        Gizmos.DrawSphere(p, d.radius);
+                        DrawWireSphere(p, d.radius, c_inRange);
                     }
                     else
-                        DrawWireSphere(p, d.radius, Color.grey);
+                    {
+                        DrawWireSphere(p, d.radius, c_inUse);
+                    }
                 }
-            }           
+                else
+                    DrawWireSphere(p, d.radius, c_inActive);
+            }
+
         }       
     }
+
 
     void DrawWireSphere(Vector3 p, float r, Color c)
     {

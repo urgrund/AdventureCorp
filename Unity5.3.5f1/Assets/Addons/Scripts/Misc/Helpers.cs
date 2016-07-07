@@ -152,6 +152,15 @@ public static class Helpers
     }
 
 
+    public static Vector3 DirectionTo(Transform from, Vector3 to) { return DirectionTo(from.position, to); }
+    public static Vector3 DirectionTo(Vector3 from, Transform to) { return DirectionTo(from, to.position); }
+    public static Vector3 DirectionTo(Transform from, Transform to) { return DirectionTo(from.position, to.position); }
+    public static Vector3 DirectionTo(Vector3 from, Vector3 to)
+    {
+        return (to - from).normalized;
+    }
+
+
     /// <summary>
     /// Checks to see if a point is inside the view of a certain camera
     /// </summary>
@@ -177,7 +186,7 @@ public static class Helpers
     /// </summary>        
     public static Transform InstantiateAndParent(Transform transform, Transform parent, bool snapPositions)
     {
-        transform = (Transform)MonoBehaviour.Instantiate(transform);
+        transform = MonoBehaviour.Instantiate(transform);
         if (snapPositions)
         {
             transform.position = parent.position;
@@ -191,7 +200,7 @@ public static class Helpers
 
     /// <summary>
     /// Deep heirachy search for a transform where it appears Unity only goes to 
-    /// 2nd level transform childs
+    /// 2nd level transform childs?
     /// </summary>    
     public static Transform SearchHierarchyForTransform(Transform current, string name)
     {

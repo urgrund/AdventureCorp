@@ -4,25 +4,28 @@ using System.Collections;
 [RequireComponent(typeof(CharacterController))]
 [RequireComponent(typeof(Health))]
 public class Agent : MonoBehaviour
-{    
-    private Brain _brain;
+{
+    // Matt - this was never used (Unity warning).  Does an agent need to know its brain?
+    //private Brain _brain;
 
     private CharacterController _controller;
-    public CharacterController controller {  get { return _controller; } }
+    public CharacterController controller { get { return _controller; } }
 
     public AgentProperties properties;
     public AgentAnimationProperties animationProperties;
 
     private Animation _animatedGameObject;
     public Animation animatedGameObject { get { return _animatedGameObject; } }
-    
-    
+
+    private Health _health;
+    public Health health { get { return _health; } }
+
     private float gravitySpeed = 0f;
 
-    [HideInInspector]
-    public Vector3 currentVelocity;
-    [HideInInspector]
-    public Quaternion currentRotation;
+    
+    Vector3 _desiredVelocity;
+    
+    Quaternion _desiredRotation;
 
     private bool _isWithAnimatedObject = false;
 
@@ -37,10 +40,10 @@ public class Agent : MonoBehaviour
         _controller = GetComponent<CharacterController>();
         _controller.center = Vector3.up;
         _controller.skinWidth = 0.025f;
-        _controller.stepOffset = 0.5f;        
+        _controller.stepOffset = 0.5f;
     }
 
-    void Awake ()
+    void Awake()
     {
         if (animationProperties != null)
         {
@@ -53,19 +56,23 @@ public class Agent : MonoBehaviour
         else
             Debug.LogError(name.ToString() + " has no animation properties.");
 
-        //brain = GetComponent<Brain>();
-        _controller = GetComponent<CharacterController>();
 
-        //if (brain)
-          //  PlugBrain(brain);
-        //else
-          //  Debug.LogError("There is no Brain attached on me, how am I supposed to function?");
+        // Initial headings
+        _desiredVelocity = Vector3.zero;
+        _desiredRotation = transform.rotation;
+
+
+        // Setup component references
+        _controller = GetComponent<CharacterController>();
+        _health = GetComponent<Health>();
+        _health.onHealthLost += OnHealthLost;
+        _health.onHealthZero += OnHealthLost;
     }
 
     void Update()
     {
         UpdateController();
-        UpdateAnimations();        
+        UpdateAnimations();
     }
 
 
@@ -77,17 +84,22 @@ public class Agent : MonoBehaviour
         else
             gravitySpeed = -controller.stepOffset / Time.deltaTime * 5;
 
-        currentVelocity.y = gravitySpeed * Time.deltaTime;
-        _controller.Move(currentVelocity * Time.deltaTime);
-        Rotate(currentRotation);
+        _desiredVelocity.y = gravitySpeed * Time.deltaTime;
+        _controller.Move(_desiredVelocity * Time.deltaTime);
+        Rotate(_desiredRotation);
     }
 
 
+    void PlayAnimationProperty(AnimationClipProperties clipProperty)
+    {
+        _animatedGameObject.CrossFade(clipProperty.clip.name, clipProperty.blendTime);
+    }
+
     void UpdateAnimations()
-    {        
+    {
         // This is pretty simple at the moment. Based on velocity (gravity cancelled) 
         // blend between idle walk and run animations 
-        if (_isWithAnimatedObject)
+        if (_isWithAnimatedObject && !_health.isDead)
         {
             // Use the real controller velocity, not the desired
             // this avoids "running constantly at a wall" effect
@@ -95,7 +107,9 @@ public class Agent : MonoBehaviour
             v.y = 0;
             if (v.magnitude < 0.05f) // <- hacky
             {
-                _animatedGameObject.CrossFade(animationProperties.idle.clip.name, animationProperties.run.blendTime);
+                _animatedGameObject.PlayQueued(animationProperties.idle.clip.name, QueueMode.CompleteOthers);
+                //PlayAnimationProperty(animationProperties.idle);
+                //_animatedGameObject.CrossFade(animationProperties.idle.clip.name, animationProperties.run.blendTime);
             }
             else
             {
@@ -112,30 +126,34 @@ public class Agent : MonoBehaviour
     {
         // Apply damping if no Brain input
         if (!_isBrainSetVelocityThisFrame && controller.isGrounded)
-            currentVelocity = Vector3.MoveTowards(currentVelocity, Vector3.zero, properties.speed.damping * Time.deltaTime);
+            _desiredVelocity = Vector3.MoveTowards(_desiredVelocity, Vector3.zero, properties.speed.damping * Time.deltaTime);
         _isBrainSetVelocityThisFrame = false;
     }
 
-	public void PlugBrain(Brain brain)
-    {
-        this._brain = brain;        
-    }
+
+    //public void PlugBrain(Brain brain)
+    //{
+    //    this._brain = brain;
+    //}
+
 
     private void Rotate(Quaternion rotation)
     {
         transform.rotation = rotation;
     }
-    
+
+
 
     /// <summary>
     /// Rotate agent to look along the velocity vector using rotation speed
     /// </summary>    
     public Quaternion RotateToVelocityDirection(float rotationSpeed)
     {
-        Vector3 v = currentVelocity;
+        Vector3 v = _desiredVelocity;
         v.y = 0;
         return Quaternion.Lerp(transform.rotation, MathLab.CreateRotationToLookAt(v.normalized + transform.position, transform.position), rotationSpeed * Time.deltaTime);
     }
+
 
     /// <summary>
     /// Rotate agent to look at a target position using rotation speed
@@ -152,20 +170,24 @@ public class Agent : MonoBehaviour
     void CalculateDesiredVelocity(Vector3 velocity)
     {
         // TODO - might be interesting to consider different surfaces
-        // such as ice.  This could simply be scalars to acceleartion/damping etc
-
-        Vector3 v = currentVelocity;
+        // such as ice.  This could simply be scalars to acceleartion/damping etc?
+        Vector3 v = _desiredVelocity;
         v.y = 0;
 
-        // TODO - blend between accelearation & damping based on dot of current/desired
+        // Blend between accelearation & damping based on dot of current/desired
         // this is so that if the desired direction is BEHIND you, you use damping values
         // to first STOP then Accelerate 
-        v = Vector3.MoveTowards(v, velocity, properties.speed.acceleration * Time.deltaTime);
+        float dotWithVel = (2 + Vector3.Dot(_controller.velocity.normalized, transform.forward)) * 0.5f;
+        Vector3 targetVelocity = Vector3.Lerp(Vector3.zero, velocity, dotWithVel);
+        v = Vector3.MoveTowards(v, targetVelocity, properties.speed.acceleration * Time.deltaTime);
+
         v = Vector3.ClampMagnitude(v, properties.speed.max);
-        currentVelocity = v;
+        _desiredVelocity = v;
 
         _isBrainSetVelocityThisFrame = true;
     }
+
+
 
     /// <summary>
     /// Set player velocity and rotate the character towards velocity direction. If no rotation is needed set the bool isRotate to false
@@ -174,9 +196,11 @@ public class Agent : MonoBehaviour
     {
         CalculateDesiredVelocity(velocity);
 
-        if (currentVelocity != Vector3.zero && isRotate)
-            currentRotation = RotateToVelocityDirection(properties.rotation.max);
+        if (_desiredVelocity != Vector3.zero && isRotate)
+            _desiredRotation = RotateToVelocityDirection(properties.rotation.max);
     }
+
+
 
     /// <summary>
     /// Set player velocity and rotate the character towards a vector3 target
@@ -184,9 +208,69 @@ public class Agent : MonoBehaviour
     public void SetDesiredVelocity(Vector3 velocity, Vector3 LookAtTarget)
     {
         CalculateDesiredVelocity(velocity);
-        currentRotation= RotateToLookAt(LookAtTarget, properties.rotation.max);
+        _desiredRotation = RotateToLookAt(LookAtTarget, properties.rotation.max);
     }
 
+
+    public virtual void OnHealthLost(Health.HealthChangedEventInfo info)
+    {
+        AnimationClipProperties pToPlay;
+
+        Vector3 dirToObject = Helpers.DirectionTo(transform, info.responsibleGameObject.transform);
+        if (_health.isDead)
+        {
+            pToPlay = animationProperties.death;
+            StartCoroutine(DieRotateRoutine(dirToObject));
+        }
+        else
+        {            
+            Vector3 forward = transform.forward;
+            Vector3 right = transform.right;
+            dirToObject.y = forward.y = right.y = 0;
+            float frontOrBack = Vector3.Dot(forward, dirToObject);
+            float rightOrLeft = Vector3.Dot(right, dirToObject);
+
+
+            // Must be front or back
+            if (Mathf.Abs(frontOrBack) > 0.707f)
+            {
+                if (frontOrBack > 0)
+                    pToPlay = animationProperties.hitFromFront;
+                else
+                    pToPlay = animationProperties.hitFromBehind;
+            }
+            else
+            {
+                // Must be left or right
+                if (rightOrLeft > 0)
+                    pToPlay = animationProperties.hitFromRight;
+                else
+                    pToPlay = animationProperties.hitFromLeft;
+            }
+
+            Debug.DrawRay(transform.position, (info.responsibleGameObject.transform.position - transform.position), Color.red, 10f);
+        }
+        PlayAnimationProperty(pToPlay);
+    }
+
+
+    // Just quick hack to rotate toward last hit dir
+    IEnumerator DieRotateRoutine(Vector3 directionLastHit)
+    {
+        directionLastHit.y = 0;
+        directionLastHit.Normalize();
+        Quaternion rotTarget = Quaternion.LookRotation(directionLastHit, Vector3.up);
+        AnimationClipProperties die = animationProperties.death;
+
+        float t = 0;
+        while (t < 1f)
+        {
+            t += Time.deltaTime;
+            _desiredRotation = Quaternion.Lerp(transform.rotation, rotTarget, Time.deltaTime);
+            yield return null;
+        }
+    }
+        
 
 
     void OnDrawGizmos()
@@ -198,7 +282,6 @@ public class Agent : MonoBehaviour
 
             if (animationProperties.gizmoMesh == null)
                 return;
-
 
             Color c = animationProperties.gizmoColor;
             c.a = 0.5f;

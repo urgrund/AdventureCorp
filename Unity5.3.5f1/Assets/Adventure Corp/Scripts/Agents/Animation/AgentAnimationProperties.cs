@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 
+
 public class AgentAnimationProperties : MonoBehaviour
 {
     public Animation animatedGameObject;
@@ -12,7 +13,12 @@ public class AgentAnimationProperties : MonoBehaviour
     public AnimationClipProperties idle;
     public AnimationClipProperties walk;
     public AnimationClipProperties run;
+
     public AnimationClipProperties death;
+    public AnimationClipProperties hitFromBehind;
+    public AnimationClipProperties hitFromFront;
+    public AnimationClipProperties hitFromLeft;
+    public AnimationClipProperties hitFromRight;
 
     public AnimationClipProperties GetRandom(AnimationClipProperties[] clipProperties)
     {

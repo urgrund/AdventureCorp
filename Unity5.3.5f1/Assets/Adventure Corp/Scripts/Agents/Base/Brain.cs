@@ -18,7 +18,6 @@ public abstract class Brain : MonoBehaviour
     protected virtual void Awake()
     {
         _agent = GetComponent<Agent>();
-        _agent.PlugBrain(this);
     }
 
     protected virtual void Start()

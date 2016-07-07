@@ -16,13 +16,13 @@ public class TestHealthListener : MonoBehaviour
     }
 
 
-    void OnLostHealth(int i)
+    void OnLostHealth(Health.HealthChangedEventInfo info)
     {
         print("Ouch!");
         t = 0;
     }
 
-    void OnDead(int i)
+    void OnDead(Health.HealthChangedEventInfo info)
     {
         print("Dead");
     }

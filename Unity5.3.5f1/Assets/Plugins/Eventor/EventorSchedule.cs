@@ -10,23 +10,27 @@ public class EventorSchedule : MonoBehaviour
 	// --------------------------------------------------------------------------------------------
 	// S T A T I C   F U N C T I O N S 
 
-	public static void Run(EventorSchedule schedule)
+	public static EventorSchedule Run(EventorSchedule schedule)
 	{
-		(Instantiate(schedule) as EventorSchedule).Run();
+        //(Instantiate(schedule) as EventorSchedule).Run();
+        return RunAtLocation(schedule, schedule.transform);
 	}
     
-    public static void RunAtLocation(EventorSchedule schedule, Vector3 position) { RunAtLocation(schedule, position, schedule.transform.rotation); }
-    public static void RunAtLocation(EventorSchedule schedule, Transform transform) { RunAtLocation(schedule, transform.position, transform.rotation); }
-	public static void RunAtLocation(EventorSchedule schedule, Vector3 position, Quaternion rotation)
+    public static EventorSchedule RunAtLocation(EventorSchedule schedule, Vector3 position) { return RunAtLocation(schedule, position, schedule.transform.rotation); }
+    public static EventorSchedule RunAtLocation(EventorSchedule schedule, Transform transform) { return RunAtLocation(schedule, transform.position, transform.rotation); }
+	public static EventorSchedule RunAtLocation(EventorSchedule schedule, Vector3 position, Quaternion rotation)
 	{
-		(Instantiate(schedule, position, rotation) as EventorSchedule).Run();
+        EventorSchedule e = (Instantiate(schedule, position, rotation) as EventorSchedule);
+        e.Run();
+        return e;
 	}   
 
-	public static void RunAtTransformAsChild(EventorSchedule schedule, Transform transform)
+	public static EventorSchedule RunAtTransformAsChild(EventorSchedule schedule, Transform transform)
 	{ 
 		EventorSchedule e = Instantiate(schedule, transform.position, transform.rotation) as EventorSchedule;
 		e.transform.parent = transform;
 		e.Run();
+        return e;
 	}
 
 
@@ -53,7 +57,7 @@ public class EventorSchedule : MonoBehaviour
 	[HideInInspector]
 	public EventorJobRepeatDetails repeat;
 	[HideInInspector]
-	public bool isDestroyOnAllCompelte = false;
+	public bool isDestroyOnComplete = false;
 
 	List<EventorJob> _jobs;
     public List<EventorJob> jobs { get { return _jobs; } }
@@ -200,14 +204,14 @@ public class EventorSchedule : MonoBehaviour
 				{
 					isCompletedAllRepeats = true;
 
-					if(isDestroyOnAllCompelte)
+					if(isDestroyOnComplete)
 						Destroy(this.gameObject);
 				}
 			}
 		}
 		else
 		{
-			if(isDestroyOnAllCompelte)
+			if(isDestroyOnComplete)
 				Destroy(this.gameObject);
 		}
 	}

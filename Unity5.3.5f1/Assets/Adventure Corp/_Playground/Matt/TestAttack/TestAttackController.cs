@@ -4,48 +4,66 @@ using System.Collections;
 public class TestAttackController : MonoBehaviour
 {
     public Animation animObj;
-
-    public EventorSchedule schedule;
     public Agent agent;
-
+    public EventorSchedule[] schedules;
     public Damager[] damagers;
+
 
     void Start()
     {
         damagers = AttackVolumeCollection.CreateDamageCollidersForTransform(animObj.transform, agent.properties.GetComponent<AttackVolumeCollection>());
+    }
 
-        schedule = Instantiate(schedule);
-        Helpers.ParentAndCenterOnTransform(schedule.transform, transform);
 
-        if (schedule != null)
+
+    // Istantiate an EventorSchedule for use as an 
+    // attack.   Setup needed properties and run!
+    void AttackWithEventor(EventorSchedule attack)
+    {
+        attack = Instantiate(attack) as EventorSchedule;
+        Helpers.ParentAndCenterOnTransform(attack.transform, this.transform);
+        attack.isDestroyOnComplete = true;
+        EventorAttackDescriptor attackDesc;
+        for (int i = 0; i < attack.jobs.Count; i++)
         {
-            foreach (EventorJob job in schedule.jobs)
+            if (attack.jobs[i].GetType() == typeof(EventorAttackDescriptor))
             {
-                if (job.GetType() == typeof(EventorAttackDescriptor))
-                {
-                    EventorAttackDescriptor attackDesc = job as EventorAttackDescriptor;
-                    attackDesc.animatedObject = animObj;
-                    attackDesc.attackManager = this;
+                attackDesc = attack.jobs[i] as EventorAttackDescriptor;
+                attackDesc.animatedObject = animObj;
+                attackDesc.controller = this;
+            }
+        }
+        attack.Run();
+    }
 
-                    if (attackDesc.attack == null)
-                    {
-                        Debug.LogError("No attack");
-                        return;
-                    }
 
-                    //if (attackDesc.attack.volumes != null)
-                    //{
-                    //    foreach (Damager d in damagers)
-                    //    {
-                    //        foreach (AttackVolumeDescriptor avd in attackDesc.attack.volumes)
-                    //            if (d.transform.parent.name == avd.boneName)
-                    //                attackDesc.damagers.Add(d);
-                    //    }
-                    //}
-                    //else
-                    //    Debug.LogError("No volumes in this attack");
 
-                }
+
+
+
+    void OnGUI()
+    {
+        if (schedules == null)
+            return;
+
+        foreach (EventorSchedule s in schedules)
+            if (GUILayout.Button(s.name))
+                AttackWithEventor(s);
+    }
+
+    void OnDrawGizmos()
+    {
+        if (damagers == null)
+            return;
+
+        foreach (Damager d in damagers)
+        {
+            if (d.GetComponent<SphereCollider>())
+            {                
+                SphereCollider c = d.GetComponent<SphereCollider>();
+                Gizmos.color = d.enabled ? Color.red : Color.grey;
+                Gizmos.DrawWireSphere(d.transform.TransformPoint(c.center), c.radius);
+                Gizmos.DrawCube(d.transform.TransformPoint(c.center), Vector3.one * c.radius * 0.5f);
             }
         }
     }

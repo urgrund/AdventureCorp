@@ -16,7 +16,9 @@ public class AttackDescriptorEditor : Editor
        
         base.DrawDefaultInspector();
 
-        if (GUILayout.Button("Open Animated Object in Scene", GUILayout.Height(30)))
+        EditorGUILayout.Space();
+        EditorGUILayout.Space();
+        if (GUILayout.Button("Open Animated Object in Scene", GUILayout.Height(35)))
         {
             //EditorWindow[] windows = Resources.FindObjectsOfTypeAll<EditorWindow>();
             //foreach (EditorWindow e in windows)                    
@@ -48,24 +50,12 @@ public class AttackDescriptorEditor : Editor
 
             AttackSetupScrubber acs = o.gameObject.AddComponent<AttackSetupScrubber>();
             acs.animatedGO = o;
-            acs.attackDescriptor = ad;
-            //acs.attackDescriptor.volumes = acs.attackDescriptor.volumes.Distinct().ToList();
+            acs.attackDescriptor = ad;            
             acs.agent = ad.clipProperties.agent;
             acs.attackVolumeCollection = ad.clipProperties.agent.properties.GetComponent<AttackVolumeCollection>();
+            
 
-            // Check bools
-            // fist if never created            
-            //if (acs.attackDescriptor.bools == null)
-            //{
-            //    acs.attackDescriptor.bools = new List<bool>();
-            //    acs.attackDescriptor.bools.AddRange(Enumerable.Repeat(false, acs.attackVolumeCollection.volumes.Length));
-            //}
-            //else
-            //{
-            //    acs.attackDescriptor.bools = Helpers.ListResize(acs.attackDescriptor.bools, acs.attackVolumeCollection.volumes.Length, false);                
-            //}
-
-            Debug.Log("Vols: " + acs.attackVolumeCollection.volumes.Length + "   Bools: " + acs.attackDescriptor.volumeIndices.Count);
+           // Debug.Log("Vols: " + acs.attackVolumeCollection.volumes.Length + "   Bools: " + acs.attackDescriptor.volumeIndices.Count);
 
             Selection.activeGameObject = o.gameObject;
             SceneView.lastActiveSceneView.FrameSelected();            

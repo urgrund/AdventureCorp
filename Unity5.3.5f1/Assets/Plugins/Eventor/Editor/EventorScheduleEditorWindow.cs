@@ -249,7 +249,7 @@ public class EventorScheduleEditorWindow : EditorWindow
 		{
 
 			GUILayout.BeginHorizontal(GUILayout.Width(inspectorWidth - 3));
-			e.isDestroyOnAllCompelte = GUILayout.Toggle(e.isDestroyOnAllCompelte, "Destroy On Complete", EditorStyles.miniButtonMid);
+			e.isDestroyOnComplete = GUILayout.Toggle(e.isDestroyOnComplete, "Destroy On Complete", EditorStyles.miniButtonMid);
 			GUILayout.EndHorizontal();
 
 			//GUILayout.Label(e.name, EditorStyles.whiteLargeLabel);

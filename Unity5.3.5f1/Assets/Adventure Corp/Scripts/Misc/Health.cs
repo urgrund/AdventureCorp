@@ -4,13 +4,18 @@ using System.Collections.Generic;
 
 
 
+/// <summary>
+/// Health
+/// Class that manages a health value by coupling itself with the Damage class
+/// which is evaluated to determine how much health is lost at a particular event 
+/// </summary>
 public class Health : MonoBehaviour
 {
     public bool invincible = false;
     public int startingHealth = 100;
     public int maxHealth = 100;
 
-    public int _currentHealth;
+    private int _currentHealth;
     public int currentHealth { get { return _currentHealth; } }
 
     private float _lastDamageAmount;
@@ -19,70 +24,94 @@ public class Health : MonoBehaviour
     private float _lastDamageTime;
     public float lastDamageTime { get { return _lastDamageTime; } }
 
-    public delegate void OnHealthGained(int gain);
-    public event OnHealthGained onHealthGained;
-
-    public delegate void OnHealthZero(int amountBelowZero);
-    public event OnHealthZero onHealthZero;
-
-    public delegate void OnHealthLost(int loss);
-    public event OnHealthLost onHealthLost;
+    
+    public bool isDead { get { return _currentHealth <= 0; } }
 
 
-    // Matt
-    // Idea for resistances here so its contained within a Health
+    public delegate void OnHealthChanged(HealthChangedEventInfo info);
+    public event OnHealthChanged onHealthGained;
+    public event OnHealthChanged onHealthZero;
+    public event OnHealthChanged onHealthLost;
+
+
+    // Matt - Just an idea for resistances here so its contained within a Health
+    // Can leave here for now to consider later
     [System.Serializable]
     public class Resistance
     {
         public DamageType type = DamageType.Generic;
         public int resistance = 0;        
     }
-    //public List<Resistance> resistances = new List<Resistance>();
     
-    
-    public void TakeDamage(Damage damage, GameObject attacker)
+    /// <summary>
+    /// A class that is passed along with events related to Health
+    /// </summary>
+    public class HealthChangedEventInfo
+    {
+        /// <summary>
+        /// The final value the Health component calculated 
+        /// </summary>
+        public int value;
+        /// <summary>
+        /// The details of this damage
+        /// </summary>
+        public Damage damage;
+        /// <summary>
+        /// Object responsible for passing the damage object
+        /// </summary>
+        public GameObject responsibleGameObject; 
+    }
+
+
+
+    public void TakeDamage(Damage damage) { TakeDamage(damage, null); }
+    public void TakeDamage(Damage damage, GameObject responsibleGameObject)
     {
         if (damage == null)
             return;
 
+        HealthChangedEventInfo info = new HealthChangedEventInfo();
+        info.damage = damage;
+        info.responsibleGameObject = responsibleGameObject;
+
         if (damage.isDamageOverTime)
-            StartCoroutine(DamageOverTime(damage));          
+            StartCoroutine(ApplyDamageToHealthOverTime(info));          
         else
-            ApplyDamageToHealth(damage);
+            ApplyDamageToHealth(info);
     }
 
-    void ApplyDamageToHealth(Damage damage)
+    private void ApplyDamageToHealth(HealthChangedEventInfo info)
     {
         // Already below zero
         if (currentHealth <= 0)
             return;
 
         // If invincible or no amount
-        if (invincible || damage.amount == 0)
+        if (invincible || info.damage.amount == 0)
             return;
 
         _lastDamageTime = Time.time;
-        _lastDamageAmount = damage.amount;
+        _lastDamageAmount = info.damage.amount;
 
         // Fire events
-        if (damage.amount < 0)
+        if (info.damage.amount < 0)
         {
             if (onHealthGained != null)
-                onHealthGained(damage.amount);
+                onHealthGained(info);
         }
         else
         {
             if (onHealthLost != null)
-                onHealthLost(damage.amount);
+                onHealthLost(info);
         }
 
-        _currentHealth -= damage.amount;
+        _currentHealth -= info.damage.amount;
 
         if (_currentHealth <= 0)
         {
             _currentHealth = 0;
             if (onHealthZero != null)
-                onHealthZero(_currentHealth);
+                onHealthZero(info);
         }
     }
 
@@ -96,13 +125,13 @@ public class Health : MonoBehaviour
         LevelManager.Register(this);
     }
 
-    IEnumerator DamageOverTime(Damage damage)
+    IEnumerator ApplyDamageToHealthOverTime(HealthChangedEventInfo info)
     {
         float t = Time.time;
-        while (Time.time - t < damage.damageOverTimeDuration)
+        while (Time.time - t < info.damage.damageOverTimeDuration)
         {
-            ApplyDamageToHealth(damage);
-            yield return new WaitForSeconds(damage.damageOverTimeFrequency);
+            ApplyDamageToHealth(info);
+            yield return new WaitForSeconds(info.damage.damageOverTimeFrequency);
         }
     }
 

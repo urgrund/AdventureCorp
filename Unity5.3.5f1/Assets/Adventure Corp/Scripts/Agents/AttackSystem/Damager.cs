@@ -17,6 +17,9 @@ public class Damager : MonoBehaviour
         if (!enabled)
             return;
 
+        if (damage == null)
+            return;
+
         if (other.GetComponent<Health>())
             other.GetComponent<Health>().TakeDamage(damage, this.gameObject);
     }
@@ -28,10 +31,10 @@ public class Damager : MonoBehaviour
         {
             if (damage == null)
                 return;
-            
+
             SphereCollider c = GetComponent<SphereCollider>();
             Gizmos.color = enabled ? Color.red : Color.grey;
-            Gizmos.DrawWireSphere(transform.TransformPoint(c.center), c.radius);
+            Gizmos.DrawWireSphere(transform.TransformPoint(c.center), c.radius);            
         }
-    }
+    }    
 }

@@ -248,7 +248,7 @@ public class Agent : MonoBehaviour
                     pToPlay = animationProperties.hitFromLeft;
             }
 
-            Debug.DrawRay(transform.position, (info.responsibleGameObject.transform.position - transform.position), Color.red, 10f);
+            //Debug.DrawRay(transform.position, (info.responsibleGameObject.transform.position - transform.position), Color.red, 10f);
         }
         PlayAnimationProperty(pToPlay);
     }
@@ -259,14 +259,14 @@ public class Agent : MonoBehaviour
     {
         directionLastHit.y = 0;
         directionLastHit.Normalize();
-        Quaternion rotTarget = Quaternion.LookRotation(directionLastHit, Vector3.up);
-        AnimationClipProperties die = animationProperties.death;
+        Quaternion rotTarget = Quaternion.LookRotation(directionLastHit, Vector3.up);        
 
         float t = 0;
+        float speed = 8f;
         while (t < 1f)
         {
-            t += Time.deltaTime * 8f;
-            _desiredRotation = Quaternion.Lerp(transform.rotation, rotTarget, Time.deltaTime * 8f );
+            t += Time.deltaTime * speed;
+            _desiredRotation = Quaternion.Lerp(transform.rotation, rotTarget, Time.deltaTime * speed );
             yield return null;
         }
     }

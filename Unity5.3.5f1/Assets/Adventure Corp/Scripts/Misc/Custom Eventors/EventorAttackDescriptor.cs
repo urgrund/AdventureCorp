@@ -7,13 +7,13 @@ public class EventorAttackDescriptor : EventorJob
 {
     public AttackDescriptor attack;
     public Animation animatedObject;
-    public TestAttackController controller;      
+    public AttackController controller;      
         
     protected override IEnumerator RunJobRoutine()
     {
         // Setup volumes
-        SetDamageToDamageVolumes();
-        ActivateDamageVolumes(false);
+        controller.SetDamageToDamageVolumes(attack.damage);
+        controller.ActivateDamageVolumes(false, attack.volumeIndices);
                 
         float t;
         // Play animation and activate volumes during damage range
@@ -23,7 +23,7 @@ public class EventorAttackDescriptor : EventorJob
             while (animatedObject.IsPlaying(attack.clipProperties.clip.name))
             {
                 t = animatedObject[attack.clipProperties.clip.name].normalizedTime;
-                ActivateDamageVolumes(t > attack.validDamageRange.x && t < attack.validDamageRange.y);
+                controller.ActivateDamageVolumes(t > attack.validDamageRange.x && t < attack.validDamageRange.y, attack.volumeIndices);
                 yield return null;
             }
         }
@@ -31,34 +31,8 @@ public class EventorAttackDescriptor : EventorJob
             Debug.LogWarning("Attack had no animated object or attack descriptor");
 
         // Deactivate
-        ActivateDamageVolumes(false);
-    }
-
-
-
-    // Apply the appropriate Damage object to the volumes    
-    void SetDamageToDamageVolumes()
-    {
-        for (int i = 0; i < controller.damagers.Length; i++)        
-            controller.damagers[i].damage = attack.damage;                
-    }
-
-
-
-    // This assumes the attack indices match the NPC's damager indices
-    // If there's a mistmatch it's most likely that the attack descriptor
-    // was never opened in the editor and initialized
-    void ActivateDamageVolumes(bool isEnabled)
-    {
-        for (int i = 0; i < controller.damagers.Length; i++)
-        {
-            if (isEnabled)
-                controller.damagers[i].enabled = attack.volumeIndices[i];
-            else
-                controller.damagers[i].enabled = false;
-            controller.damagers[i].GetComponent<Collider>().enabled = controller.damagers[i].enabled;
-        }            
-    }
+        controller.ActivateDamageVolumes(false, attack.volumeIndices);
+    }       
 }
 
 

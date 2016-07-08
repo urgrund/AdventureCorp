@@ -10,11 +10,12 @@ public enum DamageType
 }
 
 
-[CreateAssetMenu(fileName = "dmg_Damage", menuName = "Adventure Corp/Damage")]
-public class Damage : ScriptableObject
+//[CreateAssetMenu(fileName = "dmg_Damage", menuName = "Adventure Corp/Damage")]
+[System.Serializable]
+public class Damage //: ScriptableObject
 { 
     public DamageType type = DamageType.Generic;
-    public int amount = 1;
+    public int amount = 10;
     public bool isDamageOverTime = false;
     public float damageOverTimeFrequency = 1f;
     public float damageOverTimeDuration = 10f;

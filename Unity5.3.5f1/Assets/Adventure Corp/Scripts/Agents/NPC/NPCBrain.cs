@@ -301,34 +301,34 @@ public abstract class NPCBrain : Brain
 
 
 
-        if(ShowGizmoz)
-        {
-            Transform t = this.transform;
-            Handles.color = new Color(1, 0, 0, 0.1f);
-            Handles.DrawSolidDisc(t.position, t.up, alertDistanceNear);
+        //if(ShowGizmoz)
+        //{
+        //    Transform t = this.transform;
+        //    Handles.color = new Color(1, 0, 0, 0.1f);
+        //    Handles.DrawSolidDisc(t.position, t.up, alertDistanceNear);
 
 
-            float f = alertDistanceFarCone / 360f;
-            Vector3 v = Vector3.Slerp(t.forward, -t.forward, f);
+        //    float f = alertDistanceFarCone / 360f;
+        //    Vector3 v = Vector3.Slerp(t.forward, -t.forward, f);
 
-            Handles.DrawSolidArc(t.position,
-                t.up,
-                v,
-                alertDistanceFarCone,
-                alertDistanceFar);
+        //    Handles.DrawSolidArc(t.position,
+        //        t.up,
+        //        v,
+        //        alertDistanceFarCone,
+        //        alertDistanceFar);
 
-            Handles.color = Color.yellow;
-            Handles.DrawWireArc(t.position,
-                t.up,
-                v,
-                alertDistanceFarCone,
-                alertDistanceFar);
+        //    Handles.color = Color.yellow;
+        //    Handles.DrawWireArc(t.position,
+        //        t.up,
+        //        v,
+        //        alertDistanceFarCone,
+        //        alertDistanceFar);
 
 
-            //Handles.DrawSolidDisc(t.transform.position + v, Vector3.up, .5f);
-            v *= alertDistanceFar;
-            Handles.DrawLine(t.position + v, t.position);
-            Handles.DrawLine(t.position + Vector3.Reflect(v, t.right), t.position);
-        }
+        //    //Handles.DrawSolidDisc(t.transform.position + v, Vector3.up, .5f);
+        //    v *= alertDistanceFar;
+        //    Handles.DrawLine(t.position + v, t.position);
+        //    Handles.DrawLine(t.position + Vector3.Reflect(v, t.right), t.position);
+        //}
     }
   }

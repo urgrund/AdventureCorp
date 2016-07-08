@@ -3,18 +3,23 @@ using System.Collections;
 using System.Collections.Generic;
 
 [System.Serializable]
-[CreateAssetMenu(fileName = "ad_AttackDescriptor", menuName = "Adventure Corp/Attack Descriptor")]
+[CreateAssetMenu(fileName = "atk_AttackDescriptor", menuName = "Adventure Corp/Attack Descriptor")]
 public class AttackDescriptor : ScriptableObject
 {
+    public enum Angle
+    {
+        Narrow = 90,
+        Wide = 180,
+        Encompasse = 360
+    }
+
     public bool canBeBroken = false;
-    public Vector2 minMaxRange = new Vector2(0.5f, 3f);
-    public Vector2 coolDownRange = new Vector2(0, 1);
+    public bool useCurves = false;
+    public Vector2 suggestedUseRange = new Vector2(0.5f, 3f);
+    [Range(0,360)]
+    public float suggestedUseAngle = 90f;
     public Vector2 validDamageRange = new Vector2(0.25f, 0.75f);
     public Damage damage;
-
-    // Volumes that will be used for this attack
-    //public List<AttackVolumeDescriptor> volumes;
-
-    public List<bool> volumeIndices = new List<bool>();
+    public bool[] volumeIndices = new bool[0];
     public AnimationClipProperties clipProperties;    
 }

@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using UnityEditor;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 
@@ -11,25 +12,29 @@ public class AttackSetupScrubberEditor : Editor
     SerializedObject attDesc;
 
     SerializedProperty canBeBroken;
-    SerializedProperty minMaxRange;
-    SerializedProperty coolDownRange;
+    SerializedProperty useCurves;
+    SerializedProperty suggestedUseRange;
+    SerializedProperty suggestedUseAngle;
     SerializedProperty validDamageRange;
     SerializedProperty volumeIndices;
     SerializedProperty clipProperties;
     SerializedProperty damage;
     bool[] tempVolumeIndices; 
 
-    //bool canBeBroken;
-
+    
     void OnEnable()
     {
+        if (target == null)
+            return;
+
         // Setup serialized properties
         AttackSetupScrubber t = target as AttackSetupScrubber;
         attDesc = new SerializedObject(t.attackDescriptor);
 
         canBeBroken = attDesc.FindProperty("canBeBroken");
-        minMaxRange = attDesc.FindProperty("minMaxRange");
-        coolDownRange = attDesc.FindProperty("coolDownRange");
+        useCurves = attDesc.FindProperty("useCurves");
+        suggestedUseRange = attDesc.FindProperty("suggestedUseRange");
+        suggestedUseAngle = attDesc.FindProperty("suggestedUseAngle");
         validDamageRange = attDesc.FindProperty("validDamageRange");
         volumeIndices = attDesc.FindProperty("volumeIndices");
         clipProperties = attDesc.FindProperty("clipProperties");
@@ -55,6 +60,13 @@ public class AttackSetupScrubberEditor : Editor
         }
     }
 
+
+
+    AttackDescriptor.Angle range = AttackDescriptor.Angle.Narrow;
+
+    AnimationCurve curveX = AnimationCurve.Linear(0, 0, 1, 0);
+    AnimationCurve curveY = AnimationCurve.Linear(0, 0, 1, 0);
+    AnimationCurve curveZ = AnimationCurve.Linear(0, 0, 1, 0);
     public override void OnInspectorGUI()
     {
         //base.DrawDefaultInspector();
@@ -66,12 +78,15 @@ public class AttackSetupScrubberEditor : Editor
 
         BoldLabel("Attack Properties");
         EditorGUILayout.PropertyField(canBeBroken);
-        EditorGUILayout.PropertyField(minMaxRange, new GUIContent("Suggested Use Range"));
-        EditorGUILayout.PropertyField(coolDownRange);        
+        EditorGUILayout.PropertyField(useCurves);
+        EditorGUILayout.PropertyField(suggestedUseRange);
+        //EditorGUILayout.PropertyField(suggestedUseAngle);   
         EditorGUILayout.PropertyField(damage, true);
         EditorGUILayout.PropertyField(clipProperties, true);
         //EditorGUILayout.PropertyField(volumeIndices, true);
 
+        range = (AttackDescriptor.Angle)EditorGUILayout.EnumPopup("Angle Test", range);
+        suggestedUseAngle.floatValue = (float)((int)range);
 
         BoldLabel("Volumes used for this attack");
         for (int i = 0; i < tempVolumeIndices.Length; i++)
@@ -80,20 +95,36 @@ public class AttackSetupScrubberEditor : Editor
             volumeIndices.GetArrayElementAtIndex(i).boolValue = tempVolumeIndices[i];
         c.volumeIndices = tempVolumeIndices;
 
-                
-        BoldLabel("Damage Range & Animation Scrub");
+
+        BoldLabel("Damage Range and Movement Curves" + "   (scrub time : " + (c.scrubTime/a.clip.length)+ " )");
+        Rect constraints = new Rect(0, 0, 1, 10);
+        curveX = EditorGUILayout.CurveField(curveX, Color.red, constraints, null);
+        curveY = EditorGUILayout.CurveField(curveY, Color.green, constraints, null);
+        curveZ = EditorGUILayout.CurveField(curveZ, Color.blue, constraints, null);
         Vector2 mm = c.attackDescriptor.validDamageRange;
         EditorGUILayout.MinMaxSlider(ref mm.x, ref mm.y, 0f, 1f);
+
+        GUI.color = Color.grey;
         c.scrubTime = GUILayout.HorizontalSlider(c.scrubTime, 0f, a.clip.length);
         validDamageRange.vector2Value = mm;
         a[a.clip.name].time = c.scrubTime;
         a.clip.SampleAnimation(a.gameObject, c.scrubTime);
 
-        
+        if (useCurves.boolValue)
+            UpdateModelPositionWithCurves(c.scrubTime / a.clip.length);
+
         // Apply changes
-        attDesc.ApplyModifiedProperties();        
+        attDesc.ApplyModifiedProperties();
     }
 
+    Vector3 lastCurvePosition = Vector3.zero;
+    void UpdateModelPositionWithCurves(float t)
+    {        
+        lastCurvePosition.x = curveX.Evaluate(t);
+        lastCurvePosition.y = curveY.Evaluate(t);
+        lastCurvePosition.z = curveZ.Evaluate(t);
+        (target as AttackSetupScrubber).transform.position = lastCurvePosition;
+    }
 
     static void BoldLabel(string text)
     {
@@ -115,14 +146,13 @@ public class AttackSetupScrubberEditor : Editor
 
     void OnSceneGUI()
     {
+        attDesc.Update();
         AttackSetupScrubber a = target as AttackSetupScrubber;
 
-        // Draw Attack Suggested min max range
-        Handles.color = Color.yellow;
-        Handles.DrawWireArc(a.transform.position, Vector3.up, Vector3.forward, 360f, a.attackDescriptor.minMaxRange.x);
-        Handles.color = Color.red;
-        Handles.DrawWireArc(a.transform.position, Vector3.up, Vector3.forward, 360f, a.attackDescriptor.minMaxRange.y);
-
+        Handles.color = Color.white;
+        Handles.Label(a.transform.position + Vector3.up * 5f, a.attackDescriptor.name);
+        DrawArcs(a);
+       
         if (a.volumePositions != null)
         {
             for (int i = 0; i < a.attackVolumeCollection.volumes.Length; i++)
@@ -136,6 +166,35 @@ public class AttackSetupScrubberEditor : Editor
                 Handles.Label(a.volumePositions[i], a.attackVolumeCollection.volumes[i].boneName);
             }
         }
+
+        attDesc.ApplyModifiedProperties();
+    }
+
+    void DrawArcs(AttackSetupScrubber a)
+    {
+        // Draw Attack Suggested min max range        
+        float t = suggestedUseAngle.floatValue / 360f;
+        Vector3 normal = Vector3.Slerp(Vector3.forward, -Vector3.forward, t);
+        Vector3 position = a.transform.position - lastCurvePosition;
+
+
+        Handles.color = Color.red;
+        Handles.DrawWireArc(position, Vector3.up, normal, suggestedUseAngle.floatValue, suggestedUseRange.vector2Value.x);
+        Handles.color = Color.yellow;
+        Handles.DrawWireArc(position, Vector3.up, normal, suggestedUseAngle.floatValue,  suggestedUseRange.vector2Value.y);        
+
+        Handles.color = Color.yellow * new Color(1, 1, 1, 0.02f);
+        Handles.DrawSolidArc(position, Vector3.up, normal, suggestedUseAngle.floatValue, suggestedUseRange.vector2Value.y);
+
+        Handles.color = Color.white;
+        Vector2 sur = suggestedUseRange.vector2Value;
+        sur.x = Handles.ScaleValueHandle(sur.x,
+                        position + a.transform.forward * sur.x,
+                        a.transform.rotation, 1, Handles.ConeCap, 1);
+        sur.y = Handles.ScaleValueHandle(sur.y,
+                        position + a.transform.forward * sur.y,
+                        a.transform.rotation, 1, Handles.ConeCap, 1);
+        suggestedUseRange.vector2Value = sur;
     }
 }
 

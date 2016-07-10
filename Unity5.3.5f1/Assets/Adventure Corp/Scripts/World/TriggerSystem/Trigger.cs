@@ -28,7 +28,7 @@ function OnTriggerEnter (object : Collider)
 
     public delegate void OnTriggerEvent();
     public event OnTriggerEvent onTriggerEntered;
-    public event OnTriggerEvent onTriggerStay;
+    //public event OnTriggerEvent onTriggerStay;
     public event OnTriggerEvent onTriggerExit;
 
     public delegate void OnColliderCountChanged(int currentCount);

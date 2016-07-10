@@ -30,17 +30,14 @@ public class AttackDescriptorEditor : Editor
                 Debug.LogError("No Clip Properties, cannot continue!");
                 return;
             }
-
-
-            if (ad.clipProperties.agent == null)
+            
+            if (ad.clipProperties.agentAnimationProperties == null)
                 return;
-            if (ad.clipProperties.agent.animationProperties == null)
-                return;
-            if (ad.clipProperties.agent.animationProperties.animatedGameObject == null)
+            if (ad.clipProperties.agentAnimationProperties.animatedGameObject == null)
                 return;
 
 
-            Animation o = Instantiate(ad.clipProperties.agent.animationProperties.animatedGameObject);
+            Animation o = Instantiate(ad.clipProperties.agentAnimationProperties.animatedGameObject);
             o.gameObject.name = ad.clipProperties.clip.name + " Animated Object [DELETE ME]";
             o.transform.position = Vector3.zero;
             o.transform.rotation = Quaternion.identity;

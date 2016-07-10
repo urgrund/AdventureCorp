@@ -8,8 +8,9 @@ public class AttackDescriptor : ScriptableObject
 {
     public enum Angle
     {
-        Narrow = 90,
-        Wide = 180,
+        Narrow = 15,
+        Wide = 90,
+        Breadth = 180,
         Encompasse = 360
     }
 

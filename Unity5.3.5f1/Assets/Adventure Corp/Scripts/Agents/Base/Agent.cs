@@ -3,33 +3,39 @@ using System.Collections;
 
 [RequireComponent(typeof(CharacterController))]
 [RequireComponent(typeof(Health))]
-public class Agent : MonoBehaviour
+public sealed class Agent : MonoBehaviour
 {
-    // Matt - this was never used (Unity warning).  Does an agent need to know its brain?
-    //private Brain _brain;
-
     private CharacterController _controller;
     public CharacterController controller { get { return _controller; } }
 
     public AgentProperties properties;
-    public AgentAnimationProperties animationProperties;
+    //public AgentAnimationProperties animationProperties;
 
-    private Animation _animatedGameObject;
-    public Animation animatedGameObject { get { return _animatedGameObject; } }
+    //private Animation _animatedGameObject;
+    //public Animation animatedGameObject { get { return _animatedGameObject; } }
 
     private Health _health;
     public Health health { get { return _health; } }
 
     private float gravitySpeed = 0f;
 
-    
-    Vector3 _desiredVelocity;
-    
+    Vector3 _desiredVelocity;    
     Quaternion _desiredRotation;
-
-    private bool _isWithAnimatedObject = false;
-
+    //private bool _isWithAnimatedObject = false;
     private bool _isBrainSetVelocityThisFrame = false;
+
+    /// <summary>
+    /// Ratio of the agents max speed to current speed.  This takes into account only XZ
+    /// </summary>
+    public float speedRatio
+    {
+        get
+        {
+            Vector3 v = _controller.velocity;
+            v.y = 0;
+            return v.magnitude / properties.speed.max;
+        }
+    }
 
     /// <summary>
     /// Set the default parameters for an Agent
@@ -45,16 +51,16 @@ public class Agent : MonoBehaviour
 
     void Awake()
     {
-        if (animationProperties != null)
-        {
-            if (animationProperties.animatedGameObject != null)
-            {
-                _animatedGameObject = Helpers.InstantiateAndParent(animationProperties.animatedGameObject.gameObject.transform, transform, true).GetComponent<Animation>();
-                _isWithAnimatedObject = true;
-            }
-        }
-        else
-            Debug.LogError(name.ToString() + " has no animation properties.");
+        //if (animationProperties != null)
+        //{
+        //    if (animationProperties.animatedGameObject != null)
+        //    {
+        //        _animatedGameObject = Helpers.InstantiateAndParent(animationProperties.animatedGameObject.gameObject.transform, transform, true).GetComponent<Animation>();
+        //        _isWithAnimatedObject = true;
+        //    }
+        //}
+        //else
+        //    Debug.LogError(name.ToString() + " has no animation properties.");
 
 
         // Initial headings
@@ -72,7 +78,7 @@ public class Agent : MonoBehaviour
     void Update()
     {
         UpdateController();
-        UpdateAnimations();
+        //UpdateAnimations();
     }
 
 
@@ -90,36 +96,36 @@ public class Agent : MonoBehaviour
     }
 
 
-    void PlayAnimationProperty(AnimationClipProperties clipProperty)
-    {
-        _animatedGameObject.CrossFade(clipProperty.clip.name, clipProperty.blendTime);
-    }
+    //void PlayAnimationProperty(AnimationClipProperties clipProperties)
+    //{
+    //    _animatedGameObject.CrossFade(clipProperties.clip.name, clipProperties.blendTime);        
+    //}
 
-    void UpdateAnimations()
-    {
-        // This is pretty simple at the moment. Based on velocity (gravity cancelled) 
-        // blend between idle walk and run animations 
-        if (_isWithAnimatedObject && !_health.isDead)
-        {
-            // Use the real controller velocity, not the desired
-            // this avoids "running constantly at a wall" effect
-            Vector3 v = _controller.velocity;
-            v.y = 0;
-            if (v.magnitude < 0.05f) // <- hacky
-            {
-                _animatedGameObject.PlayQueued(animationProperties.idle.clip.name, QueueMode.CompleteOthers);
-                //PlayAnimationProperty(animationProperties.idle);
-                //_animatedGameObject.CrossFade(animationProperties.idle.clip.name, animationProperties.run.blendTime);
-            }
-            else
-            {
-                if ((v.magnitude / properties.speed.max) < animationProperties.walkToRunSpeedRatio)
-                    _animatedGameObject.CrossFade(animationProperties.walk.clip.name, animationProperties.walk.blendTime);
-                else
-                    _animatedGameObject.CrossFade(animationProperties.run.clip.name, animationProperties.run.blendTime);
-            }
-        }
-    }
+    //void UpdateAnimations()
+    //{
+    //    // This is pretty simple at the moment. Based on velocity (gravity cancelled) 
+    //    // blend between idle walk and run animations 
+    //    if (_isWithAnimatedObject && !_health.isDead)
+    //    {
+    //        // Use the real controller velocity, not the desired
+    //        // this avoids "running constantly at a wall" effect
+    //        Vector3 v = _controller.velocity;
+    //        v.y = 0;
+    //        if (v.magnitude < 0.05f) // <- hacky
+    //        {
+    //            _animatedGameObject.PlayQueued(animationProperties.idle.clip.name, QueueMode.CompleteOthers);
+    //            //PlayAnimationProperty(animationProperties.idle);
+    //            //_animatedGameObject.CrossFade(animationProperties.idle.clip.name, animationProperties.run.blendTime);
+    //        }
+    //        else
+    //        {
+    //            if ((v.magnitude / properties.speed.max) < animationProperties.walkToRunSpeedRatio)
+    //                _animatedGameObject.CrossFade(animationProperties.walk.clip.name, animationProperties.walk.blendTime);
+    //            else
+    //                _animatedGameObject.CrossFade(animationProperties.run.clip.name, animationProperties.run.blendTime);
+    //        }
+    //    }
+    //}
 
 
     void LateUpdate()
@@ -130,12 +136,7 @@ public class Agent : MonoBehaviour
         _isBrainSetVelocityThisFrame = false;
     }
 
-
-    //public void PlugBrain(Brain brain)
-    //{
-    //    this._brain = brain;
-    //}
-
+    
 
     private void Rotate(Quaternion rotation)
     {
@@ -212,45 +213,45 @@ public class Agent : MonoBehaviour
     }
 
 
-    public virtual void OnHealthLost(Health.HealthChangedEventInfo info)
+    public void OnHealthLost(Health.HealthChangedEventInfo info)
     {
-        AnimationClipProperties pToPlay;
+        //AnimationClipProperties pToPlay;
 
-        Vector3 dirToObject = Helpers.DirectionTo(transform, info.responsibleGameObject.transform);
-        if (_health.isDead)
-        {
-            pToPlay = animationProperties.death;
-            StartCoroutine(DieRotateRoutine(dirToObject));
-        }
-        else
-        {            
-            Vector3 forward = transform.forward;
-            Vector3 right = transform.right;
-            dirToObject.y = forward.y = right.y = 0;
-            float frontOrBack = Vector3.Dot(forward, dirToObject);
-            float rightOrLeft = Vector3.Dot(right, dirToObject);
+        //Vector3 dirToObject = Helpers.DirectionTo(transform, info.responsibleGameObject.transform);
+        //if (_health.isDead)
+        //{
+        //    pToPlay = animationProperties.death;
+        //    StartCoroutine(DieRotateRoutine(dirToObject));
+        //}
+        //else
+        //{            
+        //    Vector3 forward = transform.forward;
+        //    Vector3 right = transform.right;
+        //    dirToObject.y = forward.y = right.y = 0;
+        //    float frontOrBack = Vector3.Dot(forward, dirToObject);
+        //    float rightOrLeft = Vector3.Dot(right, dirToObject);
 
 
-            // Must be front or back
-            if (Mathf.Abs(frontOrBack) > 0.707f)
-            {
-                if (frontOrBack > 0)
-                    pToPlay = animationProperties.hitFromFront;
-                else
-                    pToPlay = animationProperties.hitFromBehind;
-            }
-            else
-            {
-                // Must be left or right
-                if (rightOrLeft > 0)
-                    pToPlay = animationProperties.hitFromRight;
-                else
-                    pToPlay = animationProperties.hitFromLeft;
-            }
+        //    // Must be front or back
+        //    if (Mathf.Abs(frontOrBack) > 0.707f)
+        //    {
+        //        if (frontOrBack > 0)
+        //            pToPlay = animationProperties.hitFromFront;
+        //        else
+        //            pToPlay = animationProperties.hitFromBehind;
+        //    }
+        //    else
+        //    {
+        //        // Must be left or right
+        //        if (rightOrLeft > 0)
+        //            pToPlay = animationProperties.hitFromRight;
+        //        else
+        //            pToPlay = animationProperties.hitFromLeft;
+        //    }
 
-            //Debug.DrawRay(transform.position, (info.responsibleGameObject.transform.position - transform.position), Color.red, 10f);
-        }
-        PlayAnimationProperty(pToPlay);
+        //    //Debug.DrawRay(transform.position, (info.responsibleGameObject.transform.position - transform.position), Color.red, 10f);
+        //}
+        //PlayAnimationProperty(pToPlay);
     }
 
 
@@ -273,20 +274,20 @@ public class Agent : MonoBehaviour
         
 
 
-    void OnDrawGizmos()
-    {
-        if (!Application.isPlaying)
-        {
-            if (animationProperties == null)
-                return;
+    //void OnDrawGizmos()
+    //{
+    //    if (!Application.isPlaying)
+    //    {
+    //        if (animationProperties == null)
+    //            return;
 
-            if (animationProperties.gizmoMesh == null)
-                return;
+    //        if (animationProperties.gizmoMesh == null)
+    //            return;
 
-            Color c = animationProperties.gizmoColor;
-            c.a = 0.5f;
-            Gizmos.color = c;
-            Gizmos.DrawMesh(animationProperties.gizmoMesh, transform.position, transform.rotation);
-        }
-    }
+    //        Color c = animationProperties.gizmoColor;
+    //        c.a = 0.5f;
+    //        Gizmos.color = c;
+    //        Gizmos.DrawMesh(animationProperties.gizmoMesh, transform.position, transform.rotation);
+    //    }
+    //}
 }

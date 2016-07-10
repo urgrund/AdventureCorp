@@ -19,7 +19,7 @@ public class EventorAttackDescriptor : EventorJob
         // Play animation and activate volumes during damage range
         if (animatedObject != null && attack != null)
         {
-            animatedObject.CrossFade(attack.clipProperties.clip.name, attack.clipProperties.blendTime, attack.clipProperties.playMode);
+            animatedObject.CrossFade(attack.clipProperties.clip.name, attack.clipProperties.blendTime);
             while (animatedObject.IsPlaying(attack.clipProperties.clip.name))
             {
                 t = animatedObject[attack.clipProperties.clip.name].normalizedTime;

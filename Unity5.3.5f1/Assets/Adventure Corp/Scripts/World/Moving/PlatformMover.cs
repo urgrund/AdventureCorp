@@ -11,7 +11,7 @@ public class PlatformMover : MonoBehaviour
     public Color targetColor = Color.yellow;
     
 
-    private bool isFirstRun;
+    //private bool isFirstRun;
 
     // TODO - this can easily be an array in oder to 
     // have 'trains' of target loctaions
@@ -54,7 +54,7 @@ public class PlatformMover : MonoBehaviour
         _previousDetails = details.start;
         _nextDetails = details.target;
 
-        isFirstRun = true;
+        //isFirstRun = true;
 		StartCoroutine(MoveRoutine());
 	}
 

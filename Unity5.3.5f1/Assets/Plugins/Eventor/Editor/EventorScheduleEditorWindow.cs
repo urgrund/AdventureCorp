@@ -47,7 +47,7 @@ public class EventorScheduleEditorWindow : EditorWindow
 
 	// -----------------------------------------------------------------------------------------------------------------------------
 	
-	bool needToUpdateEditors = true;
+	//bool needToUpdateEditors = true;
 	
 	void GetAllJobs()	
 	{
@@ -88,14 +88,14 @@ public class EventorScheduleEditorWindow : EditorWindow
 	
 	void OnFocus()
 	{
-		needToUpdateEditors = true;
+		//needToUpdateEditors = true;
 		if(GetEventorObject())
 			GetAllJobs();
 	}
 	
 	void OnEnable()
 	{
-		needToUpdateEditors = true;
+		//needToUpdateEditors = true;
 		if(GetEventorObject())
 			GetAllJobs();
 	}
@@ -230,7 +230,7 @@ public class EventorScheduleEditorWindow : EditorWindow
 	float tsActiveW = 45;
 	float tsTypeW = 110;
 	float tsDelayW = 30;	
-	float scrollbarwidth = 100;
+	//float scrollbarwidth = 100;
 	
 	bool lastAllActive = true;
 	bool lastAllShow = true;

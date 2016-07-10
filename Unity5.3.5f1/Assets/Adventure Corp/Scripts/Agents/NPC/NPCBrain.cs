@@ -2,6 +2,8 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEditor;
+
+
 /// <summary>
 /// NPC Brain
 /// NPC Brains will work on a concept of a desired destination
@@ -111,11 +113,6 @@ public abstract class NPCBrain : Brain
             
             _navMeshNextPosition = _navMeshPathToDestination.corners[_navMeshNextPositionIndex];
         }
-        //else
-        //{
-        //    Debug.LogWarning ("Position Index larger than points! " + " i:" + _navMeshNextPositionIndex + " p:" + _navMeshPathToDestination.corners.Length);
-        //    Debug.Break();
-        //}
         Debug.Assert(_navMeshNextPositionIndex <= _navMeshPathToDestination.corners.Length);
     }
 
@@ -141,8 +138,7 @@ public abstract class NPCBrain : Brain
         {
             // If already there, exit
             if (CheckAtPosition((Vector3)value, _destinationBias))
-            {
-                //print("Already at destination.");
+            {                
                 _destination = null;
                 return;
             }
@@ -296,7 +292,7 @@ public abstract class NPCBrain : Brain
                         Gizmos.DrawLine(p.corners[i], p.corners[i + 1]);
                     Helpers.GizmoDrawRing(p.corners[i], _destinationBias);
                 }
-            }
+            }            
         }
 
 

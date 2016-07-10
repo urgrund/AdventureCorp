@@ -7,7 +7,7 @@ using System.Collections;
 /// </summary>
 public class AttackController : MonoBehaviour
 {    
-    public Animation animatedObject;
+    public AgentAnimationController animationController;
     public Agent agent;
     public EventorSchedule[] schedules;
     public Damager[] damagers;
@@ -19,10 +19,14 @@ public class AttackController : MonoBehaviour
     {
         if (agent == null)
             agent = GetComponent<Agent>();
-        if (animatedObject == null)
-            animatedObject = agent.animatedGameObject;
+        if (animationController == null)        
+            if (GetComponent<AgentAnimationController>())
+                animationController = GetComponent<AgentAnimationController>();
 
-        damagers = AttackVolumeCollection.CreateDamageCollidersForTransform(animatedObject.transform, agent.properties.GetComponent<AttackVolumeCollection>());
+        if (agent == null || animationController == null)
+            Debug.LogError("No agent or animated object on " + this.name);
+
+        damagers = AttackVolumeCollection.CreateDamageCollidersForTransform(animationController.animatedGameObject.transform, agent.properties.GetComponent<AttackVolumeCollection>());
     }
 
 
@@ -35,23 +39,23 @@ public class AttackController : MonoBehaviour
 
     // Istantiate an EventorSchedule for use as an 
     // attack.   Setup needed properties and run!
-    void AttackWithEventor(EventorSchedule attack)
-    {
-        attack = Instantiate(attack) as EventorSchedule;
-        Helpers.ParentAndCenterOnTransform(attack.transform, this.transform);
-        attack.isDestroyOnComplete = true;
-        EventorAttackDescriptor attackDesc;
-        for (int i = 0; i < attack.jobs.Count; i++)
-        {
-            if (attack.jobs[i].GetType() == typeof(EventorAttackDescriptor))
-            {
-                attackDesc = attack.jobs[i] as EventorAttackDescriptor;
-                attackDesc.animatedObject = animatedObject;
-                attackDesc.controller = this;
-            }
-        }
-        attack.Run();
-    }
+    //void AttackWithEventor(EventorSchedule attack)
+    //{
+    //    attack = Instantiate(attack) as EventorSchedule;
+    //    Helpers.ParentAndCenterOnTransform(attack.transform, this.transform);
+    //    attack.isDestroyOnComplete = true;
+    //    EventorAttackDescriptor attackDesc;
+    //    for (int i = 0; i < attack.jobs.Count; i++)
+    //    {
+    //        if (attack.jobs[i].GetType() == typeof(EventorAttackDescriptor))
+    //        {
+    //            attackDesc = attack.jobs[i] as EventorAttackDescriptor;
+    //            attackDesc.animatedObject = animatedObject;
+    //            attackDesc.controller = this;
+    //        }
+    //    }
+    //    attack.Run();
+    //}
 
 
 
@@ -88,15 +92,15 @@ public class AttackController : MonoBehaviour
 
         float t;
         // Play animation and activate volumes during damage range
-        if (animatedObject != null && attack != null)
-        {
-            animatedObject.CrossFade(attack.clipProperties.clip.name, attack.clipProperties.blendTime, attack.clipProperties.playMode);
-            while (animatedObject.IsPlaying(attack.clipProperties.clip.name))
+        if (animationController.animatedGameObject != null && attack != null)
+        {            
+            animationController.Play(attack.clipProperties);
+            while (animationController.animatedGameObject.IsPlaying(attack.clipProperties.clip.name))
             {
-                t = animatedObject[attack.clipProperties.clip.name].normalizedTime;
+                t = animationController.animatedGameObject[attack.clipProperties.clip.name].normalizedTime;
                 ActivateDamageVolumes(t > attack.validDamageRange.x && t < attack.validDamageRange.y, attack.volumeIndices);
                 yield return null;
-            }
+            }         
         }
         else
             Debug.LogWarning("Attack had no animated object or attack descriptor");

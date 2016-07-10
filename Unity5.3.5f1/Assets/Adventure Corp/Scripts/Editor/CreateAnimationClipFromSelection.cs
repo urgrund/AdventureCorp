@@ -81,17 +81,8 @@ public class CreateAnimationClipFromSelection
             Debug.Log("Created " + a.GetClipCount() + " Animation Clip Properties for " + a.name);
 
         EditorUtility.FocusProjectWindow();
-        
-
-        //MyScriptableObjectClass asset = ScriptableObject.CreateInstance<MyScriptableObjectClass>();
-
-        //AssetDatabase.CreateAsset(asset, "Assets/NewScripableObject.asset");
-        //AssetDatabase.SaveAssets();
-
-        //EditorUtility.FocusProjectWindow();
-
-        //Selection.activeObject = asset;
     }
+
 
     // Note that we pass the same path, and also pass "true" to the second argument.
     [MenuItem("Assets/Adventure Corp/Create Anim Properties From Selection", true)]

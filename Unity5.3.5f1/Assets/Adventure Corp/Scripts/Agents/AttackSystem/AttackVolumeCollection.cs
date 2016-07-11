@@ -27,6 +27,12 @@ public class AttackVolumeCollection : MonoBehaviour
 
     public static Damager[] CreateDamageCollidersForTransform(Transform transform, AttackVolumeCollection attackVolumes)
     {
+        if (attackVolumes == null || attackVolumes.volumes == null)
+        {
+            Debug.LogError("No volumes created!");
+            return null;
+        }
+
         Damager[] d = new Damager[attackVolumes.volumes.Length];
         for (int i = 0; i < attackVolumes.volumes.Length; i++)
         {

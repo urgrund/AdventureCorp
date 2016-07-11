@@ -34,6 +34,11 @@ public class AttackSetupScrubber : MonoBehaviour
                 Vector3 p = tf.TransformPoint(d.center);
                 volumePositions[i] = p;
 
+
+                // Draw locally 
+                p = d.center;
+                Gizmos.matrix = tf.localToWorldMatrix;
+
                 // This has been ticked for use in this attack 
                 if (volumeIndices[i] == true)
                 {

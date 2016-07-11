@@ -12,6 +12,7 @@ public class AttackSetupScrubberEditor : Editor
     SerializedObject attDesc;
 
     SerializedProperty canBeBroken;
+    SerializedProperty lockController;
     SerializedProperty useCurves;
     SerializedProperty suggestedUseRange;
     SerializedProperty suggestedUseAngle;
@@ -19,6 +20,7 @@ public class AttackSetupScrubberEditor : Editor
     SerializedProperty volumeIndices;
     SerializedProperty clipProperties;
     SerializedProperty damage;
+
     bool[] tempVolumeIndices; 
 
     
@@ -32,6 +34,7 @@ public class AttackSetupScrubberEditor : Editor
         attDesc = new SerializedObject(t.attackDescriptor);
 
         canBeBroken = attDesc.FindProperty("canBeBroken");
+        lockController = attDesc.FindProperty("lockController");
         useCurves = attDesc.FindProperty("useCurves");
         suggestedUseRange = attDesc.FindProperty("suggestedUseRange");
         suggestedUseAngle = attDesc.FindProperty("suggestedUseAngle");
@@ -78,6 +81,7 @@ public class AttackSetupScrubberEditor : Editor
 
         BoldLabel("Attack Properties");
         EditorGUILayout.PropertyField(canBeBroken);
+        EditorGUILayout.PropertyField(lockController);
         EditorGUILayout.PropertyField(useCurves);
         EditorGUILayout.PropertyField(suggestedUseRange);
         //EditorGUILayout.PropertyField(suggestedUseAngle);   
@@ -150,7 +154,7 @@ public class AttackSetupScrubberEditor : Editor
         AttackSetupScrubber a = target as AttackSetupScrubber;
 
         Handles.color = Color.white;
-        Handles.Label(a.transform.position + Vector3.up * 5f, a.attackDescriptor.name);
+        Handles.Label(a.transform.position + Vector3.up * 4f, a.attackDescriptor.name);
         DrawArcs(a);
        
         if (a.volumePositions != null)

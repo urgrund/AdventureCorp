@@ -5,7 +5,7 @@ public class PlayerBrain : Brain
 {
     //Inputs
     Vector3 directionalInput;
-    //
+    //    
 	
 	protected override void Update ()
     {

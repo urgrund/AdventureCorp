@@ -15,6 +15,7 @@ public class Health : MonoBehaviour
     public int startingHealth = 100;
     public int maxHealth = 100;
 
+    [SerializeField]
     private int _currentHealth;
     public int currentHealth { get { return _currentHealth; } }
 

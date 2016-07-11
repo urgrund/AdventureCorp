@@ -15,10 +15,13 @@ public class AttackDescriptor : ScriptableObject
     }
 
     public bool canBeBroken = false;
+    public bool lockController = false;
     public bool useCurves = false;
     public Vector2 suggestedUseRange = new Vector2(0.5f, 3f);
     [Range(0,360)]
     public float suggestedUseAngle = 90f;
+    [Range(0, 1)]
+    public float yieldControlRatio = 1f;
     public Vector2 validDamageRange = new Vector2(0.25f, 0.75f);
     public Damage damage;
     public bool[] volumeIndices = new bool[0];

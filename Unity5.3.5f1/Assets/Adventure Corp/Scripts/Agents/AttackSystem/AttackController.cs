@@ -6,15 +6,20 @@ using System.Collections;
 /// Main controller that holds the attack descriptors
 /// </summary>
 public class AttackController : MonoBehaviour
-{    
+{
+    public bool showDebugGUI = false;
     public AgentAnimationController animationController;
     public Agent agent;
-    public EventorSchedule[] schedules;
+    //public EventorSchedule[] schedules;
+    [HideInInspector]
     public Damager[] damagers;
 
     public AttackDescriptor[] attacks;
+    public AttackDescriptor _currentAttack;
 
-     
+    private bool _isAttacking = false;
+    public bool isAttacking { get { return _isAttacking; } } 
+
     void Start()
     {
         if (agent == null)
@@ -30,34 +35,26 @@ public class AttackController : MonoBehaviour
     }
 
 
-    void AttackWithDescriptor(AttackDescriptor d)
+    public bool isPastYieldControlTime
     {
-        StopCoroutine(RunJobRoutine(d));
-        StartCoroutine(RunJobRoutine(d));        
+        get
+        {
+            if (isAttacking)
+                return animationController.animatedGameObject[_currentAttack.clipProperties.clip.name].normalizedTime > _currentAttack.yieldControlRatio;
+            else
+                return true;
+        }
     }
 
-
-    // Istantiate an EventorSchedule for use as an 
-    // attack.   Setup needed properties and run!
-    //void AttackWithEventor(EventorSchedule attack)
-    //{
-    //    attack = Instantiate(attack) as EventorSchedule;
-    //    Helpers.ParentAndCenterOnTransform(attack.transform, this.transform);
-    //    attack.isDestroyOnComplete = true;
-    //    EventorAttackDescriptor attackDesc;
-    //    for (int i = 0; i < attack.jobs.Count; i++)
-    //    {
-    //        if (attack.jobs[i].GetType() == typeof(EventorAttackDescriptor))
-    //        {
-    //            attackDesc = attack.jobs[i] as EventorAttackDescriptor;
-    //            attackDesc.animatedObject = animatedObject;
-    //            attackDesc.controller = this;
-    //        }
-    //    }
-    //    attack.Run();
-    //}
-
-
+    public void AttackWithDescriptor(AttackDescriptor d)
+    {
+        if (isPastYieldControlTime)
+        {
+            StopAllCoroutines();
+            StartCoroutine(RunJobRoutine(d));
+        }
+    }
+    
 
     // Apply the appropriate Damage object to the volumes    
     public void SetDamageToDamageVolumes(Damage damage)
@@ -82,6 +79,31 @@ public class AttackController : MonoBehaviour
         }
     }
 
+    public void YieldControlFromAttack() { YieldControlFromAttack(false); }
+    public void YieldControlFromAttack(bool force)
+    {
+        if (force)
+        {
+            ReleaseAttack(_currentAttack);
+        }
+        else
+        {
+            if (isAttacking)
+            {
+                if (isPastYieldControlTime)
+                    ReleaseAttack(_currentAttack);
+            }
+        }
+    }
+
+    void ReleaseAttack(AttackDescriptor attack)
+    {
+        // Deactivate
+        ActivateDamageVolumes(false, attack.volumeIndices);
+        agent.isAllowedMovement = true;
+        _isAttacking = false;
+        animationController.overrideCountDown = -1;
+    }
 
 
     IEnumerator RunJobRoutine(AttackDescriptor attack)
@@ -89,24 +111,26 @@ public class AttackController : MonoBehaviour
         // Setup volumes
         SetDamageToDamageVolumes(attack.damage);
         ActivateDamageVolumes(false, attack.volumeIndices);
+        _currentAttack = attack;
 
         float t;
         // Play animation and activate volumes during damage range
-        if (animationController.animatedGameObject != null && attack != null)
+        if (animationController.animatedGameObject != null && _currentAttack != null)
         {            
-            animationController.Play(attack.clipProperties);
-            while (animationController.animatedGameObject.IsPlaying(attack.clipProperties.clip.name))
+            animationController.Play(_currentAttack.clipProperties);
+            while (animationController.animatedGameObject.IsPlaying(_currentAttack.clipProperties.clip.name))
             {
-                t = animationController.animatedGameObject[attack.clipProperties.clip.name].normalizedTime;
-                ActivateDamageVolumes(t > attack.validDamageRange.x && t < attack.validDamageRange.y, attack.volumeIndices);
+                _isAttacking = true;
+                t = animationController.animatedGameObject[_currentAttack.clipProperties.clip.name].normalizedTime;
+                ActivateDamageVolumes(t > _currentAttack.validDamageRange.x && t < _currentAttack.validDamageRange.y, _currentAttack.volumeIndices);
+                agent.isAllowedMovement = !_currentAttack.lockController;
                 yield return null;
             }         
         }
         else
             Debug.LogWarning("Attack had no animated object or attack descriptor");
 
-        // Deactivate
-        ActivateDamageVolumes(false, attack.volumeIndices);
+        ReleaseAttack(_currentAttack);
     }
 
 
@@ -117,7 +141,13 @@ public class AttackController : MonoBehaviour
 
     void OnGUI()
     {
-        if (schedules == null || attacks == null)
+        if (!showDebugGUI)
+            return;
+
+        //if (schedules == null || attacks == null)
+        //  return;
+
+        if (attacks == null)
             return;
 
         foreach (AttackDescriptor s in attacks)

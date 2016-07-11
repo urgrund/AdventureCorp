@@ -8,21 +8,24 @@ public sealed class Agent : MonoBehaviour
     private CharacterController _controller;
     public CharacterController controller { get { return _controller; } }
 
-    public AgentProperties properties;
-    //public AgentAnimationProperties animationProperties;
-
-    //private Animation _animatedGameObject;
-    //public Animation animatedGameObject { get { return _animatedGameObject; } }
+    /// <summary>
+    /// Properties to define the movement properties of this agent
+    /// </summary>
+    public AgentProperties properties;    
 
     private Health _health;
     public Health health { get { return _health; } }
 
     private float gravitySpeed = 0f;
 
-    Vector3 _desiredVelocity;    
-    Quaternion _desiredRotation;
-    //private bool _isWithAnimatedObject = false;
+
+    Vector3 _currentVelocity;       // Velocity the Controller will move
+    Vector3 _desiredVelocity;       // Velocity the Controller will try to reach
+    Quaternion _desiredRotation;    
     private bool _isBrainSetVelocityThisFrame = false;
+
+    public bool isAllowedMovement = true;
+    public bool isAllowedRotation = true;
 
     /// <summary>
     /// Ratio of the agents max speed to current speed.  This takes into account only XZ
@@ -51,22 +54,9 @@ public sealed class Agent : MonoBehaviour
 
     void Awake()
     {
-        //if (animationProperties != null)
-        //{
-        //    if (animationProperties.animatedGameObject != null)
-        //    {
-        //        _animatedGameObject = Helpers.InstantiateAndParent(animationProperties.animatedGameObject.gameObject.transform, transform, true).GetComponent<Animation>();
-        //        _isWithAnimatedObject = true;
-        //    }
-        //}
-        //else
-        //    Debug.LogError(name.ToString() + " has no animation properties.");
-
-
         // Initial headings
         _desiredVelocity = Vector3.zero;
         _desiredRotation = transform.rotation;
-
 
         // Setup component references
         _controller = GetComponent<CharacterController>();
@@ -77,72 +67,49 @@ public sealed class Agent : MonoBehaviour
 
     void Update()
     {
-        UpdateController();
-        //UpdateAnimations();
+        UpdateMovement();
+        UpdateRotation();
     }
+        
 
-
-    void UpdateController()
+    void UpdateMovement()
     {
-        // Apply gravity
-        if (!controller.isGrounded)
-            gravitySpeed -= properties.gravity;
-        else
-            gravitySpeed = -controller.stepOffset / Time.deltaTime * 5;
-
-        _desiredVelocity.y = gravitySpeed * Time.deltaTime;
-        _controller.Move(_desiredVelocity * Time.deltaTime);
-        Rotate(_desiredRotation);
+        if (isAllowedMovement)
+        {
+            // Apply gravity
+            if (!controller.isGrounded)
+                gravitySpeed -= properties.gravity;
+            else
+                gravitySpeed = -controller.stepOffset / Time.deltaTime * 5;
+            
+            _currentVelocity.y = gravitySpeed * Time.deltaTime;
+            _controller.Move(_currentVelocity * Time.deltaTime);            
+        }
     }
 
+    void UpdateRotation()
+    {
+        if (isAllowedRotation)
+        {
+            transform.rotation = _desiredRotation;
+        }
+    }
 
-    //void PlayAnimationProperty(AnimationClipProperties clipProperties)
-    //{
-    //    _animatedGameObject.CrossFade(clipProperties.clip.name, clipProperties.blendTime);        
-    //}
-
-    //void UpdateAnimations()
-    //{
-    //    // This is pretty simple at the moment. Based on velocity (gravity cancelled) 
-    //    // blend between idle walk and run animations 
-    //    if (_isWithAnimatedObject && !_health.isDead)
-    //    {
-    //        // Use the real controller velocity, not the desired
-    //        // this avoids "running constantly at a wall" effect
-    //        Vector3 v = _controller.velocity;
-    //        v.y = 0;
-    //        if (v.magnitude < 0.05f) // <- hacky
-    //        {
-    //            _animatedGameObject.PlayQueued(animationProperties.idle.clip.name, QueueMode.CompleteOthers);
-    //            //PlayAnimationProperty(animationProperties.idle);
-    //            //_animatedGameObject.CrossFade(animationProperties.idle.clip.name, animationProperties.run.blendTime);
-    //        }
-    //        else
-    //        {
-    //            if ((v.magnitude / properties.speed.max) < animationProperties.walkToRunSpeedRatio)
-    //                _animatedGameObject.CrossFade(animationProperties.walk.clip.name, animationProperties.walk.blendTime);
-    //            else
-    //                _animatedGameObject.CrossFade(animationProperties.run.clip.name, animationProperties.run.blendTime);
-    //        }
-    //    }
-    //}
-
-
+    
     void LateUpdate()
     {
-        // Apply damping if no Brain input
+        // Apply damping to velocity if no Brain input
         if (!_isBrainSetVelocityThisFrame && controller.isGrounded)
-            _desiredVelocity = Vector3.MoveTowards(_desiredVelocity, Vector3.zero, properties.speed.damping * Time.deltaTime);
+        {
+            Vector3 cV = _currentVelocity;
+            cV = Vector3.MoveTowards(_currentVelocity, Vector3.zero, properties.speed.damping * Time.deltaTime);
+            cV.y = _currentVelocity.y;
+            _currentVelocity = cV;
+        }
         _isBrainSetVelocityThisFrame = false;
     }
 
     
-
-    private void Rotate(Quaternion rotation)
-    {
-        transform.rotation = rotation;
-    }
-
 
 
     /// <summary>
@@ -172,7 +139,7 @@ public sealed class Agent : MonoBehaviour
     {
         // TODO - might be interesting to consider different surfaces
         // such as ice.  This could simply be scalars to acceleartion/damping etc?
-        Vector3 v = _desiredVelocity;
+        Vector3 v = velocity;
         v.y = 0;
 
         // Blend between accelearation & damping based on dot of current/desired
@@ -180,11 +147,13 @@ public sealed class Agent : MonoBehaviour
         // to first STOP then Accelerate 
         float dotWithVel = (2 + Vector3.Dot(_controller.velocity.normalized, transform.forward)) * 0.5f;
         Vector3 targetVelocity = Vector3.Lerp(Vector3.zero, velocity, dotWithVel);
-        v = Vector3.MoveTowards(v, targetVelocity, properties.speed.acceleration * Time.deltaTime);
+        //v = Vector3.MoveTowards(v, targetVelocity, properties.speed.acceleration * Time.deltaTime);
 
         v = Vector3.ClampMagnitude(v, properties.speed.max);
         _desiredVelocity = v;
 
+//        print("Des : " + _desiredVelocity + "    Cur: " + _currentVelocity);
+        _currentVelocity = Vector3.MoveTowards(_currentVelocity, _desiredVelocity, properties.speed.acceleration);
         _isBrainSetVelocityThisFrame = true;
     }
 
@@ -194,7 +163,7 @@ public sealed class Agent : MonoBehaviour
     /// Set player velocity and rotate the character towards velocity direction. If no rotation is needed set the bool isRotate to false
     /// </summary>
     public void SetDesiredVelocity(Vector3 velocity, bool isRotate)
-    {
+    {        
         CalculateDesiredVelocity(velocity);
 
         if (_desiredVelocity != Vector3.zero && isRotate)
@@ -206,88 +175,42 @@ public sealed class Agent : MonoBehaviour
     /// <summary>
     /// Set player velocity and rotate the character towards a vector3 target
     /// </summary>
-    public void SetDesiredVelocity(Vector3 velocity, Vector3 LookAtTarget)
+    public void SetDesiredVelocity(Vector3 velocity, Vector3 lookAtTarget)
     {
         CalculateDesiredVelocity(velocity);
-        _desiredRotation = RotateToLookAt(LookAtTarget, properties.rotation.max);
+        _desiredRotation = RotateToLookAt(lookAtTarget, properties.rotation.max);
     }
 
 
     public void OnHealthLost(Health.HealthChangedEventInfo info)
     {
-        //AnimationClipProperties pToPlay;
-
-        //Vector3 dirToObject = Helpers.DirectionTo(transform, info.responsibleGameObject.transform);
-        //if (_health.isDead)
-        //{
-        //    pToPlay = animationProperties.death;
-        //    StartCoroutine(DieRotateRoutine(dirToObject));
-        //}
-        //else
-        //{            
-        //    Vector3 forward = transform.forward;
-        //    Vector3 right = transform.right;
-        //    dirToObject.y = forward.y = right.y = 0;
-        //    float frontOrBack = Vector3.Dot(forward, dirToObject);
-        //    float rightOrLeft = Vector3.Dot(right, dirToObject);
-
-
-        //    // Must be front or back
-        //    if (Mathf.Abs(frontOrBack) > 0.707f)
-        //    {
-        //        if (frontOrBack > 0)
-        //            pToPlay = animationProperties.hitFromFront;
-        //        else
-        //            pToPlay = animationProperties.hitFromBehind;
-        //    }
-        //    else
-        //    {
-        //        // Must be left or right
-        //        if (rightOrLeft > 0)
-        //            pToPlay = animationProperties.hitFromRight;
-        //        else
-        //            pToPlay = animationProperties.hitFromLeft;
-        //    }
-
-        //    //Debug.DrawRay(transform.position, (info.responsibleGameObject.transform.position - transform.position), Color.red, 10f);
-        //}
-        //PlayAnimationProperty(pToPlay);
-    }
-
-
-    // Just quick hack to rotate toward last hit dir
-    IEnumerator DieRotateRoutine(Vector3 directionLastHit)
-    {
-        directionLastHit.y = 0;
-        directionLastHit.Normalize();
-        Quaternion rotTarget = Quaternion.LookRotation(directionLastHit, Vector3.up);        
-
-        float t = 0;
-        float speed = 8f;
-        while (t < 1f)
+        if (_health.isDead)
         {
-            t += Time.deltaTime * speed;
-            _desiredRotation = Quaternion.Lerp(transform.rotation, rotTarget, Time.deltaTime * speed );
-            yield return null;
+            print("Died");
+            controller.detectCollisions = false;
+            controller.enabled = false;
+            this.enabled = false;
         }
     }
+
+
+    // TODO - This should go in the animation controller as its 
+    // visual feedback, not Agent related
         
-
-
-    //void OnDrawGizmos()
+    //IEnumerator DieRotateRoutine(Vector3 directionLastHit)
     //{
-    //    if (!Application.isPlaying)
+    //    directionLastHit.y = 0;
+    //    directionLastHit.Normalize();
+    //    Quaternion rotTarget = Quaternion.LookRotation(directionLastHit, Vector3.up);        
+
+    //    float t = 0;
+    //    float speed = 8f;
+    //    while (t < 1f)
     //    {
-    //        if (animationProperties == null)
-    //            return;
-
-    //        if (animationProperties.gizmoMesh == null)
-    //            return;
-
-    //        Color c = animationProperties.gizmoColor;
-    //        c.a = 0.5f;
-    //        Gizmos.color = c;
-    //        Gizmos.DrawMesh(animationProperties.gizmoMesh, transform.position, transform.rotation);
+    //        t += Time.deltaTime * speed;
+    //        _desiredRotation = Quaternion.Lerp(transform.rotation, rotTarget, Time.deltaTime * speed );
+    //        yield return null;
     //    }
-    //}
+    //}        
+    
 }

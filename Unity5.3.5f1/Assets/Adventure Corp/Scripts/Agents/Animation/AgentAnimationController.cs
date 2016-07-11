@@ -5,10 +5,11 @@ using System.Collections;
 
 public class AgentAnimationController : MonoBehaviour
 {
+    //public bool showDebugGUI = false;
     public AgentAnimationProperties animationProperties;
 
-    public string mixingTransformBoneName = "root";
-    private Transform mixingTransformBone;
+    public string upperBodyTransformBoneName = "spine";
+    Transform _upperBodyTransform;
 
     [Tooltip("This needs an Agent present and will take care of basic locomotion based on the Agents velocity and movement.")]
     public bool isAutoHandleBasicLocomotion = true;
@@ -43,6 +44,11 @@ public class AgentAnimationController : MonoBehaviour
     {
         this.agent = agent;
         _isAgentAttached = (this.agent != null);
+        if (agent != null)
+        {
+            agent.health.onHealthLost += OnHealthLost;
+            agent.health.onHealthZero += OnHealthLost;
+        }
     }
 
     void Awake()
@@ -52,6 +58,7 @@ public class AgentAnimationController : MonoBehaviour
             if (animationProperties.animatedGameObject != null)
             {
                 _animatedGameObject = Helpers.InstantiateAndParent(animationProperties.animatedGameObject.gameObject.transform, transform, true).GetComponent<Animation>();
+                _upperBodyTransform = Helpers.SearchHierarchyForTransform(_animatedGameObject.transform, upperBodyTransformBoneName);
             }
         }
         else
@@ -66,7 +73,10 @@ public class AgentAnimationController : MonoBehaviour
             StartCoroutine(BasicLocomotionRoutine());
 
         PrewarmAnimations();
-        Play(animationProperties.idle);
+        _state = State.Dead;
+        SetAnimationState(State.Idle);
+
+        //Play(animationProperties.idle);
     }
     
         
@@ -79,9 +89,7 @@ public class AgentAnimationController : MonoBehaviour
         // This iterates through the animations to read them into memory in order to  try avoiding this.
         int animationCount = 0;        
         for (int i = 0; i < _animatedGameObject.GetClipCount(); i++)
-        {
             animationCount++;
-        }
     }
 
 
@@ -92,10 +100,10 @@ public class AgentAnimationController : MonoBehaviour
     public float overrideCountDown = 0;
     IEnumerator BasicLocomotionRoutine()
     {
-        state = State.Idle;
         while (true)
         {
-            if (overrideCountDown <= 0f)
+            //if (overrideCountDown <= 0f)
+            if(_state != State.Override && state != State.Dead)
             {
                 // Determine walk/run speed
                 if (agent.speedRatio < 0.05f)
@@ -110,15 +118,12 @@ public class AgentAnimationController : MonoBehaviour
                         state = State.Running;
                 }
 
-                // Depending on the state, adjust playback 
+                //Depending on the state, adjust playback
+                float speedRatio = Mathf.Clamp(agent.speedRatio, 0.25f, 1f);
                 if (_state == State.Running)
-                    animatedGameObject[animationProperties.run.clip.name].speed = agent.speedRatio;
+                    animatedGameObject[animationProperties.run.clip.name].speed = animationProperties.run.playSpeed * speedRatio;
                 if (_state == State.Walking)
-                    animatedGameObject[animationProperties.walk.clip.name].speed = agent.speedRatio;
-            }
-            else
-            {
-                overrideCountDown -= Time.deltaTime;
+                    animatedGameObject[animationProperties.walk.clip.name].speed = animationProperties.walk.playSpeed * speedRatio;
             }
             yield return null;
         }  
@@ -133,7 +138,6 @@ public class AgentAnimationController : MonoBehaviour
             _state = value;
         else
             return;
-
 
         switch (_state)
         {
@@ -155,33 +159,64 @@ public class AgentAnimationController : MonoBehaviour
         }
     }
 
-    
+
+
+    void Update()
+    {
+        if (overrideCountDown > 0)
+            overrideCountDown -= Time.deltaTime;
+
+        if (_state == State.Override && overrideCountDown < 0)
+        {
+            overrideCountDown = 0f;
+            if(state != State.Dead)
+                state = State.Idle;
+        }
+    }
+
 
     public void Play(AnimationClipProperties clipProperties)
     {
+        if (state == State.Dead)
+        {            
+            _animatedGameObject.Stop();
+            _animatedGameObject.Play(animationProperties.death.clip.name, PlayMode.StopAll);
+            return;
+        }
+
+
         if (clipProperties.clip == null)
             Debug.LogError("No clip on animation property on {0}", clipProperties);
+
 
         _animatedGameObject[clipProperties.clip.name].speed = clipProperties.playSpeed;
         _animatedGameObject[clipProperties.clip.name].weight = clipProperties.weight;
         _animatedGameObject[clipProperties.clip.name].blendMode = clipProperties.blendMode;
+        _animatedGameObject[clipProperties.clip.name].layer = (int)clipProperties.layer;
+        _animatedGameObject[clipProperties.clip.name].enabled = true;
+
+        if (clipProperties.isMixingTransform)
+            _animatedGameObject[clipProperties.clip.name].AddMixingTransform(_upperBodyTransform);
+
 
         if (clipProperties.isOverriding)
         {
-            _animatedGameObject.Stop();
-            _animatedGameObject.CrossFade(clipProperties.clip.name, clipProperties.blendTime); 
-            overrideCountDown = clipProperties.clip.length;
+            _animatedGameObject.Rewind(clipProperties.clip.name);
+            _animatedGameObject.clip = clipProperties.clip;
+            _animatedGameObject.CrossFade(clipProperties.clip.name, clipProperties.blendTime);
+
+            overrideCountDown = clipProperties.clip.length * (1f / clipProperties.playSpeed);
             state = State.Override;
-            //StopAllCoroutines();
-            //breakHold = true;
-            //StartCoroutine(HoldStateThenReturn(State.Other, State.Idle, clipProperties.clip.length));
         }
         else
         {
-            _animatedGameObject[clipProperties.clip.name].layer = 2;
-            _animatedGameObject.CrossFade(clipProperties.clip.name, clipProperties.blendTime);
-            if (!clipProperties.clip.isLooping)
-                overrideCountDown = clipProperties.clip.length;
+            if (clipProperties.isMixingTransform)
+            {
+                _animatedGameObject.Rewind(clipProperties.clip.name);
+                _animatedGameObject.Blend(clipProperties.clip.name, clipProperties.weight, clipProperties.blendTime);
+            }
+            else
+                _animatedGameObject.CrossFade(clipProperties.clip.name, clipProperties.blendTime);
         }
     }
 
@@ -206,6 +241,50 @@ public class AgentAnimationController : MonoBehaviour
 
         print("Stop");
     }
+
+    public void OnHealthLost(Health.HealthChangedEventInfo info)
+    {
+        if (state == State.Dead)
+            return;
+
+
+        AnimationClipProperties pToPlay;
+        Vector3 dirToObject = Helpers.DirectionTo(transform, info.responsibleGameObject.transform);
+        if (agent.health.isDead)
+        {            
+            state = State.Dead;
+        }
+        else
+        {
+            Vector3 forward = transform.forward;
+            Vector3 right = transform.right;
+            dirToObject.y = forward.y = right.y = 0;
+            float frontOrBack = Vector3.Dot(forward, dirToObject);
+            float rightOrLeft = Vector3.Dot(right, dirToObject);
+
+            // Must be front or back
+            if (Mathf.Abs(frontOrBack) > 0.707f)
+            {
+                if (frontOrBack > 0)
+                    pToPlay = animationProperties.hitFromFront;
+                else
+                    pToPlay = animationProperties.hitFromBehind;
+            }
+            else
+            {
+                // Must be left or right
+                if (rightOrLeft > 0)
+                    pToPlay = animationProperties.hitFromRight;
+                else
+                    pToPlay = animationProperties.hitFromLeft;
+            }
+
+            Play(pToPlay);
+            //Debug.DrawRay(transform.position, (info.responsibleGameObject.transform.position - transform.position), Color.red, 10f);
+        }
+    }
+
+
 
 
     void OnDrawGizmos()

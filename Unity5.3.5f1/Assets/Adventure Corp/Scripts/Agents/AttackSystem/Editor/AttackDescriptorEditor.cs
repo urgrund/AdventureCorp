@@ -38,7 +38,7 @@ public class AttackDescriptorEditor : Editor
 
 
             Animation o = Instantiate(ad.clipProperties.agentAnimationProperties.animatedGameObject);
-            o.gameObject.name = ad.clipProperties.clip.name + " Animated Object [DELETE ME]";
+            o.gameObject.name = "[DELETE ME!!!] " + ad.clipProperties.clip.name + " Animated Object";
             o.transform.position = Vector3.zero;
             o.transform.rotation = Quaternion.identity;
 

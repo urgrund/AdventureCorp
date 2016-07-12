@@ -1,13 +1,15 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class TestGruntBrain : Brain
+public class TestPlayableBrain : Brain
 {
     //Inputs
     Vector3 directionalInput;
     //    
 
     public AttackController atkController;
+    public AttackDescriptor basicMelee;
+    public AttackDescriptor basicRanged;
 
     Vector3 camDiff;
 
@@ -15,6 +17,14 @@ public class TestGruntBrain : Brain
     {
         camDiff = Camera.main.transform.position - transform.position;
         base.Awake();
+    }
+
+    protected override void Start()
+    {        
+        atkController = GetComponent<AttackController>();
+        atkController.SetOwnerHealthToDamageVolumes(agent.health);
+
+        base.Start();
     }
 
 
@@ -43,7 +53,11 @@ public class TestGruntBrain : Brain
 
         if (Input.GetButtonDown("Fire1"))
         {
-            atkController.AttackWithDescriptor(atkController.attacks[3]);
+            atkController.AttackWithDescriptor(basicMelee);
+        }
+        else if (Input.GetButtonDown("Fire2"))
+        {
+            atkController.AttackWithDescriptor(basicRanged);
         }
     }
 

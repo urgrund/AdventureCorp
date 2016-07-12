@@ -137,10 +137,14 @@ ModelImporter:
     2300002: crossbow
     2300004: crossbow_muzzle
     2300006: feathers
+    2300008: skeleton_archer1
+    2300010: skeleton_archer_alpha
     3300000: arrow1
     3300002: crossbow
     3300004: crossbow_muzzle
     3300006: feathers
+    3300008: skeleton_archer1
+    3300010: skeleton_archer_alpha
     4300000: skeleton_archer1
     4300002: skeleton_archer_alpha
     4300004: crossbow
@@ -247,7 +251,7 @@ ModelImporter:
       takeName: 
       firstFrame: 90
       lastFrame: 179
-      wrapMode: 0
+      wrapMode: 8
       orientationOffsetY: 0
       level: 0
       cycleOffset: 0
@@ -275,7 +279,7 @@ ModelImporter:
       takeName: 
       firstFrame: 180
       lastFrame: 219
-      wrapMode: 0
+      wrapMode: 8
       orientationOffsetY: 0
       level: 0
       cycleOffset: 0
@@ -303,7 +307,7 @@ ModelImporter:
       takeName: 
       firstFrame: 220
       lastFrame: 249
-      wrapMode: 0
+      wrapMode: 8
       orientationOffsetY: 0
       level: 0
       cycleOffset: 0
@@ -331,7 +335,7 @@ ModelImporter:
       takeName: 
       firstFrame: 250
       lastFrame: 294
-      wrapMode: 0
+      wrapMode: 8
       orientationOffsetY: 0
       level: 0
       cycleOffset: 0
@@ -359,7 +363,7 @@ ModelImporter:
       takeName: 
       firstFrame: 295
       lastFrame: 324
-      wrapMode: 0
+      wrapMode: 8
       orientationOffsetY: 0
       level: 0
       cycleOffset: 0
@@ -387,7 +391,7 @@ ModelImporter:
       takeName: 
       firstFrame: 325
       lastFrame: 354
-      wrapMode: 0
+      wrapMode: 8
       orientationOffsetY: 0
       level: 0
       cycleOffset: 0
@@ -415,7 +419,7 @@ ModelImporter:
       takeName: 
       firstFrame: 355
       lastFrame: 384
-      wrapMode: 0
+      wrapMode: 8
       orientationOffsetY: 0
       level: 0
       cycleOffset: 0
@@ -443,7 +447,7 @@ ModelImporter:
       takeName: 
       firstFrame: 385
       lastFrame: 414
-      wrapMode: 0
+      wrapMode: 8
       orientationOffsetY: 0
       level: 0
       cycleOffset: 0
@@ -499,7 +503,7 @@ ModelImporter:
       takeName: 
       firstFrame: 505
       lastFrame: 549
-      wrapMode: 0
+      wrapMode: 8
       orientationOffsetY: 0
       level: 0
       cycleOffset: 0
@@ -555,7 +559,7 @@ ModelImporter:
       takeName: 
       firstFrame: 639
       lastFrame: 713
-      wrapMode: 0
+      wrapMode: 8
       orientationOffsetY: 0
       level: 0
       cycleOffset: 0
@@ -667,7 +671,7 @@ ModelImporter:
       takeName: 
       firstFrame: 905
       lastFrame: 994
-      wrapMode: 0
+      wrapMode: 8
       orientationOffsetY: 0
       level: 0
       cycleOffset: 0
@@ -779,7 +783,7 @@ ModelImporter:
       takeName: 
       firstFrame: 1265
       lastFrame: 1294
-      wrapMode: 0
+      wrapMode: 8
       orientationOffsetY: 0
       level: 0
       cycleOffset: 0

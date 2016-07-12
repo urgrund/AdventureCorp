@@ -25,5 +25,6 @@ public class AttackDescriptor : ScriptableObject
     public Vector2 validDamageRange = new Vector2(0.25f, 0.75f);
     public Damage damage;
     public bool[] volumeIndices = new bool[0];
-    public AnimationClipProperties clipProperties;    
+    public AnimationClipProperties clipProperties;
+    public EventorSchedule eventor; 
 }

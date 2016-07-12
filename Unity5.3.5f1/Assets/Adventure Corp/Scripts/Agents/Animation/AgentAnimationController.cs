@@ -36,6 +36,8 @@ public class AgentAnimationController : MonoBehaviour
         set { SetAnimationState(value); }
     }
 
+    [HideInInspector]
+    public float overrideCountDown = 0;
 
     private Animation _animatedGameObject;
     public Animation animatedGameObject { get { return _animatedGameObject; } }
@@ -97,7 +99,6 @@ public class AgentAnimationController : MonoBehaviour
     /// Handles walking, running idle and dying
     /// Also will manage strafe and backpedalling based on agent 
     /// </summary>
-    public float overrideCountDown = 0;
     IEnumerator BasicLocomotionRoutine()
     {
         while (true)

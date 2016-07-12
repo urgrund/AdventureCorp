@@ -19,6 +19,7 @@ public class AttackSetupScrubberEditor : Editor
     SerializedProperty validDamageRange;
     SerializedProperty volumeIndices;
     SerializedProperty clipProperties;
+    SerializedProperty eventor;
     SerializedProperty damage;
 
     bool[] tempVolumeIndices; 
@@ -41,6 +42,7 @@ public class AttackSetupScrubberEditor : Editor
         validDamageRange = attDesc.FindProperty("validDamageRange");
         volumeIndices = attDesc.FindProperty("volumeIndices");
         clipProperties = attDesc.FindProperty("clipProperties");
+        eventor = attDesc.FindProperty("eventor");
         damage = attDesc.FindProperty("damage");
 
 
@@ -87,6 +89,7 @@ public class AttackSetupScrubberEditor : Editor
         //EditorGUILayout.PropertyField(suggestedUseAngle);   
         EditorGUILayout.PropertyField(damage, true);
         EditorGUILayout.PropertyField(clipProperties, true);
+        EditorGUILayout.PropertyField(eventor, true);
         //EditorGUILayout.PropertyField(volumeIndices, true);
 
         range = (AttackDescriptor.Angle)EditorGUILayout.EnumPopup("Angle Test", range);
@@ -100,7 +103,11 @@ public class AttackSetupScrubberEditor : Editor
         c.volumeIndices = tempVolumeIndices;
 
 
-        BoldLabel("Damage Range and Movement Curves" + "   (scrub time : " + (c.scrubTime/a.clip.length)+ " )");
+        // Clip time is it's length scaled by play speed
+        float clipTime = (a.clip.length * (1/c.attackDescriptor.clipProperties.playSpeed)) * c.scrubTime;
+
+        BoldLabel("Damage Range and Movement Curves");
+        EditorGUILayout.LabelField("(" + (c.scrubTime/a.clip.length)+ "/" + clipTime + ")");
         Rect constraints = new Rect(0, 0, 1, 10);
         curveX = EditorGUILayout.CurveField(curveX, Color.red, constraints, null);
         curveY = EditorGUILayout.CurveField(curveY, Color.green, constraints, null);

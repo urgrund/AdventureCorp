@@ -11,7 +11,7 @@ public class AttackController : MonoBehaviour
     public AgentAnimationController animationController;
     public Agent agent;
     //public EventorSchedule[] schedules;
-    [HideInInspector]
+    //[HideInInspector]
     public Damager[] damagers;
 
     public AttackDescriptor[] attacks;
@@ -20,7 +20,7 @@ public class AttackController : MonoBehaviour
     private bool _isAttacking = false;
     public bool isAttacking { get { return _isAttacking; } } 
 
-    void Start()
+    void Awake()
     {
         if (agent == null)
             agent = GetComponent<Agent>();
@@ -52,6 +52,8 @@ public class AttackController : MonoBehaviour
         {
             StopAllCoroutines();
             StartCoroutine(RunJobRoutine(d));
+            if (d.eventor != null)
+                EventorSchedule.RunAtTransformAsChild(d.eventor, this.transform);
         }
     }
     
@@ -63,6 +65,13 @@ public class AttackController : MonoBehaviour
             damagers[i].damage = damage;
     }
 
+
+    
+    public void SetOwnerHealthToDamageVolumes(Health health)
+    {        
+        for (int i = 0; i < damagers.Length; i++)
+            damagers[i].owner = health;        
+    }
 
     // This assumes the attack indices match the NPC's damager indices
     // If there's a mistmatch it's most likely that the attack descriptor

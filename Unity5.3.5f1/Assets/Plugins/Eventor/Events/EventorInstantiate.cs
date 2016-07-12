@@ -32,11 +32,13 @@ public class EventorInstantiate : EventorJob
 				position = objectToSpawn.position;
 				rotation = objectToSpawn.rotation;
 			}
-			
-			position += new Vector3(Random.Range(-Mathf.Abs(randomOffset.x), Mathf.Abs(randomOffset.x)),
-			                        Random.Range(-Mathf.Abs(randomOffset.y), Mathf.Abs(randomOffset.y)),
-			                        Random.Range(-Mathf.Abs(randomOffset.z), Mathf.Abs(randomOffset.z)));
-					
+
+            if (randomOffset != Vector3.zero)
+            {
+                position += new Vector3(Random.Range(-Mathf.Abs(randomOffset.x), Mathf.Abs(randomOffset.x)),
+                                        Random.Range(-Mathf.Abs(randomOffset.y), Mathf.Abs(randomOffset.y)),
+                                        Random.Range(-Mathf.Abs(randomOffset.z), Mathf.Abs(randomOffset.z)));
+            }		
 
 			if(destroyObject.isActive)
 				currentTransformSpawned = destroyObject.SpawnAndDestroy(objectToSpawn, position, rotation);

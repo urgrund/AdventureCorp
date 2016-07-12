@@ -4,9 +4,43 @@ using System.Collections;
 
 public class Damager : MonoBehaviour
 {
-    //public Transform parent;
+    /// <summary>
+    /// Damage properties for this Damager
+    /// </summary>
     public Damage damage;
-    public SphereCollider sphereCollider; 
+
+    /// <summary>
+    /// Sphere collider defining the Damager zone
+    /// </summary>
+    public SphereCollider sphereCollider;
+
+    /// <summary>
+    /// If this is set, this Health will not take damage from this Damager
+    /// </summary>
+    public Health owner;
+
+    /// <summary>
+    /// Delay the activation of this Damager
+    /// </summary>
+    public bool isDelayEnable = false;
+    public float initialActivateDelay = 0f;
+
+    void Awake()
+    {
+        if (isDelayEnable)
+        {
+            StartCoroutine(DelayEnable());
+            enabled = false;
+        }
+    }
+        
+
+    IEnumerator DelayEnable()
+    {
+        enabled = false;
+        yield return new WaitForSeconds(initialActivateDelay);
+        enabled = true;
+    }
 
     
     void OnTriggerEnter(Collider other)
@@ -16,9 +50,11 @@ public class Damager : MonoBehaviour
 
         if (damage == null)
             return;
-
-        if (other.GetComponent<Health>())
-            other.GetComponent<Health>().TakeDamage(damage, this.gameObject);
+            
+        Health g = other.GetComponent<Health>();
+        if (g !=null )
+            if(g != owner)
+                other.GetComponent<Health>().TakeDamage(damage, this.gameObject);
     }
 
 

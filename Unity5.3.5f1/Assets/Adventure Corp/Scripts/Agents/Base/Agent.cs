@@ -145,8 +145,8 @@ public sealed class Agent : MonoBehaviour
         // Blend between accelearation & damping based on dot of current/desired
         // this is so that if the desired direction is BEHIND you, you use damping values
         // to first STOP then Accelerate 
-        float dotWithVel = (2 + Vector3.Dot(_controller.velocity.normalized, transform.forward)) * 0.5f;
-        Vector3 targetVelocity = Vector3.Lerp(Vector3.zero, velocity, dotWithVel);
+        //float dotWithVel = (2 + Vector3.Dot(_controller.velocity.normalized, transform.forward)) * 0.5f;
+        //Vector3 targetVelocity = Vector3.Lerp(Vector3.zero, velocity, dotWithVel);
         //v = Vector3.MoveTowards(v, targetVelocity, properties.speed.acceleration * Time.deltaTime);
 
         v = Vector3.ClampMagnitude(v, properties.speed.max);

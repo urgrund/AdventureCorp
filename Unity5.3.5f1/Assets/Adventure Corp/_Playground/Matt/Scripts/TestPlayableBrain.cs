@@ -5,11 +5,14 @@ public class TestPlayableBrain : Brain
 {
     //Inputs
     Vector3 directionalInput;
+    Vector3 lookInput;
     //    
 
-    public AttackController atkController;
+    AttackController atkController;
     public AttackDescriptor basicMelee;
     public AttackDescriptor basicRanged;
+
+    //public LineRenderer lr;
 
     Vector3 camDiff;
 
@@ -33,6 +36,7 @@ public class TestPlayableBrain : Brain
         Camera.main.transform.position = transform.position + camDiff;
         GrabInput();
         UpdateState();
+        UpdateRangedFocusing();
         base.Update();
     }
 
@@ -41,10 +45,24 @@ public class TestPlayableBrain : Brain
         return MathLab.ConvertVectorRelativeToCam(v, false);
     }
 
+
+    public float rangedFocusSpeed = 1f;
+    public float rangedStartAngle = 45f;
+    public float rangedDeFocusSpeed = 3f;
+    public float rangedCurrentAngle = 45;
+    void UpdateRangedFocusing()
+    {
+    }
+
+
+
     void GrabInput()
     {
         directionalInput = new Vector3(Input.GetAxis("Horizontal"), 0, Input.GetAxis("Vertical"));
         directionalInput = GrabMovementDirRelativeToCam(directionalInput);
+
+        //lr.SetPosition(0, transform.position);
+        //lr.SetPosition(1, transform.position + lookInput * 5);
 
         // If movment, then break the attack
         if (directionalInput.magnitude > 0.05f)

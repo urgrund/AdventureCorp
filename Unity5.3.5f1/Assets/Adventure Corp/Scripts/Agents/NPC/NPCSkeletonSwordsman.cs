@@ -27,21 +27,27 @@ public class NPCSkeletonSwordsman : NPCBrain
         base.OnArrivedAtDestination();
     }
 
+    protected override void Update()
+    {
+        if (Helpers.InRadiusGrounded(transform.position, target.position, 3.5f))
+        {
+            attackController.AttackWithDescriptor(attackController.attacks[0]);
+        }
+        base.Update();
+    }
 
     IEnumerator TestPathFind()
     {
         yield return new WaitForSeconds(Random.Range(0,2f));
-
-        
 
         while (true)
         {            
             if (target != null)
             {
                 destination = target.position;
-                //_desiredMoveSpeed = agent.properties.speed.max * Random.Range(0.3f, 1.0f);
             }
-            yield return new WaitForSeconds(2f);
+
+            yield return new WaitForSeconds(1f);
         }
     }
    

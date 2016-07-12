@@ -28,6 +28,12 @@ public class NavMeshBaker : EditorWindow
     private const string TEMP_NAV_MESH_OBJECT_TAG = "TempNavMeshItemDestroyable"; //you can change to what ever tag you would like as long as it isn't used by anything else
     private bool isSetup = true;
 
+    private static List<GameObject> navMeshPrefabs;
+    private static bool isBuildLightProbes = true;
+    private static string LIGHT_PROBE_TAG = "LightProbeContainer";
+
+
+
     [MenuItem("Window/Adventure Corp/NavMesh Baker")]
     static void Init()
     {
@@ -47,6 +53,7 @@ public class NavMeshBaker : EditorWindow
         }
         return false;
     }
+
 
     void OnGUI()
     {
@@ -77,11 +84,10 @@ public class NavMeshBaker : EditorWindow
                     isSetup = false;
                 }
             }
+            isBuildLightProbes = EditorGUILayout.Toggle("Light Probes", isBuildLightProbes);
         }
     }
 
-
-    private static List<GameObject> navMeshPrefabs;
 
     
 
@@ -95,8 +101,44 @@ public class NavMeshBaker : EditorWindow
         SetupMeshColliders();
         NavMeshBuilder.BuildNavMeshAsync();
         CleanUpOldNavMeshItems();
-
+        GenerateLightProbes();
     }
+
+
+
+
+    void GenerateLightProbes()
+    {
+        NavMeshTriangulation t = NavMesh.CalculateTriangulation();
+
+        GameObject go;
+        LightProbeGroup lpg;
+        if (GameObject.FindGameObjectWithTag(LIGHT_PROBE_TAG))
+        {
+            go = GameObject.FindGameObjectWithTag(LIGHT_PROBE_TAG);
+            lpg = go.GetComponent<LightProbeGroup>();
+            Debug.Log("Probe container extist...  updating.");
+        }
+        else
+        {
+            go = new GameObject("LIGHT_PROBES");
+            go.tag = LIGHT_PROBE_TAG;
+            lpg = go.AddComponent<LightProbeGroup>();
+        }
+
+        go.isStatic = true;
+
+        List<Vector3> points = new List<Vector3>();
+        foreach (Vector3 p in t.vertices)
+        {
+            points.Add(p + Vector3.up * 0.5f);
+            points.Add(p + Vector3.up * AdventureCorpGlobals.Editor.NavMesh.agentHeight * 1.2f);
+        }
+        lpg.probePositions = points.ToArray(); 
+    }
+
+
+
 
     void SetupBoxes()
     {

@@ -20,7 +20,11 @@ public abstract class NPCBrain : Brain
     public event ArrivedAtDestination onArrivedAtDestination;
     public event ArrivedAtDestination onArrivedAtNavMeshPosition;
 
-    public AIProperties properties;    
+    public AIProperties properties;
+
+    public AttackController attackController;
+
+
 
     //---------------------------------------------------------------------------------------------------------------//
     //Hostile targets variables and functions
@@ -190,6 +194,12 @@ public abstract class NPCBrain : Brain
         FindAllPotentialHostileTargets(); // Finds all potential hostile targets in scene and adds it to the array
 
         base.Awake();
+    }
+
+    protected override void Start()
+    {
+        attackController = GetComponent<AttackController>();
+        base.Start();
     }
 
     public void FindAllPotentialHostileTargets()

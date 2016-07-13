@@ -25,6 +25,9 @@ public class Damager : MonoBehaviour
     public bool isDelayEnable = false;
     public float initialActivateDelay = 0f;
 
+    public delegate void DamageTriggerEnter(Damager damager, Health health);
+    public event DamageTriggerEnter onDamageTriggerEnter;
+
     void Awake()
     {
         if (isDelayEnable)
@@ -42,7 +45,7 @@ public class Damager : MonoBehaviour
         enabled = true;
     }
 
-    
+        
     void OnTriggerEnter(Collider other)
     {
         if (!enabled)
@@ -51,10 +54,16 @@ public class Damager : MonoBehaviour
         if (damage == null)
             return;
             
-        Health g = other.GetComponent<Health>();
-        if (g !=null )
-            if(g != owner)
-                other.GetComponent<Health>().TakeDamage(damage, this.gameObject);
+        Health otherHealth = other.GetComponent<Health>();
+        if (otherHealth != null)
+        {
+            if (otherHealth != owner)
+            {
+                otherHealth.TakeDamage(damage, this.gameObject);
+                if (onDamageTriggerEnter != null)
+                    onDamageTriggerEnter(this, otherHealth);
+            }
+        }
     }
 
 

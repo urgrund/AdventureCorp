@@ -31,7 +31,7 @@ public class NPCSkeletonSwordsman : NPCBrain
     {
         if (Helpers.InRadiusGrounded(transform.position, target.position, 3.5f))
         {
-            attackController.AttackWithDescriptor(attackController.attacks[0]);
+            attackController.AttackWithDescriptor(attackController.attacks[2]);
         }
         base.Update();
     }
@@ -40,7 +40,7 @@ public class NPCSkeletonSwordsman : NPCBrain
     {
         yield return new WaitForSeconds(Random.Range(0,2f));
 
-        while (true)
+        while (true && !agent.health.isDead)
         {            
             if (target != null)
             {

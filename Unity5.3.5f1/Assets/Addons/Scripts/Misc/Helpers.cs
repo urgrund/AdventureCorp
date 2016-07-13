@@ -7,7 +7,7 @@ using System.Linq;
 /// Helpers
 /// A generic helpers class with some common methods that could be used accross
 /// any project.
-/// Matt Bell (c)2011
+/// Matt Bell (c) 2011
 /// </summary>
 public static class Helpers
 {
@@ -220,5 +220,25 @@ public static class Helpers
 
         // bone with name was not found
         return null;
+    }
+
+
+    public static Transform FindClosestTransform(Transform[] transforms, Transform testAgainst) { return FindClosestTransform(transforms, testAgainst.position); }
+    public static Transform FindClosestTransform(Transform[] transforms, Vector3 testAgainst)
+    {
+        Transform bestTarget = null;
+        float closestDistanceSqr = Mathf.Infinity;
+        Vector3 currentPosition = testAgainst;
+        foreach (Transform potentialTarget in transforms)
+        {
+            Vector3 directionToTarget = potentialTarget.position - currentPosition;
+            float dSqrToTarget = directionToTarget.sqrMagnitude;
+            if (dSqrToTarget < closestDistanceSqr)
+            {
+                closestDistanceSqr = dSqrToTarget;
+                bestTarget = potentialTarget;
+            }
+        }
+        return bestTarget;
     }
 }

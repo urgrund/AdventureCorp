@@ -18,16 +18,17 @@ public class AttackController : MonoBehaviour
     public AttackDescriptor _currentAttack;
 
     private bool _isAttacking = false;
-    public bool isAttacking { get { return _isAttacking; } } 
+    public bool isAttacking { get { return _isAttacking; } }
+
+    private bool _isControllingAgentVelocity = false;
+    public bool isControllingAgentVelocity { get { return _isControllingAgentVelocity; } }
 
     void Awake()
     {
         if (agent == null)
             agent = GetComponent<Agent>();
         if (animationController == null)        
-            if (GetComponent<AgentAnimationController>())
-                animationController = GetComponent<AgentAnimationController>();
-
+            animationController = GetComponent<AgentAnimationController>();
         if (agent == null || animationController == null)
             Debug.LogError("No agent or animated object on " + this.name);
 
@@ -110,7 +111,10 @@ public class AttackController : MonoBehaviour
         // Deactivate
         ActivateDamageVolumes(false, attack.volumeIndices);
         agent.isAllowedMovement = true;
+        agent.isApplyGravity = true;
         _isAttacking = false;
+        _isControllingAgentVelocity = false;
+        
         animationController.overrideCountDown = -1;
     }
 
@@ -122,6 +126,9 @@ public class AttackController : MonoBehaviour
         ActivateDamageVolumes(false, attack.volumeIndices);
         _currentAttack = attack;
 
+        if (attack.controllerLock == AttackDescriptor.Lock.Curves)
+            curveLastPosition = GetPositionOnCurve(_currentAttack, 0f);
+
         float t;
         // Play animation and activate volumes during damage range
         if (animationController.animatedGameObject != null && _currentAttack != null)
@@ -129,10 +136,25 @@ public class AttackController : MonoBehaviour
             animationController.Play(_currentAttack.clipProperties);
             while (animationController.animatedGameObject.IsPlaying(_currentAttack.clipProperties.clip.name))
             {
+                // Activate volumes during the attack
                 _isAttacking = true;
                 t = animationController.animatedGameObject[_currentAttack.clipProperties.clip.name].normalizedTime;
                 ActivateDamageVolumes(t > _currentAttack.validDamageRange.x && t < _currentAttack.validDamageRange.y, _currentAttack.volumeIndices);
-                agent.isAllowedMovement = !_currentAttack.lockController;
+
+
+                // Control over agent if needed
+                if (attack.controllerLock != AttackDescriptor.Lock.None)
+                {
+                    _isControllingAgentVelocity = true;
+                    switch (attack.controllerLock)
+                    {
+                        case AttackDescriptor.Lock.StopAllMovement: agent.isAllowedMovement = false; break;
+                        case AttackDescriptor.Lock.ScaleMovementHalf: agent.SetVelocityScaleThisFrame(0.50f); break;
+                        case AttackDescriptor.Lock.ScaleMovementQuarter: agent.SetVelocityScaleThisFrame(0.25f); break;
+                        case AttackDescriptor.Lock.Curves: MoveAgentWithAttackCurves(_currentAttack, t); break;
+                    }
+                }
+            
                 yield return null;
             }         
         }
@@ -143,7 +165,31 @@ public class AttackController : MonoBehaviour
     }
 
 
+    // Declare here so don't need to declare each frame
+    private Vector3 curvePosition;
+    private Vector3 curveLastPosition;
+    private Vector3 curveDirection;
+    void MoveAgentWithAttackCurves(AttackDescriptor attack, float normalizedTime)
+    {
+        agent.isApplyGravity = false;
+        curvePosition = GetPositionOnCurve(attack, normalizedTime);
+        curveDirection = agent.transform.TransformDirection(curvePosition - curveLastPosition);
 
+        if(curveDirection.magnitude > 0)
+            agent.OverrideMove(curveDirection);
+
+        curveLastPosition = curvePosition;
+        //Debug.Log("  dir:" + curveDirection+ "   lP:" + curveLastPosition + "  cP:" + curvePosition);
+    }
+
+    Vector3 GetPositionOnCurve(AttackDescriptor attack, float normalizedTime)
+    {
+        curvePosition = Vector3.zero;
+        curvePosition.x = attack.curveX.Evaluate(normalizedTime);
+        curvePosition.y = attack.curveY.Evaluate(normalizedTime);
+        curvePosition.z = attack.curveZ.Evaluate(normalizedTime);
+        return ( curvePosition );
+    }
 
 
 
@@ -180,7 +226,7 @@ public class AttackController : MonoBehaviour
                 SphereCollider c = d.GetComponent<SphereCollider>();
                 Gizmos.color = d.enabled ? Color.red : Color.grey;
                 Gizmos.DrawWireSphere(d.transform.TransformPoint(c.center), c.radius);
-                Gizmos.DrawCube(d.transform.TransformPoint(c.center), Vector3.one * c.radius * 0.5f);
+                //Gizmos.DrawCube(d.transform.TransformPoint(c.center), Vector3.one * c.radius * 0.5f);
             }
         }
     }

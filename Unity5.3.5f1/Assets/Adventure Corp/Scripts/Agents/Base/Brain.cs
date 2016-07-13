@@ -9,27 +9,14 @@ using System.Collections;
 public abstract class Brain : MonoBehaviour
 {
     private Agent _agent;
-    public Agent agent {  get { return _agent; } }
+    public Agent agent { get { return _agent; } }
 
     protected Vector3 _desiredLookAt = Vector3.zero;
     protected Vector3 _desiredMoveDirection = Vector3.zero;
     protected float _desiredMoveSpeed = 0f;
 
-    protected virtual void Awake()
-    {
-        _agent = GetComponent<Agent>();
-    }
-
-    protected virtual void Start()
-    {
-    }
-
-    protected virtual void Update()
-    {
-    }
-
-    protected virtual void MoveAgent()
-    {
-         _agent.SetDesiredVelocity(_desiredMoveDirection * _desiredMoveSpeed, true);                
-    }    
+    protected virtual void Awake() { _agent = GetComponent<Agent>(); }
+    protected virtual void Start() { }
+    protected virtual void Update() { }
+    protected virtual void MoveAgent() { _agent.SetDesiredVelocity(_desiredMoveDirection * _desiredMoveSpeed, true); }
 }

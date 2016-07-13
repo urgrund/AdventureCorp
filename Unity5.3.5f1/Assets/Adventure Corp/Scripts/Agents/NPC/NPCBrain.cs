@@ -193,12 +193,15 @@ public abstract class NPCBrain : Brain
 
         FindAllPotentialHostileTargets(); // Finds all potential hostile targets in scene and adds it to the array
 
+        attackController = GetComponent<AttackController>();
+        Debug.Assert(attackController != null, "No Attack Controller");
+
         base.Awake();
     }
 
     protected override void Start()
     {
-        attackController = GetComponent<AttackController>();
+        attackController.SetOwnerHealthToDamageVolumes(agent.health);
         base.Start();
     }
 

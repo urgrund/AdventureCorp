@@ -50,7 +50,7 @@ public class Health : MonoBehaviour
     public class HealthChangedEventInfo
     {
         /// <summary>
-        /// The final value the Health component calculated 
+        /// The final value of damage the Health component calculated 
         /// </summary>
         public int value;
         /// <summary>
@@ -74,6 +74,7 @@ public class Health : MonoBehaviour
         HealthChangedEventInfo info = new HealthChangedEventInfo();
         info.damage = damage;
         info.responsibleGameObject = responsibleGameObject;
+        info.value = damage.amount;
 
         if (damage.isDamageOverTime)
             StartCoroutine(ApplyDamageToHealthOverTime(info));          

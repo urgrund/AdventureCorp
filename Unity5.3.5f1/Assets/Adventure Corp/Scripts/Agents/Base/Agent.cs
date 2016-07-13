@@ -6,7 +6,9 @@ using System.Collections;
 public sealed class Agent : MonoBehaviour
 {
     private CharacterController _controller;
-    public CharacterController controller { get { return _controller; } }
+
+    // Should we even allow acces to the controller?
+    //public CharacterController controller { get { return _controller; } }
 
     /// <summary>
     /// Properties to define the movement properties of this agent
@@ -18,15 +20,20 @@ public sealed class Agent : MonoBehaviour
 
     private float gravitySpeed = 0f;
 
-
+    private float _currentVelocityScale = 1f;
+    public void SetVelocityScaleThisFrame(float value) { _currentVelocityScale = value; }
     Vector3 _currentVelocity;       // Velocity the Controller will move
     Vector3 _desiredVelocity;       // Velocity the Controller will try to reach
     Quaternion _desiredRotation;    
     private bool _isBrainSetVelocityThisFrame = false;
 
+    [HideInInspector]
     public bool isAllowedMovement = true;
+    [HideInInspector]
     public bool isAllowedRotation = true;
-
+    [HideInInspector]
+    public bool isApplyGravity = true;
+    
     /// <summary>
     /// Ratio of the agents max speed to current speed.  This takes into account only XZ
     /// </summary>
@@ -48,8 +55,8 @@ public sealed class Agent : MonoBehaviour
     {
         _controller = GetComponent<CharacterController>();
         _controller.center = Vector3.up;
-        _controller.skinWidth = 0.025f;
-        _controller.stepOffset = 0.5f;
+        _controller.skinWidth = AdventureCorpGlobals.Agent.skinWidth;
+        _controller.stepOffset = AdventureCorpGlobals.Agent.stepOffset;
     }
 
     void Awake()
@@ -70,20 +77,33 @@ public sealed class Agent : MonoBehaviour
         UpdateMovement();
         UpdateRotation();
     }
-        
+
+
+    bool _isOverrideMoveThisFrame = false;
+    public void OverrideMove(Vector3 velocity)
+    {
+        _controller.Move(velocity);
+        _isOverrideMoveThisFrame = true;
+    }
+
 
     void UpdateMovement()
     {
-        if (isAllowedMovement)
+        if (isAllowedMovement && !_isOverrideMoveThisFrame)
         {
             // Apply gravity
-            if (!controller.isGrounded)
-                gravitySpeed -= properties.gravity;
-            else
-                gravitySpeed = -controller.stepOffset / Time.deltaTime * 5;
-            
-            _currentVelocity.y = gravitySpeed * Time.deltaTime;
-            _controller.Move(_currentVelocity * Time.deltaTime);            
+            if (isApplyGravity)
+            {
+                if (!_controller.isGrounded)
+                    gravitySpeed -= properties.gravity;
+                else
+                    gravitySpeed = -_controller.stepOffset / Time.deltaTime * 5;
+
+                _currentVelocity.y = gravitySpeed * Time.deltaTime;
+            }
+
+            _controller.Move(_currentVelocity * Time.deltaTime * _currentVelocityScale);
+            _currentVelocityScale = 1f;
         }
     }
 
@@ -99,7 +119,7 @@ public sealed class Agent : MonoBehaviour
     void LateUpdate()
     {
         // Apply damping to velocity if no Brain input
-        if (!_isBrainSetVelocityThisFrame && controller.isGrounded)
+        if (!_isBrainSetVelocityThisFrame && _controller.isGrounded)
         {
             Vector3 cV = _currentVelocity;
             cV = Vector3.MoveTowards(_currentVelocity, Vector3.zero, properties.speed.damping * Time.deltaTime);
@@ -107,6 +127,7 @@ public sealed class Agent : MonoBehaviour
             _currentVelocity = cV;
         }
         _isBrainSetVelocityThisFrame = false;
+        _isOverrideMoveThisFrame = false;
     }
 
     
@@ -152,11 +173,20 @@ public sealed class Agent : MonoBehaviour
         v = Vector3.ClampMagnitude(v, properties.speed.max);
         _desiredVelocity = v;
 
-//        print("Des : " + _desiredVelocity + "    Cur: " + _currentVelocity);
-        _currentVelocity = Vector3.MoveTowards(_currentVelocity, _desiredVelocity, properties.speed.acceleration);
+        float moveToSpeed = (_currentVelocity.magnitude > _desiredVelocity.magnitude) ? properties.speed.damping : properties.speed.acceleration;
+        _currentVelocity = Vector3.MoveTowards(_currentVelocity, _desiredVelocity, moveToSpeed);
         _isBrainSetVelocityThisFrame = true;
     }
 
+
+
+    public void SetRotation(Vector3 direction) { SetRotation(Quaternion.LookRotation(direction, Vector3.up)); }
+    public void SetRotation(Transform lookAtTarget) { SetRotation(Helpers.DirectionTo(transform, lookAtTarget)); }
+    public void SetRotation(Quaternion rotation)
+    {
+        _desiredRotation = rotation;
+        UpdateRotation();
+    }
 
 
     /// <summary>
@@ -169,8 +199,6 @@ public sealed class Agent : MonoBehaviour
         if (_desiredVelocity != Vector3.zero && isRotate)
             _desiredRotation = RotateToVelocityDirection(properties.rotation.max);
     }
-
-
 
     /// <summary>
     /// Set player velocity and rotate the character towards a vector3 target
@@ -187,9 +215,14 @@ public sealed class Agent : MonoBehaviour
         if (_health.isDead)
         {
             print("Died");
-            controller.detectCollisions = false;
-            controller.enabled = false;
+            _controller.detectCollisions = false;
+            _controller.enabled = false;
             this.enabled = false;
+        }
+        else
+        {            
+            if (info.value > properties.pushBackDamageThreshold) 
+                OverrideMove(-Helpers.DirectionTo(transform, info.responsibleGameObject.transform) * 0.75f);
         }
     }
 

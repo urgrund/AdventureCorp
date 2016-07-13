@@ -16,6 +16,7 @@ public class AgentProperties : MonoBehaviour
     public float strafeSpeedFactor = 0.5f;
     public AgentPropertiesMovementContainer speed;
     public AgentPropertiesMovementContainer rotation;
+    public int pushBackDamageThreshold = 1;
 }
 
 

@@ -12,8 +12,7 @@ public class AttackSetupScrubberEditor : Editor
     SerializedObject attDesc;
 
     SerializedProperty canBeBroken;
-    SerializedProperty lockController;
-    SerializedProperty useCurves;
+    SerializedProperty controllerLock;    
     SerializedProperty suggestedUseRange;
     SerializedProperty suggestedUseAngle;
     SerializedProperty validDamageRange;
@@ -21,6 +20,18 @@ public class AttackSetupScrubberEditor : Editor
     SerializedProperty clipProperties;
     SerializedProperty eventor;
     SerializedProperty damage;
+
+    SerializedProperty curveX;
+    SerializedProperty curveY;
+    SerializedProperty curveZ;
+
+
+
+    AttackDescriptor.Angle range = AttackDescriptor.Angle.Narrow;
+
+    
+
+
 
     bool[] tempVolumeIndices; 
 
@@ -35,8 +46,7 @@ public class AttackSetupScrubberEditor : Editor
         attDesc = new SerializedObject(t.attackDescriptor);
 
         canBeBroken = attDesc.FindProperty("canBeBroken");
-        lockController = attDesc.FindProperty("lockController");
-        useCurves = attDesc.FindProperty("useCurves");
+        controllerLock = attDesc.FindProperty("controllerLock");        
         suggestedUseRange = attDesc.FindProperty("suggestedUseRange");
         suggestedUseAngle = attDesc.FindProperty("suggestedUseAngle");
         validDamageRange = attDesc.FindProperty("validDamageRange");
@@ -44,6 +54,10 @@ public class AttackSetupScrubberEditor : Editor
         clipProperties = attDesc.FindProperty("clipProperties");
         eventor = attDesc.FindProperty("eventor");
         damage = attDesc.FindProperty("damage");
+
+        curveX = attDesc.FindProperty("curveX");
+        curveY = attDesc.FindProperty("curveY");
+        curveZ = attDesc.FindProperty("curveZ");
 
 
         // Setup volumes
@@ -67,11 +81,9 @@ public class AttackSetupScrubberEditor : Editor
 
 
 
-    AttackDescriptor.Angle range = AttackDescriptor.Angle.Narrow;
+    
 
-    AnimationCurve curveX = AnimationCurve.Linear(0, 0, 1, 0);
-    AnimationCurve curveY = AnimationCurve.Linear(0, 0, 1, 0);
-    AnimationCurve curveZ = AnimationCurve.Linear(0, 0, 1, 0);
+
     public override void OnInspectorGUI()
     {
         //base.DrawDefaultInspector();
@@ -83,14 +95,12 @@ public class AttackSetupScrubberEditor : Editor
 
         BoldLabel("Attack Properties");
         EditorGUILayout.PropertyField(canBeBroken);
-        EditorGUILayout.PropertyField(lockController);
-        EditorGUILayout.PropertyField(useCurves);
-        EditorGUILayout.PropertyField(suggestedUseRange);
-        //EditorGUILayout.PropertyField(suggestedUseAngle);   
+        EditorGUILayout.PropertyField(controllerLock);
+        EditorGUILayout.PropertyField(suggestedUseRange);        
         EditorGUILayout.PropertyField(damage, true);
         EditorGUILayout.PropertyField(clipProperties, true);
-        EditorGUILayout.PropertyField(eventor, true);
-        //EditorGUILayout.PropertyField(volumeIndices, true);
+        EditorGUILayout.PropertyField(eventor, true);        
+
 
         range = (AttackDescriptor.Angle)EditorGUILayout.EnumPopup("Angle Test", range);
         suggestedUseAngle.floatValue = (float)((int)range);
@@ -109,9 +119,9 @@ public class AttackSetupScrubberEditor : Editor
         BoldLabel("Damage Range and Movement Curves");
         EditorGUILayout.LabelField("(" + (c.scrubTime/a.clip.length)+ "/" + clipTime + ")");
         Rect constraints = new Rect(0, 0, 1, 10);
-        curveX = EditorGUILayout.CurveField(curveX, Color.red, constraints, null);
-        curveY = EditorGUILayout.CurveField(curveY, Color.green, constraints, null);
-        curveZ = EditorGUILayout.CurveField(curveZ, Color.blue, constraints, null);
+        curveX.animationCurveValue = EditorGUILayout.CurveField(curveX.animationCurveValue, Color.red, constraints, null);
+        curveY.animationCurveValue = EditorGUILayout.CurveField(curveY.animationCurveValue, Color.green, constraints, null);
+        curveZ.animationCurveValue = EditorGUILayout.CurveField(curveZ.animationCurveValue, Color.cyan, constraints, null);
         Vector2 mm = c.attackDescriptor.validDamageRange;
         EditorGUILayout.MinMaxSlider(ref mm.x, ref mm.y, 0f, 1f);
 
@@ -121,20 +131,20 @@ public class AttackSetupScrubberEditor : Editor
         a[a.clip.name].time = c.scrubTime;
         a.clip.SampleAnimation(a.gameObject, c.scrubTime);
 
-        if (useCurves.boolValue)
+        if ((AttackDescriptor.Lock)controllerLock.enumValueIndex == AttackDescriptor.Lock.Curves)
             UpdateModelPositionWithCurves(c.scrubTime / a.clip.length);
 
         // Apply changes
         attDesc.ApplyModifiedProperties();
     }
 
-    Vector3 lastCurvePosition = Vector3.zero;
+    Vector3 curvePosition = Vector3.zero;
     void UpdateModelPositionWithCurves(float t)
-    {        
-        lastCurvePosition.x = curveX.Evaluate(t);
-        lastCurvePosition.y = curveY.Evaluate(t);
-        lastCurvePosition.z = curveZ.Evaluate(t);
-        (target as AttackSetupScrubber).transform.position = lastCurvePosition;
+    {
+        curvePosition.x = curveX.animationCurveValue.Evaluate(t);
+        curvePosition.y = curveY.animationCurveValue.Evaluate(t);
+        curvePosition.z = curveZ.animationCurveValue.Evaluate(t);
+        (target as AttackSetupScrubber).transform.position = curvePosition;
     }
 
     static void BoldLabel(string text)
@@ -186,7 +196,7 @@ public class AttackSetupScrubberEditor : Editor
         // Draw Attack Suggested min max range        
         float t = suggestedUseAngle.floatValue / 360f;
         Vector3 normal = Vector3.Slerp(Vector3.forward, -Vector3.forward, t);
-        Vector3 position = a.transform.position - lastCurvePosition;
+        Vector3 position = a.transform.position - curvePosition;
 
 
         Handles.color = Color.red;

@@ -5,7 +5,7 @@ public class AnimationClipProperties : ScriptableObject
 {
     public enum Layer
     {
-        Base = 1,
+        Base = 0,
         Two = 2,
         Three = 3
     }

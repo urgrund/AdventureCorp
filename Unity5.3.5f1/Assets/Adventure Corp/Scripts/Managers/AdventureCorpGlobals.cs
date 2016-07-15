@@ -26,5 +26,6 @@ public static class AdventureCorpGlobals
     {
         public static readonly float skinWidth = 0.025f;
         public static readonly float stepOffset = 0.4f;
+        public static readonly float gravity = 16f;
     }
 }

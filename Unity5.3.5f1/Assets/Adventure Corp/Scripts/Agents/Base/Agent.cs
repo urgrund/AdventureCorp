@@ -6,10 +6,7 @@ using System.Collections;
 public sealed class Agent : MonoBehaviour
 {
     private CharacterController _controller;
-
-    // Should we even allow acces to the controller?
-    //public CharacterController controller { get { return _controller; } }
-
+    
     /// <summary>
     /// Properties to define the movement properties of this agent
     /// </summary>
@@ -19,12 +16,16 @@ public sealed class Agent : MonoBehaviour
     public Health health { get { return _health; } }
 
     private float gravitySpeed = 0f;
+    private static readonly float gravity = 16;
 
     private float _currentVelocityScale = 1f;
     public void SetVelocityScaleThisFrame(float value) { _currentVelocityScale = value; }
+
+    
     Vector3 _currentVelocity;       // Velocity the Controller will move
-    Vector3 _desiredVelocity;       // Velocity the Controller will try to reach
-    Quaternion _desiredRotation;    
+    Vector3 _desiredVelocity;       // Velocity the Controller will try to reach    
+    Quaternion _desiredRotation;    // TODO - need a current rotate speed so that DAMPIONG and ACCEL can be used properly
+
     private bool _isBrainSetVelocityThisFrame = false;
 
     [HideInInspector]
@@ -33,9 +34,23 @@ public sealed class Agent : MonoBehaviour
     public bool isAllowedRotation = true;
     [HideInInspector]
     public bool isApplyGravity = true;
-    
+
+    public enum MoveDirection
+    {
+        Stationary,
+        Foward,
+        Back,
+        Left,
+        Right
+    }
+    private MoveDirection _moveDirection = MoveDirection.Stationary;
+    public MoveDirection moveDirection { get { return _moveDirection; } }
+
+
     /// <summary>
-    /// Ratio of the agents max speed to current speed.  This takes into account only XZ
+    /// Ratio of the agents max speed to current speed.  This takes into account only XZ and 
+    /// scales the result by the relative movement.  This is to give a fairer ratio where backpedal
+    /// may have a 0.25 speed scale, which means when speed is at 0.25, it's actaully "max" 
     /// </summary>
     public float speedRatio
     {
@@ -43,9 +58,17 @@ public sealed class Agent : MonoBehaviour
         {
             Vector3 v = _controller.velocity;
             v.y = 0;
-            return v.magnitude / properties.speed.max;
+            return v.magnitude / (properties.speed.max * _desiredVelocityRealtiveMovementScale);
         }
     }
+
+
+    /// <summary>
+    /// Dot product between agent facing direction and velocity. Agent uses 
+    /// this to determine movement speeds. 
+    /// </summary>
+    public float velocityRelativeToRotation { get { return Vector3.Dot(_controller.velocity.normalized, transform.forward); } }
+    private float _desiredVelocityRealtiveMovementScale = 1f;    
 
     /// <summary>
     /// Set the default parameters for an Agent
@@ -62,7 +85,7 @@ public sealed class Agent : MonoBehaviour
     void Awake()
     {
         // Initial headings
-        _desiredVelocity = Vector3.zero;
+        _currentVelocity = _desiredVelocity = Vector3.zero;
         _desiredRotation = transform.rotation;
 
         // Setup component references
@@ -95,23 +118,59 @@ public sealed class Agent : MonoBehaviour
             if (isApplyGravity)
             {
                 if (!_controller.isGrounded)
-                    gravitySpeed -= properties.gravity;
+                    gravitySpeed -= AdventureCorpGlobals.Agent.gravity;
                 else
                     gravitySpeed = -_controller.stepOffset / Time.deltaTime * 5;
 
                 _currentVelocity.y = gravitySpeed * Time.deltaTime;
             }
 
+            UpdateMoveDirectionState();            
             _controller.Move(_currentVelocity * Time.deltaTime * _currentVelocityScale);
             _currentVelocityScale = 1f;
         }
     }
 
+
+    /// <summary>
+    ///  Adjust the velocity scale based on rotation in order to adjust
+    ///  speed for things like strafing and backpedalling
+    /// </summary>
+    void UpdateMoveDirectionState()
+    {
+        _desiredVelocityRealtiveMovementScale = 1f;
+        if (_controller.velocity.magnitude > 0.01f)
+        {
+            if (velocityRelativeToRotation < 0.707f)
+            {
+                if (velocityRelativeToRotation < -0.707f)
+                {
+                    _moveDirection = MoveDirection.Back;
+                    _desiredVelocityRealtiveMovementScale = properties.backPedalSpeedFactor;
+                }
+                else
+                {
+                    if (transform.InverseTransformDirection(_controller.velocity).x < 0)
+                        _moveDirection = MoveDirection.Left;
+                    else
+                        _moveDirection = MoveDirection.Right;
+                    _desiredVelocityRealtiveMovementScale = properties.strafeSpeedFactor;
+                }
+            }
+            else
+                _moveDirection = MoveDirection.Foward;
+        }
+        else
+            _moveDirection = MoveDirection.Stationary;
+    }
+
+
+
     void UpdateRotation()
     {
         if (isAllowedRotation)
         {
-            transform.rotation = _desiredRotation;
+            transform.rotation = Quaternion.Lerp(transform.rotation, _desiredRotation, properties.rotation.max * Time.deltaTime);
         }
     }
 
@@ -131,27 +190,7 @@ public sealed class Agent : MonoBehaviour
     }
 
     
-
-
-    /// <summary>
-    /// Rotate agent to look along the velocity vector using rotation speed
-    /// </summary>    
-    public Quaternion RotateToVelocityDirection(float rotationSpeed)
-    {
-        Vector3 v = _desiredVelocity;
-        v.y = 0;
-        return Quaternion.Lerp(transform.rotation, MathLab.CreateRotationToLookAt(v.normalized + transform.position, transform.position), rotationSpeed * Time.deltaTime);
-    }
-
-
-    /// <summary>
-    /// Rotate agent to look at a target position using rotation speed
-    /// </summary>    
-    public Quaternion RotateToLookAt(Vector3 target, float rotationSpeed)
-    {
-        return Quaternion.Lerp(transform.rotation, MathLab.CreateRotationToLookAt((target - transform.position).normalized + transform.position, transform.position), rotationSpeed * Time.deltaTime);
-    }
-
+    
 
     /// <summary>
     /// Will start the Agent moving along the velocity passed in using acceleration properties
@@ -162,16 +201,12 @@ public sealed class Agent : MonoBehaviour
         // such as ice.  This could simply be scalars to acceleartion/damping etc?
         Vector3 v = velocity;
         v.y = 0;
-
-        // Blend between accelearation & damping based on dot of current/desired
-        // this is so that if the desired direction is BEHIND you, you use damping values
-        // to first STOP then Accelerate 
-        //float dotWithVel = (2 + Vector3.Dot(_controller.velocity.normalized, transform.forward)) * 0.5f;
-        //Vector3 targetVelocity = Vector3.Lerp(Vector3.zero, velocity, dotWithVel);
-        //v = Vector3.MoveTowards(v, targetVelocity, properties.speed.acceleration * Time.deltaTime);
-
         v = Vector3.ClampMagnitude(v, properties.speed.max);
         _desiredVelocity = v;
+
+        // Scale the desired velocity based on move direction
+        UpdateMoveDirectionState();
+        _desiredVelocity *= _desiredVelocityRealtiveMovementScale;
 
         float moveToSpeed = (_currentVelocity.magnitude > _desiredVelocity.magnitude) ? properties.speed.damping : properties.speed.acceleration;
         _currentVelocity = Vector3.MoveTowards(_currentVelocity, _desiredVelocity, moveToSpeed);
@@ -180,12 +215,13 @@ public sealed class Agent : MonoBehaviour
 
 
 
-    public void SetRotation(Vector3 direction) { SetRotation(Quaternion.LookRotation(direction, Vector3.up)); }
-    public void SetRotation(Transform lookAtTarget) { SetRotation(Helpers.DirectionTo(transform, lookAtTarget)); }
-    public void SetRotation(Quaternion rotation)
+    public void SetDesiredRotation(Vector3 direction, bool immediate = false) { SetDesiredRotation(Quaternion.LookRotation(direction, Vector3.up), immediate); }
+    public void SetDesiredRotation(Transform lookAtTarget, bool immediate = false) { SetDesiredRotation(Helpers.DirectionTo(transform, lookAtTarget), immediate); }
+    public void SetDesiredRotation(Quaternion rotation, bool immediate = false)
     {
         _desiredRotation = rotation;
-        UpdateRotation();
+        if (immediate)
+            transform.rotation = _desiredRotation;
     }
 
 
@@ -197,7 +233,7 @@ public sealed class Agent : MonoBehaviour
         CalculateDesiredVelocity(velocity);
 
         if (_desiredVelocity != Vector3.zero && isRotate)
-            _desiredRotation = RotateToVelocityDirection(properties.rotation.max);
+            SetDesiredRotation(velocity.normalized);
     }
 
     /// <summary>
@@ -206,7 +242,7 @@ public sealed class Agent : MonoBehaviour
     public void SetDesiredVelocity(Vector3 velocity, Vector3 lookAtTarget)
     {
         CalculateDesiredVelocity(velocity);
-        _desiredRotation = RotateToLookAt(lookAtTarget, properties.rotation.max);
+        SetDesiredRotation(lookAtTarget);        
     }
 
 
@@ -225,25 +261,4 @@ public sealed class Agent : MonoBehaviour
                 OverrideMove(-Helpers.DirectionTo(transform, info.responsibleGameObject.transform) * 0.75f);
         }
     }
-
-
-    // TODO - This should go in the animation controller as its 
-    // visual feedback, not Agent related
-        
-    //IEnumerator DieRotateRoutine(Vector3 directionLastHit)
-    //{
-    //    directionLastHit.y = 0;
-    //    directionLastHit.Normalize();
-    //    Quaternion rotTarget = Quaternion.LookRotation(directionLastHit, Vector3.up);        
-
-    //    float t = 0;
-    //    float speed = 8f;
-    //    while (t < 1f)
-    //    {
-    //        t += Time.deltaTime * speed;
-    //        _desiredRotation = Quaternion.Lerp(transform.rotation, rotTarget, Time.deltaTime * speed );
-    //        yield return null;
-    //    }
-    //}        
-    
 }

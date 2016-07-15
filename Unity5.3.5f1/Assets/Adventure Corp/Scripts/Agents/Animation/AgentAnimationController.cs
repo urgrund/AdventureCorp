@@ -1,33 +1,46 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 
 
-
+/// <summary>
+/// The animation controller is responsible for the visual 
+/// representation of an agent.  Here, the animated model 
+/// is spawned and animation playback is managed
+/// </summary>
 public class AgentAnimationController : MonoBehaviour
 {
-    //public bool showDebugGUI = false;
+    public bool showDebugGUI = false;
     public AgentAnimationProperties animationProperties;
+
+    private Agent agent;
+    private bool _isAgentAttached = false;
+
 
     public string upperBodyTransformBoneName = "spine";
     Transform _upperBodyTransform;
-
-    [Tooltip("This needs an Agent present and will take care of basic locomotion based on the Agents velocity and movement.")]
+    
+    /// <summary>
+    /// Locomotion such as walking and idle will be taken care of automatically
+    /// </summary>
     public bool isAutoHandleBasicLocomotion = true;
-    private Agent agent;
-
-    bool _isAgentAttached = false;
-
-
+        
+    
+    // -----  Animation State -----------------
 
     public enum State
     {
-        Dead,           //
-        Idle,           //
-        Walking,        //
-        Running,        //
-        Override        // Animation state is overridden 
+        Dead=0,           //
+        Idle=1,           //
+        Walking=2,        //
+        Running=3,        //
+        StrafeLeft=4,
+        StrafeRight=5,
+        BackPedal=6,            
+        Override=7        // Animation state is overridden 
     }
 
+    private Dictionary<State, AnimationClipProperties> _locomotionClipDictionary;
 
     public State _state = State.Idle;
     public State state
@@ -36,12 +49,66 @@ public class AgentAnimationController : MonoBehaviour
         set { SetAnimationState(value); }
     }
 
+    // -----  Animation State -----------------
+
+
+
     [HideInInspector]
     public float overrideCountDown = 0;
 
     private Animation _animatedGameObject;
     public Animation animatedGameObject { get { return _animatedGameObject; } }
 
+    public List<Material> _materails;
+
+    // ----------------------------------------
+    void Awake()
+    {
+        if (animationProperties != null)
+        {
+            if (animationProperties.animatedGameObject != null)
+            {
+                _animatedGameObject = Helpers.InstantiateAndParent(animationProperties.animatedGameObject.gameObject.transform, transform, true).GetComponent<Animation>();
+                _upperBodyTransform = Helpers.SearchHierarchyForTransform(_animatedGameObject.transform, upperBodyTransformBoneName);
+
+                // Setup Dictionary
+                // Map animation states to locomotion animation properties 
+                _locomotionClipDictionary = new Dictionary<State, AnimationClipProperties>();
+                _locomotionClipDictionary.Add(State.Dead, animationProperties.reaction.death);
+                _locomotionClipDictionary.Add(State.Idle, animationProperties.locomotion.idle);
+                _locomotionClipDictionary.Add(State.Walking, animationProperties.locomotion.walk);
+                _locomotionClipDictionary.Add(State.StrafeLeft, animationProperties.locomotion.strafeLeft);
+                _locomotionClipDictionary.Add(State.Running, animationProperties.locomotion.run);
+                _locomotionClipDictionary.Add(State.StrafeRight, animationProperties.locomotion.strafeRight);
+                _locomotionClipDictionary.Add(State.BackPedal, animationProperties.locomotion.backPedal);
+
+                // Collect all materials on this animated model
+                _materails = new List<Material>();
+                foreach (SkinnedMeshRenderer s in _animatedGameObject.GetComponentsInChildren<SkinnedMeshRenderer>())
+                    foreach(Material m in s.materials)
+                        _materails.Add(m);
+            }
+        }
+        else
+            Debug.LogError(name.ToString() + " has no animation properties.");
+    }
+
+
+    // ----------------------------------------
+    void Start()
+    {
+        SetControllingAgent(GetComponent<Agent>());
+                
+        if (_isAgentAttached && isAutoHandleBasicLocomotion)
+            StartCoroutine(BasicLocomotionRoutine());
+
+        PrewarmAnimations();
+        _state = State.Dead;
+        SetAnimationState(State.Idle);
+    }
+
+
+    // ----------------------------------------
     public void SetControllingAgent(Agent agent)
     {
         this.agent = agent;
@@ -53,36 +120,8 @@ public class AgentAnimationController : MonoBehaviour
         }
     }
 
-    void Awake()
-    {
-        if (animationProperties != null)
-        {
-            if (animationProperties.animatedGameObject != null)
-            {
-                _animatedGameObject = Helpers.InstantiateAndParent(animationProperties.animatedGameObject.gameObject.transform, transform, true).GetComponent<Animation>();
-                _upperBodyTransform = Helpers.SearchHierarchyForTransform(_animatedGameObject.transform, upperBodyTransformBoneName);
-            }
-        }
-        else
-            Debug.LogError(name.ToString() + " has no animation properties.");
-    }
 
-    void Start()
-    {
-        SetControllingAgent(GetComponent<Agent>());
-                
-        if (_isAgentAttached && isAutoHandleBasicLocomotion)
-            StartCoroutine(BasicLocomotionRoutine());
-
-        PrewarmAnimations();
-        _state = State.Dead;
-        SetAnimationState(State.Idle);
-
-        //Play(animationProperties.idle);
-    }
-    
-        
-
+    // ----------------------------------------
     public void PrewarmAnimations()
     {
         // Matt - got this code snippet from online
@@ -98,12 +137,11 @@ public class AgentAnimationController : MonoBehaviour
     /// <summary>
     /// Handles walking, running idle and dying
     /// Also will manage strafe and backpedalling based on agent 
-    /// </summary>
+    /// </summary>    
     IEnumerator BasicLocomotionRoutine()
     {
         while (true)
         {
-            //if (overrideCountDown <= 0f)
             if(_state != State.Override && state != State.Dead)
             {
                 // Determine walk/run speed
@@ -113,18 +151,32 @@ public class AgentAnimationController : MonoBehaviour
                 }
                 else
                 {
-                    if (agent.speedRatio < animationProperties.walkToRunSpeedRatio)
-                        state = State.Walking;
-                    else
-                        state = State.Running;
+                    switch (agent.moveDirection)
+                    {
+                        case Agent.MoveDirection.Foward:
+                            if (agent.speedRatio < agent.properties.walkToRunSpeedRatio)                            
+                                state = State.Walking;
+                            else                            
+                                state = State.Running;                                
+                            break;
+
+                        case Agent.MoveDirection.Back:
+                            state = State.BackPedal;
+                            break;
+
+                        case Agent.MoveDirection.Left:
+                            state = State.StrafeLeft;
+                            break;
+
+                        case Agent.MoveDirection.Right:
+                            state = State.StrafeRight;
+                            break;
+                    }
                 }
 
-                //Depending on the state, adjust playback
                 float speedRatio = Mathf.Clamp(agent.speedRatio, 0.25f, 1f);
-                if (_state == State.Running)
-                    animatedGameObject[animationProperties.run.clip.name].speed = animationProperties.run.playSpeed * speedRatio;
-                if (_state == State.Walking)
-                    animatedGameObject[animationProperties.walk.clip.name].speed = animationProperties.walk.playSpeed * speedRatio;
+                if (_state == State.Idle) speedRatio = 1f;
+                animatedGameObject[_locomotionClipDictionary[state].clip.name].speed = _locomotionClipDictionary[state].playSpeed * speedRatio;             
             }
             yield return null;
         }  
@@ -140,24 +192,27 @@ public class AgentAnimationController : MonoBehaviour
         else
             return;
 
-        switch (_state)
-        {
-            case State.Dead:
-                Play(animationProperties.death);
-                break;
+        if(_state != State.Override)
+            Play(_locomotionClipDictionary[state]);
 
-            case State.Idle:
-                Play(animationProperties.idle);
-                break;
+        //switch (_state)
+        //{
+        //    case State.Dead:
+        //        Play(animationProperties.reaction.death);
+        //        break;
 
-            case State.Walking:
-                Play(animationProperties.walk);
-                break;
+        //    case State.Idle:
+        //        Play(animationProperties.locomotion.idle);
+        //        break;
 
-            case State.Running:
-                Play(animationProperties.run);
-                break;
-        }
+        //    case State.Walking:
+        //        Play(animationProperties.locomotion.walk);
+        //        break;
+
+        //    case State.Running:
+        //        Play(animationProperties.locomotion.run);
+        //        break;
+        //}
     }
 
 
@@ -181,24 +236,22 @@ public class AgentAnimationController : MonoBehaviour
         if (state == State.Dead)
         {            
             _animatedGameObject.Stop();
-            _animatedGameObject.Play(animationProperties.death.clip.name, PlayMode.StopAll);
+            _animatedGameObject.clip = _locomotionClipDictionary[state].clip;
+            _animatedGameObject.Play(_locomotionClipDictionary[state].clip.name, PlayMode.StopAll);
             return;
         }
 
 
         if (clipProperties.clip == null)
             Debug.LogError("No clip on animation property on {0}", clipProperties);
-
-
-        _animatedGameObject[clipProperties.clip.name].speed = clipProperties.playSpeed;
-        _animatedGameObject[clipProperties.clip.name].weight = clipProperties.weight;
+        
+        _animatedGameObject[clipProperties.clip.name].speed = clipProperties.playSpeed;        
         _animatedGameObject[clipProperties.clip.name].blendMode = clipProperties.blendMode;
         _animatedGameObject[clipProperties.clip.name].layer = (int)clipProperties.layer;
         _animatedGameObject[clipProperties.clip.name].enabled = true;
-
+        
         if (clipProperties.isMixingTransform)
             _animatedGameObject[clipProperties.clip.name].AddMixingTransform(_upperBodyTransform);
-
 
         if (clipProperties.isOverriding)
         {
@@ -217,7 +270,9 @@ public class AgentAnimationController : MonoBehaviour
                 _animatedGameObject.Blend(clipProperties.clip.name, clipProperties.weight, clipProperties.blendTime);
             }
             else
+            {                
                 _animatedGameObject.CrossFade(clipProperties.clip.name, clipProperties.blendTime);
+            }
         }
     }
 
@@ -267,17 +322,17 @@ public class AgentAnimationController : MonoBehaviour
             if (Mathf.Abs(frontOrBack) > 0.707f)
             {
                 if (frontOrBack > 0)
-                    pToPlay = animationProperties.hitFromFront;
+                    pToPlay = animationProperties.reaction.hitFromFront;
                 else
-                    pToPlay = animationProperties.hitFromBehind;
+                    pToPlay = animationProperties.reaction.hitFromBehind;
             }
             else
             {
                 // Must be left or right
                 if (rightOrLeft > 0)
-                    pToPlay = animationProperties.hitFromRight;
+                    pToPlay = animationProperties.reaction.hitFromRight;
                 else
-                    pToPlay = animationProperties.hitFromLeft;
+                    pToPlay = animationProperties.reaction.hitFromLeft;
             }
 
             Play(pToPlay);
@@ -286,7 +341,48 @@ public class AgentAnimationController : MonoBehaviour
     }
 
 
+    void OnGUI()
+    {
+        if (!showDebugGUI)
+            return;
 
+        if (animatedGameObject == null)
+            return;
+
+        float nameWidth = 180;
+        float miscW = 60;        
+        float boxHeight = 20;
+        //Color bg = GUI.backgroundColor;
+        if (Application.isPlaying)
+        {
+            foreach (AnimationState anim in animatedGameObject)
+            {
+                GUILayout.BeginHorizontal();
+
+                // Name
+                GUI.color = Color.white;
+                GUILayout.Label("    " + anim.clip.name, GUILayout.Width(nameWidth));
+
+                // Playing
+                //GUI.color= animatedGameObject.IsPlaying(anim.name) ? Color.green : Color.red;
+                //GUILayout.Box("p", GUILayout.Width(boxWidth), GUILayout.MaxHeight(boxHeight));
+                
+
+                //
+                GUI.color = Color.white;
+                GUILayout.Label("Layer " + anim.layer, GUILayout.Width(miscW));
+                GUILayout.Label(anim.blendMode.ToString(), GUILayout.Width(miscW));
+                GUILayout.Label(anim.weight.ToString(), GUILayout.Width(miscW));
+
+                GUI.color = Color.Lerp(Color.red, Color.green, anim.weight);
+                GUI.backgroundColor = GUI.color;
+                GUILayout.TextField("", GUILayout.Width(anim.weight * 100), GUILayout.MaxHeight(boxHeight));
+                //GUILayout.Box("w", GUILayout.Width(anim.weight * 100), GUILayout.MaxHeight(boxHeight));
+
+                GUILayout.EndHorizontal();
+            }
+        }
+    }
 
     void OnDrawGizmos()
     {

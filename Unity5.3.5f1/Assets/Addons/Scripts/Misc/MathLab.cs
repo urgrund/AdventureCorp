@@ -126,18 +126,16 @@ public static class MathLab
         return (Vector3.Distance(from,target) <= distance);
     }
 
-    public static void GizmoDrawRing(Vector3 position, float radius)
-    {
-        int count = 32;
-        Vector3 start, end;
-        float div = (1 / (float)count) * Mathf.PI * 2;
-        for (int i = 0; i < count; i++)
-        {
-            start = new Vector3(Mathf.Sin(div * i), 0f, Mathf.Cos(div * i)).normalized * radius;
-            end = new Vector3(Mathf.Sin(div * (i + 1)), 0f, Mathf.Cos(div * (i + 1))).normalized * radius;
-            Gizmos.DrawLine(position + start, position + end);
-        }
-    }
-
-
+    //public static void GizmoDrawRing(Vector3 position, float radius)
+    //{
+    //    int count = 32;
+    //    Vector3 start, end;
+    //    float div = (1 / (float)count) * Mathf.PI * 2;
+    //    for (int i = 0; i < count; i++)
+    //    {
+    //        start = new Vector3(Mathf.Sin(div * i), 0f, Mathf.Cos(div * i)).normalized * radius;
+    //        end = new Vector3(Mathf.Sin(div * (i + 1)), 0f, Mathf.Cos(div * (i + 1))).normalized * radius;
+    //        Gizmos.DrawLine(position + start, position + end);
+    //    }
+    //}
 }

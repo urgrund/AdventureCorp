@@ -10,10 +10,14 @@ public class AgentPropertiesMovementContainer
 
 public class AgentProperties : MonoBehaviour
 {
-    [Range(0, 10)]
-    public float gravity = 10;
+    //[Range(0, 10)]
+    //public float gravity = 10;
     [Range(0, 1)]
     public float strafeSpeedFactor = 0.5f;
+    [Range(0, 1)]
+    public float backPedalSpeedFactor = 0.5f;
+    [Range(0, 1)]
+    public float walkToRunSpeedRatio = 0.25f;
     public AgentPropertiesMovementContainer speed;
     public AgentPropertiesMovementContainer rotation;
     public int pushBackDamageThreshold = 1;

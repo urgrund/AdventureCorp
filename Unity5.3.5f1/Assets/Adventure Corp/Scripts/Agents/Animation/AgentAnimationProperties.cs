@@ -14,7 +14,7 @@ public class AgentAnimationPropertiesForLocomotion
 }
 
 [System.Serializable]
-public class AgentAnimationPropertiesForDamage
+public class AgentAnimationPropertiesForReaction
 {
     public AnimationClipProperties spawn;
     public AnimationClipProperties death;
@@ -25,7 +25,9 @@ public class AgentAnimationPropertiesForDamage
 }
 
 
-
+/// <summary>
+/// Container class for all animation clip references
+/// </summary>
 public class AgentAnimationProperties : MonoBehaviour
 {
     public Animation animatedGameObject;
@@ -33,18 +35,5 @@ public class AgentAnimationProperties : MonoBehaviour
     public Color gizmoColor = Color.red;
 
     public AgentAnimationPropertiesForLocomotion locomotion;
-    public AgentAnimationPropertiesForLocomotion damage;
-
-    [Range(0,1)]
-    public float walkToRunSpeedRatio = 0.25f;
-    public AnimationClipProperties spawn;
-    public AnimationClipProperties idle;
-    public AnimationClipProperties walk;
-    public AnimationClipProperties run;
-
-    public AnimationClipProperties death;
-    public AnimationClipProperties hitFromBehind;
-    public AnimationClipProperties hitFromFront;
-    public AnimationClipProperties hitFromLeft;
-    public AnimationClipProperties hitFromRight;
+    public AgentAnimationPropertiesForReaction reaction;
 }

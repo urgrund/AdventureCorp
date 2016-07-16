@@ -56,6 +56,9 @@ public abstract class NPCBrain : Brain
     
 
 
+
+
+
     //---------------------------------------------------------------------------------------------------------------//
     //Hostile targets variables and functions
     Transform hostileTarget; //Behviour of AI can change if hostileTarget is not null
@@ -76,6 +79,8 @@ public abstract class NPCBrain : Brain
     public float alertDistanceNear = 1; // How close can the agent detect hostile targets without looking in the cone
 
     //TODO: How to avoid NPC detecting player if he is behind walls or above him in the y direction 
+    // TODO : (Matt)  ...use sqrt distance to optimise instead of Vec3.Distance()
+    // ....already a Helper function for this 
     bool HostileTargetInFarRange(Transform t) { return (Vector3.Distance(t.position, transform.position) < alertDistanceFar); }
     bool HostileTargetInNearRange(Transform t) { return (Vector3.Distance(t.position, transform.position) < alertDistanceNear);}
     bool HostileTargetInFarConeAndDistance(Transform t) { return HostileTargetInFarRange(t) && HostileTargetInFarCone(t); }
@@ -124,8 +129,53 @@ public abstract class NPCBrain : Brain
         if (onHostileTargetCleared != null)
             onHostileTargetCleared();
     }
+
+
+    public void FindAllPotentialHostileTargets()
+    {
+        potentialHostileTargets.Clear();
+        //Add only players to potential hostile targets if my enemy is player only
+        if (hostileTargets == HostileTargets.Player)
+        {
+            AddAllPlayersInSceneToPotentialHostileTargets();
+        }
+        //Add only NPC characters to potential hostile targets if my enemy is NPC's
+        else if (hostileTargets == HostileTargets.NPC)
+        {
+            AddAllNPCInSceneToPotentialHostileTargets();
+        }
+        //Add Both players and NPC characters to potential hostile targets if my enemy is both
+        else if (hostileTargets == HostileTargets.Both)
+        {
+            AddAllPlayersInSceneToPotentialHostileTargets();
+            AddAllNPCInSceneToPotentialHostileTargets();
+        }
+    }
+
+    void AddAllPlayersInSceneToPotentialHostileTargets()
+    {
+        for (int i = 0; i < LevelManager.players.Count; i++)
+        {
+            potentialHostileTargets.Add(LevelManager.players[i].transform);
+        }
+    }
+
+    void AddAllNPCInSceneToPotentialHostileTargets()
+    {
+        for (int i = 0; i < LevelManager.players.Count; i++)
+        {
+            potentialHostileTargets.Add(LevelManager.players[i].transform);
+        }
+    }
+
     //-------------------------------------------------------------------------------------------------------------------//
-    
+
+
+
+
+
+
+
 
 
 
@@ -239,43 +289,6 @@ public abstract class NPCBrain : Brain
         base.Start();
     }
 
-    public void FindAllPotentialHostileTargets()
-    {
-        potentialHostileTargets.Clear();
-        //Add only players to potential hostile targets if my enemy is player only
-        if (hostileTargets == HostileTargets.Player)
-        {
-            AddAllPlayersInSceneToPotentialHostileTargets();
-        }
-        //Add only NPC characters to potential hostile targets if my enemy is NPC's
-        else if(hostileTargets == HostileTargets.NPC)
-        {
-            AddAllNPCInSceneToPotentialHostileTargets();
-        }
-        //Add Both players and NPC characters to potential hostile targets if my enemy is both
-        else if (hostileTargets == HostileTargets.Both)
-        {
-            AddAllPlayersInSceneToPotentialHostileTargets();
-            AddAllNPCInSceneToPotentialHostileTargets();
-        }
-    }
-
-    void AddAllPlayersInSceneToPotentialHostileTargets()
-    {
-        for (int i = 0; i < LevelManager.players.Count; i++)
-        {
-            potentialHostileTargets.Add(LevelManager.players[i].transform);
-        }
-    }
-
-    void AddAllNPCInSceneToPotentialHostileTargets()
-    {
-        for (int i = 0; i < LevelManager.players.Count; i++)
-        {
-            potentialHostileTargets.Add(LevelManager.players[i].transform);
-        }
-    }
-
       
     //
     //
@@ -294,21 +307,20 @@ public abstract class NPCBrain : Brain
             if (CheckAtPosition(nextPosition, _destinationBias))
             {
                 if (_isNavMeshPositionFinal)
-                {                    
+                {
                     if (onArrivedAtDestination != null)
                         onArrivedAtDestination();
                 }
                 else
                 {
-                    //print("point " + _navMeshNextPositionIndex);
                     if (onArrivedAtNavMeshPosition != null)
                         onArrivedAtNavMeshPosition();
                 }
             }
             else
-            {                
+            {
                 _desiredMoveDirection = DirectionToPosition(nextPosition);
-                MoveAgent();                
+                MoveAgent();
             }
             
         }
@@ -320,6 +332,12 @@ public abstract class NPCBrain : Brain
     {
         agent.SetDesiredVelocity(_desiredMoveDirection * _desiredMoveSpeed, true);
     }
+
+
+
+
+
+
 
 
 

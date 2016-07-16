@@ -24,12 +24,13 @@ public abstract class PlayerBrain : Brain
     public Rewired.Player player { get { return _player; } }
 
     // Static variables for input mapping
-    protected static string INPUT_MELEE = "Melee";
-    protected static string INPUT_RANGED = "Ranged";
-    protected static string INPUT_MOVE_HORIZONTAL = "Move Horizontal";
-    protected static string INPUT_MOVE_VERTICAL = "Move Vertical";
-    protected static string INPUT_AIM_HORIZONTAL = "Aim Horizontal";
-    protected static string INPUT_AIM_VERTICAL = "Aim Vertical";
+    protected static readonly string INPUT_MELEE = "Melee";
+    protected static readonly string INPUT_RANGED = "Ranged";
+    protected static readonly string INPUT_SHIELD = "Shield";
+    protected static readonly string INPUT_MOVE_HORIZONTAL = "Move Horizontal";
+    protected static readonly string INPUT_MOVE_VERTICAL = "Move Vertical";
+    protected static readonly string INPUT_AIM_HORIZONTAL = "Aim Horizontal";
+    protected static readonly string INPUT_AIM_VERTICAL = "Aim Vertical";
 
     protected Vector3 _inputDirection;
     protected Vector3 _inputAim;
@@ -39,7 +40,7 @@ public abstract class PlayerBrain : Brain
 
 
 
-    protected AttackController atkController;
+    protected AttackController attackController;
     public AttackDescriptor basicMelee;
     public AttackDescriptor basicRanged;
 
@@ -53,9 +54,9 @@ public abstract class PlayerBrain : Brain
 
     protected override void Start()
     {
-        Debug.Assert(atkController == null, "No Attack Controller on Player");
-        atkController = GetComponent<AttackController>();
-        atkController.SetOwnerHealthToDamageVolumes(agent.health);
+        Debug.Assert(attackController == null, "No Attack Controller on Player");
+        attackController = GetComponent<AttackController>();
+        attackController.SetOwnerHealthToDamageVolumes(agent.health);
 
         base.Start();
     }
@@ -106,6 +107,21 @@ public abstract class PlayerBrain : Brain
     }
 
 
+
+
+    protected void AttackNowAsMelee(AttackDescriptor attack)
+    {
+        LookAtNearestHealthComponent();
+        attackController.AttackWithDescriptor(attack);
+    }
+
+    protected void AttackNowAsRanged(AttackDescriptor attack)
+    {
+        attackController.AttackWithDescriptor(attack);
+    }
+
+
+
     protected void ProcessInput()
     {
         _inputDirection = new Vector3(player.GetAxis(INPUT_MOVE_HORIZONTAL), 0, player.GetAxis(INPUT_MOVE_VERTICAL));
@@ -114,18 +130,13 @@ public abstract class PlayerBrain : Brain
 
         // If movment, then break the attack
         if (_inputDirection.magnitude > 0.05f)
-            if (atkController.isAttacking)
-                atkController.YieldControlFromAttack();
+            if (attackController.isAttacking)
+                attackController.YieldControlFromAttack();
 
         if (player.GetButtonDown(INPUT_MELEE))
-        {
-            LookAtNearestHealthComponent();
-            atkController.AttackWithDescriptor(basicMelee);
-        }
+            AttackNowAsMelee(basicMelee);
         else if (player.GetButtonDown(INPUT_RANGED))
-        {
-            atkController.AttackWithDescriptor(basicRanged);
-        }
+            AttackNowAsRanged(basicRanged);
     }
 
 
@@ -133,7 +144,7 @@ public abstract class PlayerBrain : Brain
     {
         if (_inputDirection.magnitude > 0)
         {
-            if (!atkController.isControllingAgentVelocity)
+            if (!attackController.isControllingAgentVelocity)
                 agent.SetDesiredVelocity(_inputDirection * agent.properties.speed.max, true);
         }
     }

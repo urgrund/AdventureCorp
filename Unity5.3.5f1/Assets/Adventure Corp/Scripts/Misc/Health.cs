@@ -30,19 +30,23 @@ public class Health : MonoBehaviour
 
 
     public delegate void OnHealthChanged(HealthChangedEventInfo info);
-    public event OnHealthChanged onHealthGained;
-    public event OnHealthChanged onHealthZero;
-    public event OnHealthChanged onHealthLost;
+    public event OnHealthChanged onHealthWasInvincible;     // Health was invincible but raise an event anyway
+    public event OnHealthChanged onHealthGained;            // Health calculated that health raised
+    public event OnHealthChanged onHealthZero;              // Health value reached zero 
+    public event OnHealthChanged onHealthLost;              // Health lost value
 
 
     // Matt - Just an idea for resistances here so its contained within a Health
-    // Can leave here for now to consider later
+    // Can leave here for now to consider later as this will be important for 
+    // shields and 'partial' damages like this 
     [System.Serializable]
     public class Resistance
     {
         public DamageType type = DamageType.Generic;
         public int resistance = 0;        
     }
+
+
     
     /// <summary>
     /// A class that is passed along with events related to Health
@@ -84,16 +88,26 @@ public class Health : MonoBehaviour
 
     private void ApplyDamageToHealth(HealthChangedEventInfo info)
     {
+        // Time registers
+        _lastDamageTime = Time.time;
+        _lastDamageAmount = info.damage.amount;
+
         // Already below zero
         if (currentHealth <= 0)
             return;
 
-        // If invincible or no amount
-        if (invincible || info.damage.amount == 0)
+        // No damage 
+        if (info.damage.amount == 0)
             return;
 
-        _lastDamageTime = Time.time;
-        _lastDamageAmount = info.damage.amount;
+        // Invincible
+        if (invincible)
+        {
+            if (onHealthWasInvincible != null)
+                onHealthWasInvincible(info);
+            return;
+        }
+
 
         // Fire events
         if (info.damage.amount < 0)
@@ -107,6 +121,7 @@ public class Health : MonoBehaviour
                 onHealthLost(info);
         }
 
+        // Adjust health value
         _currentHealth -= info.damage.amount;
 
         if (_currentHealth <= 0)

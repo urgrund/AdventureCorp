@@ -45,6 +45,7 @@ public class AttackController : MonoBehaviour
         }
     }
 
+
     public void AttackWithDescriptor(AttackDescriptor d)
     {
         if (isPastYieldControlTime)
@@ -151,8 +152,7 @@ public class AttackController : MonoBehaviour
                         case AttackDescriptor.Lock.ScaleMovementQuarter: agent.SetVelocityScaleThisFrame(0.25f); break;
                         case AttackDescriptor.Lock.Curves: MoveAgentWithAttackCurves(_currentAttack, t); break;
                     }
-                }
-            
+                }            
                 yield return null;
             }         
         }

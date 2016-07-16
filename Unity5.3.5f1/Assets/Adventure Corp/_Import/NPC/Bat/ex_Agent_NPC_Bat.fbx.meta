@@ -171,7 +171,7 @@ ModelImporter:
       takeName: 
       firstFrame: 0
       lastFrame: 9
-      wrapMode: 0
+      wrapMode: 8
       orientationOffsetY: 0
       level: 0
       cycleOffset: 0
@@ -199,11 +199,11 @@ ModelImporter:
       takeName: 
       firstFrame: 10
       lastFrame: 65
-      wrapMode: 0
+      wrapMode: 2
       orientationOffsetY: 0
       level: 0
       cycleOffset: 0
-      loop: 0
+      loop: 1
       hasAdditiveReferencePose: 0
       loopTime: 0
       loopBlend: 0
@@ -227,7 +227,7 @@ ModelImporter:
       takeName: 
       firstFrame: 66
       lastFrame: 90
-      wrapMode: 0
+      wrapMode: 8
       orientationOffsetY: 0
       level: 0
       cycleOffset: 0
@@ -255,7 +255,7 @@ ModelImporter:
       takeName: 
       firstFrame: 91
       lastFrame: 110
-      wrapMode: 0
+      wrapMode: 8
       orientationOffsetY: 0
       level: 0
       cycleOffset: 0
@@ -283,7 +283,7 @@ ModelImporter:
       takeName: 
       firstFrame: 111
       lastFrame: 130
-      wrapMode: 0
+      wrapMode: 8
       orientationOffsetY: 0
       level: 0
       cycleOffset: 0
@@ -311,7 +311,7 @@ ModelImporter:
       takeName: 
       firstFrame: 131
       lastFrame: 150
-      wrapMode: 0
+      wrapMode: 8
       orientationOffsetY: 0
       level: 0
       cycleOffset: 0
@@ -339,7 +339,7 @@ ModelImporter:
       takeName: 
       firstFrame: 151
       lastFrame: 170
-      wrapMode: 0
+      wrapMode: 8
       orientationOffsetY: 0
       level: 0
       cycleOffset: 0
@@ -367,11 +367,11 @@ ModelImporter:
       takeName: 
       firstFrame: 171
       lastFrame: 240
-      wrapMode: 0
+      wrapMode: 2
       orientationOffsetY: 0
       level: 0
       cycleOffset: 0
-      loop: 0
+      loop: 1
       hasAdditiveReferencePose: 0
       loopTime: 0
       loopBlend: 0
@@ -395,7 +395,7 @@ ModelImporter:
       takeName: 
       firstFrame: 241
       lastFrame: 276
-      wrapMode: 0
+      wrapMode: 8
       orientationOffsetY: 0
       level: 0
       cycleOffset: 0
@@ -423,11 +423,11 @@ ModelImporter:
       takeName: 
       firstFrame: 277
       lastFrame: 354
-      wrapMode: 0
+      wrapMode: 2
       orientationOffsetY: 0
       level: 0
       cycleOffset: 0
-      loop: 0
+      loop: 1
       hasAdditiveReferencePose: 0
       loopTime: 0
       loopBlend: 0
@@ -451,11 +451,11 @@ ModelImporter:
       takeName: 
       firstFrame: 355
       lastFrame: 417
-      wrapMode: 0
+      wrapMode: 2
       orientationOffsetY: 0
       level: 0
       cycleOffset: 0
-      loop: 0
+      loop: 1
       hasAdditiveReferencePose: 0
       loopTime: 0
       loopBlend: 0
@@ -479,11 +479,11 @@ ModelImporter:
       takeName: 
       firstFrame: 418
       lastFrame: 517
-      wrapMode: 0
+      wrapMode: 2
       orientationOffsetY: 0
       level: 0
       cycleOffset: 0
-      loop: 0
+      loop: 1
       hasAdditiveReferencePose: 0
       loopTime: 0
       loopBlend: 0
@@ -507,7 +507,7 @@ ModelImporter:
       takeName: 
       firstFrame: 518
       lastFrame: 609
-      wrapMode: 0
+      wrapMode: 8
       orientationOffsetY: 0
       level: 0
       cycleOffset: 0
@@ -535,11 +535,11 @@ ModelImporter:
       takeName: 
       firstFrame: 610
       lastFrame: 672
-      wrapMode: 0
+      wrapMode: 2
       orientationOffsetY: 0
       level: 0
       cycleOffset: 0
-      loop: 0
+      loop: 1
       hasAdditiveReferencePose: 0
       loopTime: 0
       loopBlend: 0
@@ -563,7 +563,7 @@ ModelImporter:
       takeName: 
       firstFrame: 673
       lastFrame: 750
-      wrapMode: 0
+      wrapMode: 8
       orientationOffsetY: 0
       level: 0
       cycleOffset: 0

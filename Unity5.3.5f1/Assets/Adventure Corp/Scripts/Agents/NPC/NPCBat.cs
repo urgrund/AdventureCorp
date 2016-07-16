@@ -4,14 +4,36 @@ using System.Collections;
 
 public class NPCBat : NPCBrain
 {
+    Health playerToAttack;
 
-    public Transform target;
-
-    protected override void Update()
+    protected override void Awake()
     {
-        if (target != null)
-            destination = target.position;
-        base.Update();
+        playerToAttack = LevelManager.players[0];        
+        base.Awake();
     }
 
+    protected override void Start()
+    {
+        StartCoroutine(UpdateRoutine());
+        base.Start();
+    }
+
+
+    IEnumerator UpdateRoutine()
+    {
+        yield return new WaitForSeconds(Random.Range(0, 2.5f));
+
+        while (true && !agent.health.isDead)
+        {
+            if (playerToAttack != null)
+            {
+                destination = playerToAttack.transform.position;
+            }
+
+            if (Helpers.InRadius(transform.position, playerToAttack.transform.position, 2f))
+                attackController.AttackWithDescriptor(attackController.attacks[0]);
+
+            yield return new WaitForSeconds(1f);
+        }
+    }
 }

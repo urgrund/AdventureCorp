@@ -8,14 +8,14 @@ using System.Collections;
 public class AttackController : MonoBehaviour
 {
     public bool showDebugGUI = false;
-    public AgentAnimationController animationController;
-    public Agent agent;
-    //public EventorSchedule[] schedules;
-    //[HideInInspector]
+    AgentAnimationController animationController;
+    Agent agent;
+    
+    [HideInInspector]
     public Damager[] damagers;
 
     public AttackDescriptor[] attacks;
-    public AttackDescriptor _currentAttack;
+    AttackDescriptor _currentAttack;
 
     private bool _isAttacking = false;
     public bool isAttacking { get { return _isAttacking; } }
@@ -25,10 +25,8 @@ public class AttackController : MonoBehaviour
 
     void Awake()
     {
-        if (agent == null)
-            agent = GetComponent<Agent>();
-        if (animationController == null)        
-            animationController = GetComponent<AgentAnimationController>();
+        agent = GetComponent<Agent>();
+        animationController = GetComponent<AgentAnimationController>();
         if (agent == null || animationController == null)
             Debug.LogError("No agent or animated object on " + this.name);
 

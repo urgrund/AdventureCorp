@@ -13,7 +13,10 @@ public class LevelManager : MonoBehaviour
         {
             if (_instance == null)
             {
-                ; ;
+                // Self create test
+                Debug.LogWarning("No Level Manager was found in scene, creating at runtime");
+                GameObject go = new GameObject("p_LevelManager");
+                _instance = go.AddComponent<LevelManager>();                
             }
             return _instance;
         }

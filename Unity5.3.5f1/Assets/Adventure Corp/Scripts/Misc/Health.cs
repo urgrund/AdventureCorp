@@ -121,10 +121,7 @@ public class Health : MonoBehaviour
     {
         if (startingHealth > maxHealth)
             startingHealth = maxHealth;
-
         _currentHealth = startingHealth;
-
-        LevelManager.Register(this);
     }
 
     IEnumerator ApplyDamageToHealthOverTime(HealthChangedEventInfo info)
@@ -135,6 +132,13 @@ public class Health : MonoBehaviour
             ApplyDamageToHealth(info);
             yield return new WaitForSeconds(info.damage.damageOverTimeFrequency);
         }
+    }
+
+
+    void OnEnable()
+    {
+        if(LevelManager.instance)
+            LevelManager.Register(this);
     }
 
     void OnDestroy()

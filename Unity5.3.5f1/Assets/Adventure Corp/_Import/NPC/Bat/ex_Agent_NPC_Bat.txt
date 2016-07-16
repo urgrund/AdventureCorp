@@ -2,19 +2,19 @@ Micro Bat
 
 Generic_____________________
 frame: 000-009	BindPose
-frame: 010-065	IdleFlying
+frame: 010-065	IdleFlying (loop)
 frame: 066-090	Block
 frame: 091-110	GetHitFront
 frame: 111-130	GetHitLeft
 frame: 131-150	GetHitRight
 frame: 151-170	Attack
-frame: 171-240	Panic
+frame: 171-240	Panic (loop)
 frame: 241-276	Die
-frame: 277-354	Talk
-frame: 355-417	Laugh
+frame: 277-354	Talk (loop)
+frame: 355-417	Laugh (loop)
 
 Custom_____________________
-frame: 418-517	Searching
+frame: 418-517	Searching (loop)
 frame: 518-609	InvertPerch
-frame: 610-672	InvertIdle
+frame: 610-672	InvertIdle (loop)
 frame: 673-750	InvertTakeOff

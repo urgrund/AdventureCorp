@@ -8,8 +8,6 @@ public class NPCSkeletonSwordsman : NPCBrain
 
     protected override void Start()
     {
-        _desiredMoveSpeed = agent.properties.speed.max;
-
         // This will auto path find on a coroutine         
         StartCoroutine(TestPathFind());
 

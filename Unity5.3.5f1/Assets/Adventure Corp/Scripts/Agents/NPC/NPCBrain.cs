@@ -15,6 +15,27 @@ using System.Collections.Generic;
 /// </summary>
 public abstract class NPCBrain : Brain
 {
+
+
+
+
+
+
+    // NOTE (Matt) - 15/07
+    // Was thinking that the NPCBrain can seal off Update
+    // This way, all NPC's could instead run on an UpdateRountine 
+    // co-routine which may provide a more natural scripting 
+    // approach to the AI logic with yields etc... 
+
+
+
+
+
+
+
+
+
+
     // Callbacks for the Brain arriving at positions of interest
     public delegate void ArrivedAtDestination();
     public event ArrivedAtDestination onArrivedAtDestination;
@@ -24,6 +45,15 @@ public abstract class NPCBrain : Brain
 
     public AttackController attackController;
 
+    // NPC's should modify these properties which this
+    // base class will use to call the Agent
+    protected Vector3 _desiredLookAt = Vector3.zero;
+    protected Vector3 _desiredMoveDirection = Vector3.zero;
+    protected float _desiredMoveSpeed;
+
+
+
+    
 
 
     //---------------------------------------------------------------------------------------------------------------//
@@ -96,6 +126,10 @@ public abstract class NPCBrain : Brain
     }
     //-------------------------------------------------------------------------------------------------------------------//
     
+
+
+
+
     public bool ShowGizmoz = true;
     List<PatrolPoint> myPatrolPoints = new List<PatrolPoint>();
 
@@ -192,7 +226,6 @@ public abstract class NPCBrain : Brain
         onArrivedAtNavMeshPosition += OnArrivedAtNavMeshPosition;
 
         FindAllPotentialHostileTargets(); // Finds all potential hostile targets in scene and adds it to the array
-
         attackController = GetComponent<AttackController>();
         Debug.Assert(attackController != null, "No Attack Controller");
 
@@ -201,6 +234,7 @@ public abstract class NPCBrain : Brain
 
     protected override void Start()
     {
+        _desiredMoveSpeed = agent.properties.speed.max;
         attackController.SetOwnerHealthToDamageVolumes(agent.health);
         base.Start();
     }
@@ -243,6 +277,11 @@ public abstract class NPCBrain : Brain
     }
 
       
+    //
+    //
+    // TODO - perhaps make this a coroutine we can override as per notes on top
+    //
+    //
     protected override void Update()
     {               
         if (_destination != null && _navMeshNextPosition != null)
@@ -267,15 +306,24 @@ public abstract class NPCBrain : Brain
                 }
             }
             else
-            {
+            {                
                 _desiredMoveDirection = DirectionToPosition(nextPosition);
-                base.MoveAgent();                
+                MoveAgent();                
             }
             
         }
         base.Update();
-
     }
+
+
+    protected void MoveAgent()
+    {
+        agent.SetDesiredVelocity(_desiredMoveDirection * _desiredMoveSpeed, true);
+    }
+
+
+
+
 
     //------------------------------------------------------------------------------------------------------------------//
     // Cool Gizmo stuff below

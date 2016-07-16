@@ -30,11 +30,17 @@ public class AttackDescriptorEditor : Editor
                 Debug.LogError("No Clip Properties, cannot continue!");
                 return;
             }
-            
+
             if (ad.clipProperties.agentAnimationProperties == null)
+            {
+                Debug.LogError("No Agent Animation Properties, cannot continue!");
                 return;
+            }
             if (ad.clipProperties.agentAnimationProperties.animatedGameObject == null)
+            {
+                Debug.LogError("No Animated Game Object, cannot continue!");
                 return;
+            }
 
 
             Animation o = Instantiate(ad.clipProperties.agentAnimationProperties.animatedGameObject);

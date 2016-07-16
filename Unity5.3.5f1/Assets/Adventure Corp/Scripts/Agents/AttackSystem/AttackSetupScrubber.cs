@@ -31,34 +31,38 @@ public class AttackSetupScrubber : MonoBehaviour
             {
                 AttackVolumeDescriptor d = attackVolumeCollection.volumes[i];
                 Transform tf = Helpers.SearchHierarchyForTransform(animatedGO.transform, d.boneName);
-                Vector3 p = tf.TransformPoint(d.center);
-                volumePositions[i] = p;
 
-
-                // Draw locally 
-                p = d.center;
-                Gizmos.matrix = tf.localToWorldMatrix;
-
-                // This has been ticked for use in this attack 
-                if (volumeIndices[i] == true)
+                if (tf != null)
                 {
-                    float t = animatedGO[animatedGO.clip.name].normalizedTime;
-                    if (t < attackDescriptor.validDamageRange.y && t > attackDescriptor.validDamageRange.x)
+                    Vector3 p = tf.TransformPoint(d.center);
+                    volumePositions[i] = p;
+
+                    // Draw locally 
+                    p = d.center;
+                    Gizmos.matrix = tf.localToWorldMatrix;
+
+                    // This has been ticked for use in this attack 
+                    if (volumeIndices[i] == true)
                     {
-                        Gizmos.color = c_inRange * new Color(1, 1, 1, 0.25f);
-                        Gizmos.DrawSphere(p, d.radius);
-                        DrawWireSphere(p, d.radius, c_inRange);
+                        float t = animatedGO[animatedGO.clip.name].normalizedTime;
+                        if (t < attackDescriptor.validDamageRange.y && t > attackDescriptor.validDamageRange.x)
+                        {
+                            Gizmos.color = c_inRange * new Color(1, 1, 1, 0.25f);
+                            Gizmos.DrawSphere(p, d.radius);
+                            DrawWireSphere(p, d.radius, c_inRange);
+                        }
+                        else
+                        {
+                            DrawWireSphere(p, d.radius, c_inUse);
+                        }
                     }
                     else
-                    {
-                        DrawWireSphere(p, d.radius, c_inUse);
-                    }
+                        DrawWireSphere(p, d.radius, c_inActive);
                 }
                 else
-                    DrawWireSphere(p, d.radius, c_inActive);
+                    Debug.LogError("The bone for the damage volume wasn't found");
             }
-
-        }       
+        }      
     }
 
 

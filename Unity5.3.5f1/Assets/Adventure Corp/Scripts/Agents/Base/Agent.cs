@@ -16,7 +16,6 @@ public sealed class Agent : MonoBehaviour
     public Health health { get { return _health; } }
 
     private float gravitySpeed = 0f;
-    private static readonly float gravity = 16;
 
     private float _currentVelocityScale = 1f;
     public void SetVelocityScaleThisFrame(float value) { _currentVelocityScale = value; }

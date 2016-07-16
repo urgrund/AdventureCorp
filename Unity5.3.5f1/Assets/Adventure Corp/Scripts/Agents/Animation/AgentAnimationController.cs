@@ -175,7 +175,8 @@ public class AgentAnimationController : MonoBehaviour
                 }
 
                 float speedRatio = Mathf.Clamp(agent.speedRatio, 0.25f, 1f);
-                if (_state == State.Idle) speedRatio = 1f;
+                if (_state == State.Idle)
+                    speedRatio = 1f;
                 animatedGameObject[_locomotionClipDictionary[state].clip.name].speed = _locomotionClipDictionary[state].playSpeed * speedRatio;             
             }
             yield return null;
@@ -193,7 +194,8 @@ public class AgentAnimationController : MonoBehaviour
             return;
 
         if(_state != State.Override)
-            Play(_locomotionClipDictionary[state]);
+            if(_locomotionClipDictionary[state] != null)
+                Play(_locomotionClipDictionary[state]);
 
         //switch (_state)
         //{
@@ -230,14 +232,18 @@ public class AgentAnimationController : MonoBehaviour
         }
     }
 
-
+    bool isAlreadyDead = false;
     public void Play(AnimationClipProperties clipProperties)
     {
         if (state == State.Dead)
-        {            
+        {
+            if (isAlreadyDead)
+                return;
+
             _animatedGameObject.Stop();
             _animatedGameObject.clip = _locomotionClipDictionary[state].clip;
             _animatedGameObject.Play(_locomotionClipDictionary[state].clip.name, PlayMode.StopAll);
+            isAlreadyDead = true;
             return;
         }
 
@@ -302,7 +308,6 @@ public class AgentAnimationController : MonoBehaviour
     {
         if (state == State.Dead)
             return;
-
 
         AnimationClipProperties pToPlay;
         Vector3 dirToObject = Helpers.DirectionTo(transform, info.responsibleGameObject.transform);

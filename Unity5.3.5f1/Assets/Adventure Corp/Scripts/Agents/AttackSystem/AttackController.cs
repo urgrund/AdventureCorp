@@ -9,7 +9,7 @@ public class AttackController : MonoBehaviour
 {
 
     public bool showDebugGUI = false;
-	public LayerMask damageColliderLayer = LayerMask.NameToLayer("Everything");  
+	public LayerMask damageColliderLayer;// = LayerMask.NameToLayer("Everything");  
 
 	Agent _agent;
     
@@ -36,8 +36,8 @@ public class AttackController : MonoBehaviour
     void Start()
     {
         damagers = AttackVolumeCollection.CreateDamageCollidersForAgent(_agent, _agent.animationController.animatedGameObject.transform, _agent.properties.GetComponent<AttackVolumeCollection>());
-		SetLayerToDamageVolumes(damageColliderLayer);
-		Debug.LogWarning("Need to fix this as layers not working");
+		//SetLayerToDamageVolumes(damageColliderLayer);
+		//Debug.LogWarning("Need to fix this as layers not working");
     }
 
     public bool isPastYieldControlTime

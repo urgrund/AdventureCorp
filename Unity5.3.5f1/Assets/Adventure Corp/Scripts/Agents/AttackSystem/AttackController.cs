@@ -9,7 +9,9 @@ public class AttackController : MonoBehaviour
 {
 
     public bool showDebugGUI = false;
-    Agent _agent;
+	public LayerMask damageColliderLayer = LayerMask.NameToLayer("Everything");  
+
+	Agent _agent;
     
     [HideInInspector]
     public Damager[] damagers;
@@ -34,6 +36,8 @@ public class AttackController : MonoBehaviour
     void Start()
     {
         damagers = AttackVolumeCollection.CreateDamageCollidersForAgent(_agent, _agent.animationController.animatedGameObject.transform, _agent.properties.GetComponent<AttackVolumeCollection>());
+		SetLayerToDamageVolumes(damageColliderLayer);
+		Debug.LogWarning("Need to fix this as layers not working");
     }
 
     public bool isPastYieldControlTime
@@ -58,7 +62,13 @@ public class AttackController : MonoBehaviour
                 EventorSchedule.RunAtTransformAsChild(d.eventor, this.transform);
         }
     }
-    
+
+
+	public void SetLayerToDamageVolumes(LayerMask layer)
+	{
+		for (int i = 0; i < damagers.Length; i++)
+			damagers[i].gameObject.layer = layer;
+	}
 
     // Apply the appropriate Damage object to the volumes    
     public void SetDamageToDamageVolumes(Damage damage)
@@ -66,7 +76,6 @@ public class AttackController : MonoBehaviour
         for (int i = 0; i < damagers.Length; i++)
             damagers[i].damage = damage;
     }
-
 
     
     public void SetOwnerHealthToDamageVolumes(Health health)

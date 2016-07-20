@@ -40,7 +40,8 @@ public class AttackVolumeCollection : MonoBehaviour
         Damager[] d = new Damager[attackVolumes.volumes.Length];
         for (int i = 0; i < attackVolumes.volumes.Length; i++)
         {
-            GameObject go = new GameObject("Damager_" + attackVolumes.volumes[i].boneName);            
+            GameObject go = new GameObject("Damager_" + attackVolumes.volumes[i].boneName);
+			go.layer = agent.gameObject.layer;
             Transform parent = Helpers.SearchHierarchyForTransform(animatedObject, attackVolumes.volumes[i].boneName);
             if (parent != null)
             {

@@ -29,7 +29,7 @@ public class NPCSkeletonSwordsman : NPCBrain
 
     protected override void Update()
     {
-		if (Helpers.InRadius(transform.position, target.position, 6f))
+		if (Helpers.InRadius(transform.position, target.position, Random.Range(4f, 6f))) 
 			_desiredMoveSpeed = agent.properties.speed.max * agent.properties.walkToRunSpeedRatio * 0.9f;
 		else
 			_desiredMoveSpeed = agent.properties.speed.max;

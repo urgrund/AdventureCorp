@@ -22,6 +22,7 @@ public class AgentAnimationPropertiesForReaction
     public AnimationClipProperties hitFromFront;
     public AnimationClipProperties hitFromLeft;
     public AnimationClipProperties hitFromRight;
+    public AnimationClipProperties stagger;
 }
 
 

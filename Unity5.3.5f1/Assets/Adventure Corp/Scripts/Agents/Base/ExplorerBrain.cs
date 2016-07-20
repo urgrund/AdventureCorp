@@ -6,7 +6,7 @@ using System.Collections;
 /// Base abstract level Brain for playable Agents
 /// manages input with Rewired 
 /// </summary>
-public abstract class PlayerBrain : Brain
+public abstract class ExplorerBrain : Brain
 {
 
 
@@ -27,6 +27,7 @@ public abstract class PlayerBrain : Brain
     protected static readonly string INPUT_MELEE = "Melee";
     protected static readonly string INPUT_RANGED = "Ranged";
     protected static readonly string INPUT_SHIELD = "Shield";
+    protected static readonly string INPUT_DASH = "Dash";
     protected static readonly string INPUT_MOVE_HORIZONTAL = "Move Horizontal";
     protected static readonly string INPUT_MOVE_VERTICAL = "Move Vertical";
     protected static readonly string INPUT_AIM_HORIZONTAL = "Aim Horizontal";
@@ -39,10 +40,15 @@ public abstract class PlayerBrain : Brain
     // --------------------------------------------
 
 
+        /// <summary>
+        /// The profile object of this explorer
+        /// </summary>
+    public ExplorerProfile profile;
 
-    protected AttackController attackController;
-    public AttackDescriptor basicMelee;
-    public AttackDescriptor basicRanged;
+	public BaseAttackCollection attackCollection;
+    //protected AttackController attackCollection.controller;
+    //public AttackDescriptor basicMelee;
+    //public AttackDescriptor basicRanged;
 
 
 
@@ -54,10 +60,9 @@ public abstract class PlayerBrain : Brain
 
     protected override void Start()
     {
-        Debug.Assert(attackController == null, "No Attack Controller on Player");
-        attackController = GetComponent<AttackController>();
-        attackController.SetOwnerHealthToDamageVolumes(agent.health);
-
+        Debug.Assert(GetComponent<AttackController>() != null, "No Attack Controller on Player");
+        attackCollection.controller = GetComponent<AttackController>();
+        attackCollection.controller.SetOwnerHealthToDamageVolumes(agent.health);
         base.Start();
     }
 
@@ -111,13 +116,19 @@ public abstract class PlayerBrain : Brain
 
     protected void AttackNowAsMelee(AttackDescriptor attack)
     {
-        LookAtNearestHealthComponent();
-        attackController.AttackWithDescriptor(attack);
+		if (agent.isGrounded)
+		{
+			LookAtNearestHealthComponent();
+			attackCollection.controller.AttackWithDescriptor(attackCollection.melee1);
+		}
     }
 
     protected void AttackNowAsRanged(AttackDescriptor attack)
     {
-        attackController.AttackWithDescriptor(attack);
+		if (agent.isGrounded)
+		{
+			attackCollection.controller.AttackWithDescriptor(attackCollection.ranged1);
+		}
     }
 
 
@@ -127,16 +138,25 @@ public abstract class PlayerBrain : Brain
         _inputDirection = new Vector3(player.GetAxis(INPUT_MOVE_HORIZONTAL), 0, player.GetAxis(INPUT_MOVE_VERTICAL));
         _inputDirection = GrabMovementDirRelativeToCam(_inputDirection);
 
+        
+        // TODO - code below almost 'teleports' whereas need a 'slide/roll' effect
+
+        //if (player.GetButtonDown(INPUT_DASH))
+        //{
+        //    agent.OverrideMove(_inputDirection * 1.5f);
+        //    return;
+        //}
+
 
         // If movment, then break the attack
         if (_inputDirection.magnitude > 0.05f)
-            if (attackController.isAttacking)
-                attackController.YieldControlFromAttack();
+            if (attackCollection.controller.isAttacking)
+                attackCollection.controller.YieldControlFromAttack();
 
         if (player.GetButtonDown(INPUT_MELEE))
-            AttackNowAsMelee(basicMelee);
+            AttackNowAsMelee(attackCollection.melee1);
         else if (player.GetButtonDown(INPUT_RANGED))
-            AttackNowAsRanged(basicRanged);
+            AttackNowAsRanged(attackCollection.ranged1);
     }
 
 
@@ -144,7 +164,7 @@ public abstract class PlayerBrain : Brain
     {
         if (_inputDirection.magnitude > 0)
         {
-            if (!attackController.isControllingAgentVelocity)
+            if (!attackCollection.controller.isControllingAgentVelocity && agent.isGrounded)
                 agent.SetDesiredVelocity(_inputDirection * agent.properties.speed.max, true);
         }
     }

@@ -6,22 +6,22 @@ using System.Collections;
 // with the readability there
 //using Rewired;
 
-public class TestPlayableBrain : PlayerBrain
+public class TestPlayableExplorer : ExplorerBrain
 {
-    // ----   Shield/Parry test stuff ----
-    public Transform shield;
-    public float shieldMovementScale = 0.25f;
 
-    public Material shieldMaterial;
-    float shieldFlashCoolDownSpeed = 8f;
+	// ----   Shield/Parry test stuff ----
+
+	public Transform shield;
+
+    float shieldMovementScale = 0.25f;
+    Material shieldMaterial;
+    float shieldFlashCoolDownSpeed = 4f;
     float shieldFlashCurrent = 0;
-
     Color shieldColorHit = Color.blue;
     Color shieldColorParry = Color.green;
     Color shieldColorFlashCurrent = Color.black;
-
-    public float shieldLastHoldTime;
-    public float shieldParryTimeWindow = 0.2f;
+    float shieldLastHoldTime;
+    float shieldParryTimeWindow = 0.2f;
 
     // ----------------------------------
 
@@ -34,7 +34,7 @@ public class TestPlayableBrain : PlayerBrain
 
     protected override void Awake()
     {
-        shield = Helpers.InstantiateAndParent(shield, transform, true);
+		shield = Helpers.InstantiateAndParent(shield, transform, true);
         shield.gameObject.SetActive(false);
         shieldMaterial = shield.GetComponentInChildren<MeshRenderer>().material;
         shieldLastHoldTime = -1f;
@@ -45,21 +45,28 @@ public class TestPlayableBrain : PlayerBrain
 
 
     protected override void Update()
-    {
-        base.Update();
+	{
+#if UNITY_EDITOR
+		if (!CameraSystem.instance)
+		{
+			Vector3 offset = new Vector3(-5, 8, -5);
+			Camera.main.transform.position = transform.position + offset;
+		}
+#endif
+		base.Update();
         UpdateRangedFocusing();
         UpdateShieldStuff();
     }
 
 
     // --------------------  SHIELD / PARRY TEST -------------------------------------
-
+            
     void UpdateShieldStuff()
     {
-        // Manages color of the shield for visual feedback
+		// Manages color of the shield for visual feedback
         shieldFlashCurrent -= Time.deltaTime * shieldFlashCoolDownSpeed;
         shieldFlashCurrent = Mathf.Clamp01(shieldFlashCurrent);
-        shieldMaterial.SetColor("_EmissionColor", Color.Lerp(Color.yellow, shieldColorFlashCurrent, shieldFlashCurrent));
+        shieldMaterial.SetColor("_EmissionColor", Color.Lerp(Color.black, shieldColorFlashCurrent, shieldFlashCurrent));
 
         // HACK - just set health to invincible whilst holding 
         // shield,  this is probably not what we want, but just to see some results
@@ -68,7 +75,7 @@ public class TestPlayableBrain : PlayerBrain
         if (player.GetButtonDown(INPUT_SHIELD))
             shieldLastHoldTime = Time.time;
 
-        if (player.GetButton(INPUT_SHIELD))
+        if (player.GetButton(INPUT_SHIELD) && !agent.health.isDead)
         {
             shield.gameObject.SetActive(true);
             agent.SetVelocityScaleThisFrame(shieldMovementScale);            
@@ -81,17 +88,33 @@ public class TestPlayableBrain : PlayerBrain
     {
         shieldFlashCurrent = 1f;
         if (player.GetButton(INPUT_SHIELD))
-            agent.SetDesiredRotation(info.responsibleGameObject.transform);
+            agent.SetDesiredRotation(info.responsibleGameObject.transform, true);
 
         if ((Time.time - shieldLastHoldTime) <= shieldParryTimeWindow)
         {
             shieldColorFlashCurrent = shieldColorParry;
 
             // Test idea - attack when parry successful?
-            AttackNowAsMelee(basicMelee);                        
+            AttackNowAsMelee(attackCollection.melee1);
+
+            // Stagger and pushback on successful parry                                 
+            Agent a = info.responsibleGameObject.GetComponent<Agent>();
+            if (a)
+            {
+                a.OverrideMove(Helpers.DirectionTo(transform, info.responsibleGameObject.transform) * 1f);
+                a.Stagger();
+            }
+
+            // Test idea - push camera in a little
+            Vector3 p = Camera.main.transform.position + Camera.main.transform.forward;
+            Camera.main.transform.position = p;
         }
         else
+        {
+            // Absorbed hit but no parry
             shieldColorFlashCurrent = shieldColorHit;
+            agent.OverrideMove(-Helpers.DirectionTo(transform, info.responsibleGameObject.transform) * 0.5f);
+        }
 
         base.OnHealthWasInvincible(info);
     }

@@ -53,13 +53,13 @@ public class AgentAnimationController : MonoBehaviour
 
 
 
-    [HideInInspector]
+    //[HideInInspector]
     public float overrideCountDown = 0;
 
     private Animation _animatedGameObject;
     public Animation animatedGameObject { get { return _animatedGameObject; } }
 
-    public List<Material> _materails;
+    public List<Material> _materials;
 
     // ----------------------------------------
     void Awake()
@@ -83,10 +83,10 @@ public class AgentAnimationController : MonoBehaviour
                 _locomotionClipDictionary.Add(State.BackPedal, animationProperties.locomotion.backPedal);
 
                 // Collect all materials on this animated model
-                _materails = new List<Material>();
+                _materials = new List<Material>();
                 foreach (SkinnedMeshRenderer s in _animatedGameObject.GetComponentsInChildren<SkinnedMeshRenderer>())
                     foreach(Material m in s.materials)
-                        _materails.Add(m);
+                        _materials.Add(m);
             }
         }
         else
@@ -186,6 +186,9 @@ public class AgentAnimationController : MonoBehaviour
 
     void SetAnimationState(State value)
     {
+        //if (agent.isStaggered)
+        //    print("Setting state : " + value.ToString() + "     " + Time.time);
+
         // if state is the same, just return to avoid
         // setting Animation component values
         if (value != _state)
@@ -196,25 +199,6 @@ public class AgentAnimationController : MonoBehaviour
         if(_state != State.Override)
             if(_locomotionClipDictionary[state] != null)
                 Play(_locomotionClipDictionary[state]);
-
-        //switch (_state)
-        //{
-        //    case State.Dead:
-        //        Play(animationProperties.reaction.death);
-        //        break;
-
-        //    case State.Idle:
-        //        Play(animationProperties.locomotion.idle);
-        //        break;
-
-        //    case State.Walking:
-        //        Play(animationProperties.locomotion.walk);
-        //        break;
-
-        //    case State.Running:
-        //        Play(animationProperties.locomotion.run);
-        //        break;
-        //}
     }
 
 
@@ -224,17 +208,31 @@ public class AgentAnimationController : MonoBehaviour
         if (overrideCountDown > 0)
             overrideCountDown -= Time.deltaTime;
 
+        if (agent.isStaggered)
+        {
+            
+        }
+
         if (_state == State.Override && overrideCountDown < 0)
         {
             overrideCountDown = 0f;
             if(state != State.Dead)
                 state = State.Idle;
         }
+
+        FlashMaterials();
     }
 
     bool isAlreadyDead = false;
     public void Play(AnimationClipProperties clipProperties)
     {
+        if (clipProperties.clip == null)
+        {
+            Debug.LogError("No clip on animation property on {0}  " + this.name, clipProperties);
+            return;
+        }
+
+
         if (state == State.Dead)
         {
             if (isAlreadyDead)
@@ -246,10 +244,6 @@ public class AgentAnimationController : MonoBehaviour
             isAlreadyDead = true;
             return;
         }
-
-
-        if (clipProperties.clip == null)
-            Debug.LogError("No clip on animation property on {0}", clipProperties);
         
         _animatedGameObject[clipProperties.clip.name].speed = clipProperties.playSpeed;        
         _animatedGameObject[clipProperties.clip.name].blendMode = clipProperties.blendMode;
@@ -261,11 +255,16 @@ public class AgentAnimationController : MonoBehaviour
 
         if (clipProperties.isOverriding)
         {
+           // Debug.Assert (!agent.isStaggered,"Is staggered and trying to play...");
+
             _animatedGameObject.Rewind(clipProperties.clip.name);
             _animatedGameObject.clip = clipProperties.clip;
             _animatedGameObject.CrossFade(clipProperties.clip.name, clipProperties.blendTime);
 
             overrideCountDown = clipProperties.clip.length * (1f / clipProperties.playSpeed);
+
+            //Debug.Assert(!agent.isStaggered, "stagger " + overrideCountDown);
+
             state = State.Override;
         }
         else
@@ -283,32 +282,35 @@ public class AgentAnimationController : MonoBehaviour
     }
 
 
-    bool breakHold = false;
-    IEnumerator HoldStateThenReturn(State hold, State returnTo, float timeToWait)
+
+    // Flashes materials red
+    // This is a bit sloppy here perhaps.   Will
+    // need a specific character shader anyway that has flash
+    // perameters among other things
+    float flashValue = 0;
+    Color flashColor = Color.red;
+    float flashFadeSpeed = 5;    
+    void FlashMaterials()
     {
-        print("Start");
-
-        breakHold = false;
-        state = hold;
-        float t = 0;
-        while (t < timeToWait)
-        {
-            t += Time.deltaTime;
-            if (breakHold)
-                state = returnTo;
-            else
-                yield return null;
-        }
-        state = returnTo;
-
-        print("Stop");
+        flashValue -= Time.deltaTime * flashFadeSpeed;
+        flashValue = Mathf.Clamp01(flashValue);
+        foreach (Material m in _materials)
+            m.SetColor("_EmissionColor", Color.Lerp(Color.black, flashColor, flashValue));
     }
+
+
 
     public void OnHealthLost(Health.HealthChangedEventInfo info)
     {
         if (state == State.Dead)
             return;
 
+        // set this always for visual feedback
+        flashValue = 1f;
+        
+
+        // Determine direction the hit came from
+        // and play the appropriate 'hitfrom' animation
         AnimationClipProperties pToPlay;
         Vector3 dirToObject = Helpers.DirectionTo(transform, info.responsibleGameObject.transform);
         if (agent.health.isDead)
@@ -317,7 +319,13 @@ public class AgentAnimationController : MonoBehaviour
         }
         else
         {
-            Vector3 forward = transform.forward;
+			// If staggered, let the staggere process complete
+			if (agent.isStaggered)
+			{
+				return;
+			}
+
+			Vector3 forward = transform.forward;
             Vector3 right = transform.right;
             dirToObject.y = forward.y = right.y = 0;
             float frontOrBack = Vector3.Dot(forward, dirToObject);
@@ -340,8 +348,7 @@ public class AgentAnimationController : MonoBehaviour
                     pToPlay = animationProperties.reaction.hitFromLeft;
             }
 
-            Play(pToPlay);
-            //Debug.DrawRay(transform.position, (info.responsibleGameObject.transform.position - transform.position), Color.red, 10f);
+            Play(pToPlay);            
         }
     }
 
@@ -366,12 +373,7 @@ public class AgentAnimationController : MonoBehaviour
 
                 // Name
                 GUI.color = Color.white;
-                GUILayout.Label("    " + anim.clip.name, GUILayout.Width(nameWidth));
-
-                // Playing
-                //GUI.color= animatedGameObject.IsPlaying(anim.name) ? Color.green : Color.red;
-                //GUILayout.Box("p", GUILayout.Width(boxWidth), GUILayout.MaxHeight(boxHeight));
-                
+                GUILayout.Label("   " + anim.clip.name, GUILayout.Width(nameWidth));
 
                 //
                 GUI.color = Color.white;
@@ -381,8 +383,7 @@ public class AgentAnimationController : MonoBehaviour
 
                 GUI.color = Color.Lerp(Color.red, Color.green, anim.weight);
                 GUI.backgroundColor = GUI.color;
-                GUILayout.TextField("", GUILayout.Width(anim.weight * 100), GUILayout.MaxHeight(boxHeight));
-                //GUILayout.Box("w", GUILayout.Width(anim.weight * 100), GUILayout.MaxHeight(boxHeight));
+                GUILayout.TextField("", GUILayout.Width(anim.weight * 100), GUILayout.MaxHeight(boxHeight));                
 
                 GUILayout.EndHorizontal();
             }

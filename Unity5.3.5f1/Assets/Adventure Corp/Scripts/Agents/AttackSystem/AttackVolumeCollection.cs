@@ -25,7 +25,11 @@ public class AttackVolumeCollection : MonoBehaviour
 {
     public AttackVolumeDescriptor[] volumes;
 
-    public static Damager[] CreateDamageCollidersForTransform(Transform transform, AttackVolumeCollection attackVolumes)
+
+    /// <summary>
+    /// Really slow approach...  be good to optimise this
+    /// </summary>    
+    public static Damager[] CreateDamageCollidersForAgent(Agent agent, Transform animatedObject, AttackVolumeCollection attackVolumes)
     {
         if (attackVolumes == null || attackVolumes.volumes == null)
         {
@@ -37,7 +41,7 @@ public class AttackVolumeCollection : MonoBehaviour
         for (int i = 0; i < attackVolumes.volumes.Length; i++)
         {
             GameObject go = new GameObject("Damager_" + attackVolumes.volumes[i].boneName);            
-            Transform parent = Helpers.SearchHierarchyForTransform(transform, attackVolumes.volumes[i].boneName);
+            Transform parent = Helpers.SearchHierarchyForTransform(animatedObject, attackVolumes.volumes[i].boneName);
             if (parent != null)
             {
                 Helpers.ParentAndCenterOnTransform(go.transform, parent);
@@ -54,7 +58,8 @@ public class AttackVolumeCollection : MonoBehaviour
                     sc.center = attackVolumes.volumes[i].center;
                     sc.isTrigger = true;
                     sc.enabled = false;
-                    damager.sphereCollider = sc;                   
+                    damager.sphereCollider = sc;
+                    damager.owner = agent.health;                    
                 }
                 d[i] = damager;
             }            

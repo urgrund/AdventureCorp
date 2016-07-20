@@ -7,14 +7,14 @@ using System.Collections;
 /// </summary>
 public class AttackController : MonoBehaviour
 {
+
     public bool showDebugGUI = false;
-    AgentAnimationController animationController;
-    Agent agent;
+    Agent _agent;
     
     [HideInInspector]
     public Damager[] damagers;
-
-    public AttackDescriptor[] attacks;
+		
+	//public AttackDescriptor[] attacks;
     AttackDescriptor _currentAttack;
 
     private bool _isAttacking = false;
@@ -25,21 +25,23 @@ public class AttackController : MonoBehaviour
 
     void Awake()
     {
-        agent = GetComponent<Agent>();
-        animationController = GetComponent<AgentAnimationController>();
-        if (agent == null || animationController == null)
-            Debug.LogError("No agent or animated object on " + this.name);
+        Debug.Assert(GetComponent<Agent>() != null, "No agent or animated object on " + this.name);
 
-        damagers = AttackVolumeCollection.CreateDamageCollidersForTransform(animationController.animatedGameObject.transform, agent.properties.GetComponent<AttackVolumeCollection>());
+        _agent = GetComponent<Agent>();
+        _agent.onStaggered += OnAgentStaggered;
     }
 
+    void Start()
+    {
+        damagers = AttackVolumeCollection.CreateDamageCollidersForAgent(_agent, _agent.animationController.animatedGameObject.transform, _agent.properties.GetComponent<AttackVolumeCollection>());
+    }
 
     public bool isPastYieldControlTime
     {
         get
         {
             if (isAttacking)
-                return animationController.animatedGameObject[_currentAttack.clipProperties.clip.name].normalizedTime > _currentAttack.yieldControlRatio;
+                return _agent.animationController.animatedGameObject[_currentAttack.clipProperties.clip.name].normalizedTime > _currentAttack.yieldControlRatio;
             else
                 return true;
         }
@@ -73,6 +75,7 @@ public class AttackController : MonoBehaviour
             damagers[i].owner = health;        
     }
 
+
     // This assumes the attack indices match the NPC's damager indices
     // If there's a mistmatch it's most likely that the attack descriptor
     // was never opened in the editor and initialized
@@ -105,16 +108,24 @@ public class AttackController : MonoBehaviour
         }
     }
 
+    void OnAgentStaggered()
+    {
+        print("asdsd");
+        if(isAttacking)
+            ReleaseAttack(_currentAttack);
+    }
+
     void ReleaseAttack(AttackDescriptor attack)
     {
         // Deactivate
         ActivateDamageVolumes(false, attack.volumeIndices);
-        agent.isAllowedMovement = true;
-        agent.isApplyGravity = true;
+        _agent.isAllowedMovement = true;
+        _agent.isApplyGravity = true;
         _isAttacking = false;
         _isControllingAgentVelocity = false;
-        
-        animationController.overrideCountDown = -1;
+        StopAllCoroutines();
+
+        _agent.animationController.overrideCountDown = -1;
     }
 
 
@@ -130,14 +141,14 @@ public class AttackController : MonoBehaviour
 
         float t;
         // Play animation and activate volumes during damage range
-        if (animationController.animatedGameObject != null && _currentAttack != null)
+        if (_agent.animationController.animatedGameObject != null && _currentAttack != null)
         {            
-            animationController.Play(_currentAttack.clipProperties);
-            while (animationController.animatedGameObject.IsPlaying(_currentAttack.clipProperties.clip.name))
+            _agent.animationController.Play(_currentAttack.clipProperties);
+            while (_agent.animationController.animatedGameObject.IsPlaying(_currentAttack.clipProperties.clip.name))
             {
                 // Activate volumes during the attack
                 _isAttacking = true;
-                t = animationController.animatedGameObject[_currentAttack.clipProperties.clip.name].normalizedTime;
+                t = _agent.animationController.animatedGameObject[_currentAttack.clipProperties.clip.name].normalizedTime;
                 ActivateDamageVolumes(t > _currentAttack.validDamageRange.x && t < _currentAttack.validDamageRange.y, _currentAttack.volumeIndices);
 
 
@@ -145,11 +156,12 @@ public class AttackController : MonoBehaviour
                 if (attack.controllerLock != AttackDescriptor.Lock.None)
                 {
                     _isControllingAgentVelocity = true;
+					_agent.isApplyGravity = _currentAttack.controllerGravity;
                     switch (attack.controllerLock)
                     {
-                        case AttackDescriptor.Lock.StopAllMovement: agent.isAllowedMovement = false; break;
-                        case AttackDescriptor.Lock.ScaleMovementHalf: agent.SetVelocityScaleThisFrame(0.50f); break;
-                        case AttackDescriptor.Lock.ScaleMovementQuarter: agent.SetVelocityScaleThisFrame(0.25f); break;
+                        case AttackDescriptor.Lock.StopAllMovement: _agent.isAllowedMovement = false; break;
+                        case AttackDescriptor.Lock.ScaleMovementHalf: _agent.SetVelocityScaleThisFrame(0.50f); break;
+                        case AttackDescriptor.Lock.ScaleMovementQuarter: _agent.SetVelocityScaleThisFrame(0.25f); break;
                         case AttackDescriptor.Lock.Curves: MoveAgentWithAttackCurves(_currentAttack, t); break;
                     }
                 }            
@@ -169,12 +181,12 @@ public class AttackController : MonoBehaviour
     private Vector3 curveDirection;
     void MoveAgentWithAttackCurves(AttackDescriptor attack, float normalizedTime)
     {
-        agent.isApplyGravity = false;
+        _agent.isApplyGravity = false;
         curvePosition = GetPositionOnCurve(attack, normalizedTime);
-        curveDirection = agent.transform.TransformDirection(curvePosition - curveLastPosition);
+        curveDirection = _agent.transform.TransformDirection(curvePosition - curveLastPosition);
 
         if(curveDirection.magnitude > 0)
-            agent.OverrideMove(curveDirection);
+            _agent.OverrideMove(curveDirection);
 
         curveLastPosition = curvePosition;
         //Debug.Log("  dir:" + curveDirection+ "   lP:" + curveLastPosition + "  cP:" + curvePosition);
@@ -187,7 +199,7 @@ public class AttackController : MonoBehaviour
         curvePosition.y = attack.curveY.Evaluate(normalizedTime);
         curvePosition.z = attack.curveZ.Evaluate(normalizedTime);
         return ( curvePosition );
-    }
+    }	
 
 
 
@@ -195,21 +207,14 @@ public class AttackController : MonoBehaviour
     void OnGUI()
     {
         if (!showDebugGUI)
-            return;
+            return;        
 
-        //if (schedules == null || attacks == null)
-        //  return;
+        //if (attacks == null)
+        //    return;
 
-        if (attacks == null)
-            return;
-
-        foreach (AttackDescriptor s in attacks)
-            if (GUILayout.Button(s.name))
-                AttackWithDescriptor(s);
-
-        //foreach (EventorSchedule s in schedules)
+        //foreach (AttackDescriptor s in attacks)
         //    if (GUILayout.Button(s.name))
-        //        AttackWithEventor(s);
+        //        AttackWithDescriptor(s);        
     }
 
     void OnDrawGizmos()
@@ -224,7 +229,6 @@ public class AttackController : MonoBehaviour
                 SphereCollider c = d.GetComponent<SphereCollider>();
                 Gizmos.color = d.enabled ? Color.red : Color.grey;
                 Gizmos.DrawWireSphere(d.transform.TransformPoint(c.center), c.radius);
-                //Gizmos.DrawCube(d.transform.TransformPoint(c.center), Vector3.one * c.radius * 0.5f);
             }
         }
     }

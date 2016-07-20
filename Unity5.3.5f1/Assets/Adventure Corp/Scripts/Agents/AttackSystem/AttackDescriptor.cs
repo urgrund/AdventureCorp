@@ -24,15 +24,15 @@ public class AttackDescriptor : ScriptableObject
     {
         None,                   // Agent controller is not effected
         ScaleMovementHalf,      // Agent controllers' speed is scaled
-        ScaleMovementQuarter,
-        StopAcceleration,       // Agent will stop accelerating and therefore slow down
+        ScaleMovementQuarter,        
         Curves,                 // Agent will be moved by the attack curves
         StopAllMovement         // Agent controller is completely locked during attack
     }
 
 
     public bool canBeBroken = false;    
-    public Lock controllerLock = Lock.None;    
+    public Lock controllerLock = Lock.None;
+	public bool controllerGravity = true;
     
     [Range(0,360)]public float suggestedUseAngle = 90f;
     [Range(0, 1)]public float yieldControlRatio = 1f;

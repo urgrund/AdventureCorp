@@ -12,8 +12,9 @@ public class AttackSetupScrubberEditor : Editor
     SerializedObject attDesc;
 
     SerializedProperty canBeBroken;
-    SerializedProperty controllerLock;    
-    SerializedProperty suggestedUseRange;
+    SerializedProperty controllerLock;
+	SerializedProperty controllerGravity;
+	SerializedProperty suggestedUseRange;
     SerializedProperty suggestedUseAngle;
     SerializedProperty validDamageRange;
     SerializedProperty volumeIndices;
@@ -46,8 +47,9 @@ public class AttackSetupScrubberEditor : Editor
         attDesc = new SerializedObject(t.attackDescriptor);
 
         canBeBroken = attDesc.FindProperty("canBeBroken");
-        controllerLock = attDesc.FindProperty("controllerLock");        
-        suggestedUseRange = attDesc.FindProperty("suggestedUseRange");
+        controllerLock = attDesc.FindProperty("controllerLock");
+		controllerGravity = attDesc.FindProperty("controllerGravity");
+		suggestedUseRange = attDesc.FindProperty("suggestedUseRange");
         suggestedUseAngle = attDesc.FindProperty("suggestedUseAngle");
         validDamageRange = attDesc.FindProperty("validDamageRange");
         volumeIndices = attDesc.FindProperty("volumeIndices");
@@ -96,7 +98,8 @@ public class AttackSetupScrubberEditor : Editor
         BoldLabel("Attack Properties");
         EditorGUILayout.PropertyField(canBeBroken);
         EditorGUILayout.PropertyField(controllerLock);
-        EditorGUILayout.PropertyField(suggestedUseRange);        
+		EditorGUILayout.PropertyField(controllerGravity);
+		EditorGUILayout.PropertyField(suggestedUseRange);        
         EditorGUILayout.PropertyField(damage, true);
         EditorGUILayout.PropertyField(clipProperties, true);
         EditorGUILayout.PropertyField(eventor, true);        

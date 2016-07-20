@@ -6,7 +6,11 @@ using System.Collections;
 public sealed class Agent : MonoBehaviour
 {
     private CharacterController _controller;
-    
+	public bool isGrounded { get { return _controller.isGrounded; } }
+
+    private AgentAnimationController _animationController;
+    public AgentAnimationController animationController { get { return _animationController; } }
+
     /// <summary>
     /// Properties to define the movement properties of this agent
     /// </summary>
@@ -23,7 +27,7 @@ public sealed class Agent : MonoBehaviour
     
     Vector3 _currentVelocity;       // Velocity the Controller will move
     Vector3 _desiredVelocity;       // Velocity the Controller will try to reach    
-    Quaternion _desiredRotation;    // TODO - need a current rotate speed so that DAMPIONG and ACCEL can be used properly
+    Quaternion _desiredRotation;    // TODO - need a current rotate speed so that DAMPING and ACCEL can be used properly
 
     private bool _isBrainSetVelocityThisFrame = false;
 
@@ -60,6 +64,7 @@ public sealed class Agent : MonoBehaviour
             return v.magnitude / (properties.speed.max * _desiredVelocityRealtiveMovementScale);
         }
     }
+    
 
 
     /// <summary>
@@ -75,6 +80,7 @@ public sealed class Agent : MonoBehaviour
     /// </summary>
     void Reset()
     {
+        _animationController = GetComponent<AgentAnimationController>();
         _controller = GetComponent<CharacterController>();
         _controller.center = Vector3.up;
         _controller.skinWidth = AdventureCorpGlobals.Agent.skinWidth;
@@ -88,7 +94,7 @@ public sealed class Agent : MonoBehaviour
         _desiredRotation = transform.rotation;
 
         // Setup component references
-        _controller = GetComponent<CharacterController>();
+        Reset();
         _health = GetComponent<Health>();
         _health.onHealthLost += OnHealthLost;
         _health.onHealthZero += OnHealthLost;
@@ -103,10 +109,52 @@ public sealed class Agent : MonoBehaviour
 
     bool _isOverrideMoveThisFrame = false;
     public void OverrideMove(Vector3 velocity)
-    {
+    {        
         _controller.Move(velocity);
         _isOverrideMoveThisFrame = true;
     }
+
+
+    
+
+    // ---------------------------------------------------------------------    
+    // S T A G G E R 
+
+    bool _isStaggered = false;
+    public bool isStaggered { get { return _isStaggered; } }
+    float _staggerTime = 2f;
+    float _staggerTimeCount = 0f;
+
+    public delegate void OnStaggered();
+    public OnStaggered onStaggered; 
+
+    /// <summary>
+    /// Stagger the Agent, restricting movement 
+    /// </summary>
+    public void Stagger()
+    {
+        if (!_isStaggered)
+        {
+            print("Staggered      s:" + animationController.state);
+
+            if (onStaggered != null)
+                onStaggered();
+
+            _isStaggered = true;
+            _staggerTimeCount = _staggerTime;
+            animationController.Play(animationController.animationProperties.reaction.stagger);
+            StartCoroutine(StaggerRoutine());
+        }
+    }
+
+    private IEnumerator StaggerRoutine()
+    {
+        yield return new WaitForSeconds(_staggerTimeCount);
+        _isStaggered = false;
+    }
+    // ---------------------------------------------------------------------
+
+
 
 
     void UpdateMovement()
@@ -138,7 +186,7 @@ public sealed class Agent : MonoBehaviour
     void UpdateMoveDirectionState()
     {
         _desiredVelocityRealtiveMovementScale = 1f;
-        if (_controller.velocity.magnitude > 0.01f)
+        if (_controller.velocity.magnitude > 0.01f) 
         {
             if (velocityRelativeToRotation < 0.707f)
             {

@@ -50,7 +50,7 @@ public class LevelManager : MonoBehaviour
 
         _instance._healthObjects.Add(h);
 
-        if (h.GetComponent<PlayerBrain>() != null)
+        if (h.GetComponent<ExplorerBrain>() != null)
         {
             _instance._players.Add(h);
         }
@@ -74,7 +74,7 @@ public class LevelManager : MonoBehaviour
 
         _instance._healthObjects.Remove(h);
 
-        if (h.GetComponent<PlayerBrain>() != null)
+        if (h.GetComponent<ExplorerBrain>() != null)
         {
             _instance._players.Remove(h);
         }

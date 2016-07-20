@@ -5,11 +5,7 @@ using System.Collections;
 public class NPCSkeletonSwordsman : NPCBrain
 {
     public Transform target;
-
-    // Move this to NPCBrain?
-    public bool isStaggered = false;
-    public float staggerTime = 4f;
-    float staggerTimeCount = 0f;
+    public bool allowAttack = true;
 
     protected override void Start()
     {
@@ -21,13 +17,7 @@ public class NPCSkeletonSwordsman : NPCBrain
 
         base.Start();
     }
-
-    protected override void OnHealthLost(Health.HealthChangedEventInfo info)
-    {
-        isStaggered = true;
-        staggerTimeCount = staggerTime;
-        base.OnHealthLost(info);
-    }
+   
 
 
     protected override void OnArrivedAtDestination()
@@ -39,18 +29,30 @@ public class NPCSkeletonSwordsman : NPCBrain
 
     protected override void Update()
     {
-        if (staggerTimeCount > 0)
-        {
-            staggerTimeCount -= Time.deltaTime;
-            return;
-        }
+		if (Helpers.InRadius(transform.position, target.position, 6f))
+			_desiredMoveSpeed = agent.properties.speed.max * agent.properties.walkToRunSpeedRatio * 0.9f;
+		else
+			_desiredMoveSpeed = agent.properties.speed.max;
+			
 
-        if (target == null)
-            return;
-
-        if (Helpers.InRadiusGrounded(transform.position, target.position, 3.5f))
+        if (!agent.isStaggered)
         {
-            attackController.AttackWithDescriptor(attackController.attacks[2]);
+            if (target == null)
+                return;
+            if (allowAttack && agent.isGrounded)
+            {
+                if (Helpers.InRadiusGrounded(transform.position, target.position, 3f))
+                {
+					if(Random.value > 0.4f)
+						attackCollection.controller.AttackWithDescriptor(attackCollection.melee1);
+					else
+						attackCollection.controller.AttackWithDescriptor(attackCollection.melee2);
+				}
+            }
+			if (attackCollection.controller.isAttacking)
+			{
+				agent.SetDesiredRotation(target);
+			}
         }
         base.Update();
     }

@@ -31,7 +31,7 @@ public class NPCBat : NPCBrain
             }
 
             if (Helpers.InRadius(transform.position, playerToAttack.transform.position, 2f))
-                attackController.AttackWithDescriptor(attackController.attacks[0]);
+                attackCollection.controller.AttackWithDescriptor(attackCollection.melee1);
 
             yield return new WaitForSeconds(1f);
         }

@@ -59,7 +59,7 @@ public class Damager : MonoBehaviour
         {
             if (otherHealth != owner)
             {
-                otherHealth.TakeDamage(damage, this.gameObject);
+                otherHealth.TakeDamage(damage, owner == null ? this.gameObject : owner.gameObject);
                 if (onDamageTriggerEnter != null)
                     onDamageTriggerEnter(this, otherHealth);
             }

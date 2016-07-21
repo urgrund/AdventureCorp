@@ -180,7 +180,8 @@ public sealed class Agent : MonoBehaviour
             _staggerTimeCount = _staggerTime;
             animationController.Play(animationController.animationProperties.reaction.stagger);
             StartCoroutine(StaggerRoutine());
-			StopCoroutine(_overrideMoveRoutine);
+			if (_overrideMoveRoutine != null)
+				StopCoroutine(_overrideMoveRoutine);
         }
     }
 

@@ -23,7 +23,7 @@ public class ExplorerProfile : ScriptableObject
         public int agility = 5;
 
 		public int parryPellets = 5;
-		public int parryPelletReGenPerSecond = 2;
+		public float parryPelletReGenInterval = 0.5f;
 
 		public float dashSpeed = 16f;
 		public float dashDuration = 0.15f;

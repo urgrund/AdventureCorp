@@ -1,19 +1,17 @@
 ﻿using UnityEngine;
 using System.Collections;
-
-// Matt - we can use this namespace, but I feel it makes our code a little
-// ambiguous with "player" now a class.  Having to use Rewired.Player helps
-// with the readability there
-//using Rewired;
-
+using System.Collections.Generic;
 
 
 public class TestPlayableExplorer : ExplorerBrain
 {
 
+
+	// --------------------------------------------------------------------------
 	// ----   Shield/Parry test stuff ----
 
 	public Transform shield;
+	public Transform shieldPellet;
 
     float shieldMovementScale = 0.25f;
     Material shieldMaterial;
@@ -24,24 +22,89 @@ public class TestPlayableExplorer : ExplorerBrain
     Color shieldColorFlashCurrent = Color.black;
     float shieldLastHoldTime;
     float shieldParryTimeWindow = 0.2f;
+	public List<Transform> shieldPellets = new List<Transform>();
 
-    // ----------------------------------
+	Color parryPelletColorFull = Color.green;
+	Color parryPelletColorDefault = Color.cyan;
+
+	public int parryPelletCount;
+
+	void SetupShield()
+	{
+		parryPelletCount = profile.statistics.parryPellets;
+
+		shield = Helpers.InstantiateAndParent(shield, transform, true);
+		shield.gameObject.SetActive(false);
+		shieldMaterial = shield.GetComponentInChildren<MeshRenderer>().material;
+		shieldLastHoldTime = -1f;
+
+		float maxDeg = 15f;		
+
+		float frac = (maxDeg * 2) / (parryPelletCount-1);
+
+		for (int i = 0; i < parryPelletCount; i++)
+		{
+			Transform t = Helpers.InstantiateAndParent(shieldPellet, shield, true);
+			t.Rotate(new Vector3(0, 0, maxDeg - (frac * (i))), Space.Self);
+			shieldPellets.Add(t);
+		}
+		
+
+		AdjustShieldParryPellets();
+		StartCoroutine(ParryPelletRegenRoutine());
+	}
+
+
+	void AdjustShieldParryPellets()
+	{
+		parryPelletCount = Mathf.Clamp(parryPelletCount, 0, profile.statistics.parryPellets);
+
+		Color c;
+		if (parryPelletCount == profile.statistics.parryPellets)
+			c = parryPelletColorFull;
+		else
+			c = parryPelletColorDefault;
+
+
+		foreach (Transform t in shieldPellets)
+			t.gameObject.SetActive(false);
+
+		for (int i = 0; i < parryPelletCount; i++)
+		{
+			shieldPellets[i].gameObject.SetActive(true);
+			shieldPellets[i].GetComponentInChildren<MeshRenderer>().material.color = c;
+		}				
+	}
 
 
 
+	IEnumerator ParryPelletRegenRoutine()
+	{
+		while (true)
+		{
+			if (parryPelletCount < profile.statistics.parryPellets)
+			{
+				yield return new WaitForSeconds(profile.statistics.parryPelletReGenInterval);
+				parryPelletCount++;
+				AdjustShieldParryPellets();
+			}
+			yield return null;
+		}
+	}
 
-    public LineRenderer lr;
+	// --------------------------------------------------------------------------
+
+
+	public LineRenderer lr;
 
 
 
     protected override void Awake()
     {
-		shield = Helpers.InstantiateAndParent(shield, transform, true);
-        shield.gameObject.SetActive(false);
-        shieldMaterial = shield.GetComponentInChildren<MeshRenderer>().material;
-        shieldLastHoldTime = -1f;
+		SetupShield();		
         base.Awake();
     }
+
 
     
 
@@ -113,7 +176,9 @@ public class TestPlayableExplorer : ExplorerBrain
         }
         else
         {
-            // Absorbed hit but no parry
+			// Absorbed hit but no parry
+			parryPelletCount--;
+			AdjustShieldParryPellets();
             shieldColorFlashCurrent = shieldColorHit;
             agent.OverrideMove(-Helpers.DirectionTo(transform, info.responsibleGameObject.transform) * 0.5f);
         }

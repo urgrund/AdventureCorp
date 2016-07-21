@@ -172,7 +172,7 @@ public abstract class NPCBrain : Brain
 	}
 
 
-	private void Update()
+	protected override void Update()
 	{
 		// If staggered don't bother movement update
 		if (agent.isStaggered)
@@ -202,6 +202,7 @@ public abstract class NPCBrain : Brain
 				MoveAgent();
 			}
 		}
+		base.Update();
 	}
 
 

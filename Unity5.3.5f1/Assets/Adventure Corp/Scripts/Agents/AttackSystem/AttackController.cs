@@ -37,7 +37,7 @@ public class AttackController : MonoBehaviour
     {
         damagers = AttackVolumeCollection.CreateDamageCollidersForAgent(_agent, _agent.animationController.animatedGameObject.transform, _agent.properties.GetComponent<AttackVolumeCollection>());
 		//SetLayerToDamageVolumes(damageColliderLayer);
-		//Debug.LogWarning("Need to fix this as layers not working");
+		Debug.LogWarning("TODO - Fix layer masking so enemies don't hit themselves");
     }
 
     public bool isPastYieldControlTime

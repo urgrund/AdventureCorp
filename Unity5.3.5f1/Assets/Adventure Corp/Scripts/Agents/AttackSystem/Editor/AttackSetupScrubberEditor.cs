@@ -99,14 +99,15 @@ public class AttackSetupScrubberEditor : Editor
         EditorGUILayout.PropertyField(canBeBroken);
         EditorGUILayout.PropertyField(controllerLock);
 		EditorGUILayout.PropertyField(controllerGravity);
-		EditorGUILayout.PropertyField(suggestedUseRange);        
+		EditorGUILayout.PropertyField(suggestedUseRange);
+		EditorGUILayout.PropertyField(suggestedUseAngle);
         EditorGUILayout.PropertyField(damage, true);
         EditorGUILayout.PropertyField(clipProperties, true);
         EditorGUILayout.PropertyField(eventor, true);        
 
 
-        range = (AttackDescriptor.Angle)EditorGUILayout.EnumPopup("Angle Test", range);
-        suggestedUseAngle.floatValue = (float)((int)range);
+        //range = (AttackDescriptor.Angle)EditorGUILayout.EnumPopup("Use Range", range);
+        //suggestedUseAngle.floatValue = (float)((int)range);
 
         BoldLabel("Volumes used for this attack");
         for (int i = 0; i < tempVolumeIndices.Length; i++)
@@ -196,19 +197,20 @@ public class AttackSetupScrubberEditor : Editor
 
     void DrawArcs(AttackSetupScrubber a)
     {
-        // Draw Attack Suggested min max range        
-        float t = suggestedUseAngle.floatValue / 360f;
+		float angle = AttackDescriptor.AngleFromIndex(suggestedUseAngle.enumValueIndex);
+
+		// Draw Attack Suggested min max range        
+		float t = angle / 360f;
         Vector3 normal = Vector3.Slerp(Vector3.forward, -Vector3.forward, t);
         Vector3 position = a.transform.position - curvePosition;
 
-
         Handles.color = Color.red;
-        Handles.DrawWireArc(position, Vector3.up, normal, suggestedUseAngle.floatValue, suggestedUseRange.vector2Value.x);
+        Handles.DrawWireArc(position, Vector3.up, normal, angle, suggestedUseRange.vector2Value.x);
         Handles.color = Color.yellow;
-        Handles.DrawWireArc(position, Vector3.up, normal, suggestedUseAngle.floatValue,  suggestedUseRange.vector2Value.y);        
+        Handles.DrawWireArc(position, Vector3.up, normal, angle,  suggestedUseRange.vector2Value.y);        
 
         Handles.color = Color.yellow * new Color(1, 1, 1, 0.02f);
-        Handles.DrawSolidArc(position, Vector3.up, normal, suggestedUseAngle.floatValue, suggestedUseRange.vector2Value.y);
+        Handles.DrawSolidArc(position, Vector3.up, normal, angle, suggestedUseRange.vector2Value.y);
 
         Handles.color = Color.white;
         Vector2 sur = suggestedUseRange.vector2Value;

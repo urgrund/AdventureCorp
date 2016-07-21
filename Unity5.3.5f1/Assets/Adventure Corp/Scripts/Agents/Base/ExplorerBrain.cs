@@ -35,25 +35,28 @@ public abstract class ExplorerBrain : Brain
 
     protected Vector3 _inputDirection;
     protected Vector3 _inputAim;
-
-
     // --------------------------------------------
+	
 
 
-        /// <summary>
-        /// The profile object of this explorer
-        /// </summary>
+
+
+    /// <summary>
+    /// The profile object of this explorer
+    /// </summary>
     public ExplorerProfile profile;
 
+	/// <summary>
+	/// Object to hold all attack information
+	/// </summary>
 	public BaseAttackCollection attackCollection;
-    //protected AttackController attackCollection.controller;
-    //public AttackDescriptor basicMelee;
-    //public AttackDescriptor basicRanged;
+
 
 
 
     protected override void Awake()
     {
+		Debug.Log(profile.explorerName + " entered the game!");
         _player = Rewired.ReInput.players.GetPlayer(ID);
         base.Awake();
     }
@@ -72,6 +75,8 @@ public abstract class ExplorerBrain : Brain
         UpdateAgent();
         base.Update();
     }
+
+
 
 
     protected Vector3 GrabMovementDirRelativeToCam(Vector3 v)
@@ -131,25 +136,31 @@ public abstract class ExplorerBrain : Brain
 		}
     }
 
-
-
+	private float _inputThreshold = 0.01f;
+	private float _lastDashTime = 0f;
     protected void ProcessInput()
     {
         _inputDirection = new Vector3(player.GetAxis(INPUT_MOVE_HORIZONTAL), 0, player.GetAxis(INPUT_MOVE_VERTICAL));
         _inputDirection = GrabMovementDirRelativeToCam(_inputDirection);
 
-        
-        // TODO - code below almost 'teleports' whereas need a 'slide/roll' effect
+		// Dash
+		if (player.GetButtonDown(INPUT_DASH))
+		{
+			if ((Time.time - _lastDashTime) > profile.statistics.dashCoolDown)
+			{
+				_lastDashTime = Time.time;
+				if (_inputDirection.magnitude > _inputThreshold)
+				{
+					agent.SetDesiredRotation(_inputDirection.normalized, true);
+					agent.OverrideMove(_inputDirection.normalized * Time.deltaTime * profile.statistics.dashSpeed, profile.statistics.dashDuration );
+					return;
+				}
+			}
+		}
 
-        //if (player.GetButtonDown(INPUT_DASH))
-        //{
-        //    agent.OverrideMove(_inputDirection * 1.5f);
-        //    return;
-        //}
 
-
-        // If movment, then break the attack
-        if (_inputDirection.magnitude > 0.05f)
+		// If movment, then break the attack
+		if (_inputDirection.magnitude > _inputThreshold)
             if (attackCollection.controller.isAttacking)
                 attackCollection.controller.YieldControlFromAttack();
 
@@ -164,8 +175,12 @@ public abstract class ExplorerBrain : Brain
     {
         if (_inputDirection.magnitude > 0)
         {
-            if (!attackCollection.controller.isControllingAgentVelocity && agent.isGrounded)
-                agent.SetDesiredVelocity(_inputDirection * agent.properties.speed.max, true);
+			if (!attackCollection.controller.isControllingAgentVelocity
+				&& agent.isGrounded
+				&& !agent.isOverrideMoveThisFrame)
+			{
+				agent.SetDesiredVelocity(_inputDirection * agent.properties.speed.max, true);
+			}
         }
     }
 

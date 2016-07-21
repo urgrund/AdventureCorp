@@ -107,20 +107,58 @@ public sealed class Agent : MonoBehaviour
     }
 
 
-    bool _isOverrideMoveThisFrame = false;
-    public void OverrideMove(Vector3 velocity)
+
+	// ---------------------------------------------------------------------    
+	// Overriding movement allows for ways to override the agents control 
+
+	bool _isOverrideMoveThisFrame = false;
+	bool _isOverrideTimedMoveThisFrame = false;
+	public bool isOverrideMoveThisFrame { get { return _isOverrideMoveThisFrame || _isOverrideTimedMoveThisFrame; } }
+	IEnumerator _overrideMoveRoutine;
+
+	public void OverrideMove(Vector3 velocity)
     {        
         _controller.Move(velocity);
         _isOverrideMoveThisFrame = true;
     }
 
+	public void OverrideMove(Vector3 velocity, float time)
+	{
+		if (_overrideMoveRoutine != null)
+		{
+			StopCoroutine(_overrideMoveRoutine);
+			_isOverrideTimedMoveThisFrame = false;
+		}
+		_overrideMoveRoutine = OverrideMoveRoutine(velocity, time);
+		StartCoroutine(_overrideMoveRoutine);
+	}
 
-    
+	private IEnumerator OverrideMoveRoutine(Vector3 velocity, float time)
+	{
+		float t = 0;
+		while (t < time)
+		{
+			t += Time.deltaTime;
+			ApplyGravityToVelocity(ref velocity);
+			_controller.Move(velocity);
+			_isBrainSetVelocityThisFrame = true;
+			_isOverrideMoveThisFrame = true;
+			_isOverrideTimedMoveThisFrame = true;
+			yield return null;
+		}
+		_isOverrideTimedMoveThisFrame = false;
+	}
+	// ---------------------------------------------------------------------    
 
-    // ---------------------------------------------------------------------    
-    // S T A G G E R 
 
-    bool _isStaggered = false;
+
+
+
+
+	// ---------------------------------------------------------------------    
+	// S T A G G E R 
+
+	bool _isStaggered = false;
     public bool isStaggered { get { return _isStaggered; } }
     float _staggerTime = 2f;
     float _staggerTimeCount = 0f;
@@ -135,8 +173,6 @@ public sealed class Agent : MonoBehaviour
     {
         if (!_isStaggered)
         {
-            print("Staggered      s:" + animationController.state);
-
             if (onStaggered != null)
                 onStaggered();
 
@@ -144,6 +180,7 @@ public sealed class Agent : MonoBehaviour
             _staggerTimeCount = _staggerTime;
             animationController.Play(animationController.animationProperties.reaction.stagger);
             StartCoroutine(StaggerRoutine());
+			StopCoroutine(_overrideMoveRoutine);
         }
     }
 
@@ -159,24 +196,30 @@ public sealed class Agent : MonoBehaviour
 
     void UpdateMovement()
     {
-        if (isAllowedMovement && !_isOverrideMoveThisFrame)
+        if (isAllowedMovement && !isOverrideMoveThisFrame)
         {
-            // Apply gravity
-            if (isApplyGravity)
-            {
-                if (!_controller.isGrounded)
-                    gravitySpeed -= AdventureCorpGlobals.Agent.gravity;
-                else
-                    gravitySpeed = -_controller.stepOffset / Time.deltaTime * 5;
-
-                _currentVelocity.y = gravitySpeed * Time.deltaTime;
-            }
+			// Apply gravity
+			ApplyGravityToVelocity(ref _currentVelocity);
 
             UpdateMoveDirectionState();            
             _controller.Move(_currentVelocity * Time.deltaTime * _currentVelocityScale);
             _currentVelocityScale = 1f;
         }
     }
+
+	void ApplyGravityToVelocity(ref Vector3 velocity)
+	{
+		// Apply gravity
+		if (isApplyGravity)
+		{
+			if (!_controller.isGrounded)
+				gravitySpeed -= AdventureCorpGlobals.Agent.gravity;
+			else
+				gravitySpeed = -_controller.stepOffset / Time.deltaTime * 5;
+
+			velocity.y = gravitySpeed * Time.deltaTime;
+		}
+	}
 
 
     /// <summary>
@@ -225,7 +268,7 @@ public sealed class Agent : MonoBehaviour
     void LateUpdate()
     {
         // Apply damping to velocity if no Brain input
-        if (!_isBrainSetVelocityThisFrame && _controller.isGrounded)
+        if (!_isBrainSetVelocityThisFrame && !isOverrideMoveThisFrame && _controller.isGrounded)
         {
             Vector3 cV = _currentVelocity;
             cV = Vector3.MoveTowards(_currentVelocity, Vector3.zero, properties.speed.damping * Time.deltaTime);

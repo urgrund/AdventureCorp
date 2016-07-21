@@ -16,15 +16,15 @@ public abstract class Brain : MonoBehaviour
         _agent = GetComponent<Agent>();
     }
 
+	protected virtual void Update() { }
+
     protected virtual void Start()
     {
         _agent.health.onHealthGained += OnHealthGained;
         _agent.health.onHealthLost += OnHealthLost;
         _agent.health.onHealthZero += OnHealthZero;
         _agent.health.onHealthWasInvincible += OnHealthWasInvincible;
-    }
-
-    protected virtual void Update() { }
+    }	
 
     // Common delegates that all Brains will be interested in 
     protected virtual void OnHealthLost(Health.HealthChangedEventInfo info) { }

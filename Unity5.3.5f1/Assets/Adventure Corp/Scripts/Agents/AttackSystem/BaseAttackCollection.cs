@@ -21,22 +21,22 @@ public class BaseAttackCollection
 //
 
 
-public class GruntAttackCollection : BaseAttackCollection
-{
-    public float extraGruntPower = 3;
-}
+//public class GruntAttackCollection : BaseAttackCollection
+//{
+//    public float extraGruntPower = 3;
+//}
 
 
 
 
-public class TestNPC
-{
-    public BaseAttackCollection collection;    
-}
+//public class TestNPC
+//{
+//    public BaseAttackCollection collection;    
+//}
 
 
-public class GruntNPC : TestNPC
-{
-	// override the underlaying collection 
-	public new GruntAttackCollection collection;
-}
+//public class GruntNPC : TestNPC
+//{
+//	// override the underlaying collection 
+//	public new GruntAttackCollection collection;
+//}

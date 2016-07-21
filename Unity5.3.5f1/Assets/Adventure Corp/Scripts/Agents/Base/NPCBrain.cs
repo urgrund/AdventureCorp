@@ -121,6 +121,8 @@ public abstract class NPCBrain : Brain
 	public bool CheckAtPosition(Vector3 position) { return CheckAtPosition(position, 0.01f); }
 	public bool CheckAtPosition(Vector3 position, float bias) { return Helpers.InRadiusGrounded(transform.position, position, bias); }
 
+	public bool isSpawning { get { return agent.animationController.animatedGameObject.IsPlaying(agent.animationController.animationProperties.reaction.spawn.clip.name); } }
+
 	protected override void Awake()
 	{
 		onArrivedAtDestination += OnArrivedAtDestination;
@@ -129,21 +131,48 @@ public abstract class NPCBrain : Brain
 		//FindAllPotentialHostileTargets(); 
 		attackCollection.controller = GetComponent<AttackController>();
 		Debug.Assert(attackCollection.controller != null, "No Attack Controller");
-
 		base.Awake();
+	}
+
+	IEnumerator Spawn()
+	{
+		agent.animationController.Play(agent.animationController.animationProperties.reaction.spawn);
+		while(isSpawning)
+		{
+			agent.isAllowedMovement = false;
+			agent.isAllowedRotation= false;
+			yield return null;
+		}
+		agent.isAllowedMovement = true;
+		agent.isAllowedRotation = true;
 	}
 
 	protected override void Start()
 	{
+		StartCoroutine(Spawn());
 		_desiredMoveSpeed = agent.properties.speed.max;
 		attackCollection.controller.SetOwnerHealthToDamageVolumes(agent.health);
+		StartCoroutine(LogicRoutineInternal());
 		base.Start();
 	}
 
 
-	//protected abstract IEnumerator UpdateRoutine();	
+	protected abstract IEnumerator LogicRoutine();
 
-	protected override void Update()
+	private IEnumerator LogicRoutineInternal()
+	{
+		while (isSpawning)
+			yield return null;
+
+		while (!agent.health.isDead)
+		{
+			yield return LogicRoutine();
+			yield return null;
+		}
+	}
+
+
+	private void Update()
 	{
 		// If staggered don't bother movement update
 		if (agent.isStaggered)
@@ -172,9 +201,7 @@ public abstract class NPCBrain : Brain
 				_desiredMoveDirection = DirectionToPosition(nextPosition);
 				MoveAgent();
 			}
-
 		}
-		base.Update();
 	}
 
 

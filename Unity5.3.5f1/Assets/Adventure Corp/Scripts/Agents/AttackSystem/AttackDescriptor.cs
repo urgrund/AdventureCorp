@@ -14,8 +14,13 @@ public class AttackDescriptor : ScriptableObject
         Narrow = 15,
         Wide = 90,
         Breadth = 180,
-        Encompasse = 360
+        Encompass = 360
     }
+
+	// really annoying to do this because of Serialized Properties in the editor :(
+	private static int[] angles = new int[4] { 15, 90, 180, 360 };
+	public static int AngleFromIndex(int i) { return angles[i]; }
+
 
     /// <summary>
     /// Lock properties for how an attack effects the underlaying Agent
@@ -33,8 +38,9 @@ public class AttackDescriptor : ScriptableObject
     public bool canBeBroken = false;    
     public Lock controllerLock = Lock.None;
 	public bool controllerGravity = true;
-    
-    [Range(0,360)]public float suggestedUseAngle = 90f;
+
+	//[Range(0,360)]public float suggestedUseAngle = 90f;
+	public Angle suggestedUseAngle = Angle.Breadth;
     [Range(0, 1)]public float yieldControlRatio = 1f;
 
     public Vector2 suggestedUseRange = new Vector2(0.5f, 3f);

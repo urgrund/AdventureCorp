@@ -119,7 +119,6 @@ public class AttackController : MonoBehaviour
 
     void OnAgentStaggered()
     {
-        print("asdsd");
         if(isAttacking)
             ReleaseAttack(_currentAttack);
     }

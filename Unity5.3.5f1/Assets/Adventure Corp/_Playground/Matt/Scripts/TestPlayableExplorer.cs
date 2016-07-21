@@ -21,10 +21,10 @@ public class TestPlayableExplorer : ExplorerBrain
     Color shieldColorParry = Color.green;
     Color shieldColorFlashCurrent = Color.black;
     float shieldLastHoldTime;
-    float shieldParryTimeWindow = 0.2f;
+    float shieldParryTimeWindow = 0.4f;
 	public List<Transform> shieldPellets = new List<Transform>();
 
-	Color parryPelletColorFull = Color.green;
+	Color parryPelletColorFull = Color.blue;
 	Color parryPelletColorDefault = Color.cyan;
 
 	public int parryPelletCount;
@@ -82,7 +82,9 @@ public class TestPlayableExplorer : ExplorerBrain
 	{
 		while (true)
 		{
-			if (parryPelletCount < profile.statistics.parryPellets)
+			if (parryPelletCount < profile.statistics.parryPellets 
+				&& !agent.isStaggered
+				&& !agent.health.isDead)
 			{
 				yield return new WaitForSeconds(profile.statistics.parryPelletReGenInterval);
 				parryPelletCount++;
@@ -91,6 +93,9 @@ public class TestPlayableExplorer : ExplorerBrain
 			yield return null;
 		}
 	}
+
+	public bool isShieldUpAndProtecting { get { return player.GetButton(INPUT_SHIELD) && parryPelletCount > 0; } }
+
 
 	// --------------------------------------------------------------------------
 
@@ -119,8 +124,11 @@ public class TestPlayableExplorer : ExplorerBrain
 		}
 #endif
 		base.Update();
-        UpdateRangedFocusing();
-        UpdateShieldStuff();
+		if (!agent.isStaggered)
+		{
+			UpdateRangedFocusing();
+			UpdateShieldStuff();
+		}
     }
 
 
@@ -133,11 +141,12 @@ public class TestPlayableExplorer : ExplorerBrain
         shieldFlashCurrent = Mathf.Clamp01(shieldFlashCurrent);
         shieldMaterial.SetColor("_EmissionColor", Color.Lerp(Color.black, shieldColorFlashCurrent, shieldFlashCurrent));
 
-        // HACK - just set health to invincible whilst holding 
-        // shield,  this is probably not what we want, but just to see some results
-        agent.health.invincible = player.GetButton(INPUT_SHIELD);
+		// HACK - just set health to invincible whilst holding 
+		// shield,  this is probably not what we want, but just to see some results
+		agent.health.invincible = isShieldUpAndProtecting;
 
-        if (player.GetButtonDown(INPUT_SHIELD))
+
+		if (player.GetButtonDown(INPUT_SHIELD))
             shieldLastHoldTime = Time.time;
 
         if (player.GetButton(INPUT_SHIELD) && !agent.health.isDead)
@@ -155,11 +164,11 @@ public class TestPlayableExplorer : ExplorerBrain
         if (player.GetButton(INPUT_SHIELD))
             agent.SetDesiredRotation(info.responsibleGameObject.transform, true);
 
+		// Player timed the shield hold at the right time 
+		// triggering a parry/counter attack 
         if ((Time.time - shieldLastHoldTime) <= shieldParryTimeWindow)
         {
-            shieldColorFlashCurrent = shieldColorParry;
-
-            // Test idea - attack when parry successful?
+            shieldColorFlashCurrent = shieldColorParry;			
             AttackNowAsMelee(attackCollection.melee1);
 
             // Stagger and pushback on successful parry                                 
@@ -177,10 +186,21 @@ public class TestPlayableExplorer : ExplorerBrain
         else
         {
 			// Absorbed hit but no parry
-			parryPelletCount--;
-			AdjustShieldParryPellets();
-            shieldColorFlashCurrent = shieldColorHit;
-            agent.OverrideMove(-Helpers.DirectionTo(transform, info.responsibleGameObject.transform) * 0.5f);
+			if (parryPelletCount > 0)
+			{
+				parryPelletCount--;
+				AdjustShieldParryPellets();
+				shieldColorFlashCurrent = shieldColorHit;
+				agent.OverrideMove(-Helpers.DirectionTo(transform, info.responsibleGameObject.transform) * 0.3f);
+			}
+			// No pellets and was trying to block, so this is a stagger
+			else
+			{
+				shield.gameObject.SetActive(false);
+				agent.health.invincible = false;
+				agent.health.TakeDamage(info.damage, info.responsibleGameObject);
+				agent.Stagger();
+			}
         }
 
         base.OnHealthWasInvincible(info);
@@ -240,7 +260,7 @@ public class TestPlayableExplorer : ExplorerBrain
 
     // ------------------------------------------------------------------------
 
-
+	
 
 
 

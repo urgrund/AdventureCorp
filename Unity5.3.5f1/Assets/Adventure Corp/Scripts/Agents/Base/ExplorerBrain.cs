@@ -71,6 +71,9 @@ public abstract class ExplorerBrain : Brain
 
     protected override void Update()
     {
+		if (agent.isStaggered)
+			return;
+
         ProcessInput();
         UpdateAgent();
         base.Update();
@@ -183,6 +186,12 @@ public abstract class ExplorerBrain : Brain
 			}
         }
     }
+
+	void OnGUI()
+	{
+		if (GUILayout.Button("Stagger"))
+			agent.Stagger();
+	}
 
 
     void OnDrawGizmos()

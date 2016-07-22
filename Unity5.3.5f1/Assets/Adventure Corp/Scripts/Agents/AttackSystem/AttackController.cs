@@ -18,6 +18,10 @@ public class AttackController : MonoBehaviour
 		
 	//public AttackDescriptor[] attacks;
     AttackDescriptor _currentAttack;
+	public AttackDescriptor currentAttack { get { return _currentAttack; } }
+
+	float _currentAttackStartTime = 0;
+	public float currentAttackStartTime { get { return _currentAttackStartTime; } }
 
     private bool _isAttacking = false;
     public bool isAttacking { get { return _isAttacking; } }
@@ -25,17 +29,36 @@ public class AttackController : MonoBehaviour
     private bool _isControllingAgentVelocity = false;
     public bool isControllingAgentVelocity { get { return _isControllingAgentVelocity; } }
 
-    void Awake()
-    {
-        Debug.Assert(GetComponent<Agent>() != null, "No agent or animated object on " + this.name);
+	/// <summary>
+	/// Length, in seconds, of the clip played in this attack
+	/// </summary>
+	public float currentAttackClipLength
+	{
+		get { return _currentAttack.clipProperties.clip.length * (1f / _currentAttack.clipProperties.playSpeed); }
+	}
 
-        _agent = GetComponent<Agent>();
-        _agent.onStaggered += OnAgentStaggered;
-    }
+	/// <summary>
+	/// When, in seconds, does this attack activate the damage volumes
+	/// </summary>
+	public float currentAttackValidDamageRangeStartTime
+	{
+		get { return currentAttackClipLength * _currentAttack.validDamageRange.x; }
+	}
 
-    void Start()
+
+
+
+	void Awake()
+	{
+		Debug.Assert(GetComponent<Agent>() != null, "No agent or animated object on " + this.name);
+
+		_agent = GetComponent<Agent>();
+		_agent.onStaggered += OnAgentStaggered; 
+	}
+
+	void Start()
     {
-        damagers = AttackVolumeCollection.CreateDamageCollidersForAgent(_agent, _agent.animationController.animatedGameObject.transform, _agent.properties.GetComponent<AttackVolumeCollection>());
+        damagers = AttackVolumeCollection.CreateDamageCollidersForAgent(this, _agent, _agent.animationController.animatedGameObject.transform, _agent.properties.GetComponent<AttackVolumeCollection>());
 		//SetLayerToDamageVolumes(damageColliderLayer);
 		Debug.LogWarning("TODO - Fix layer masking so enemies don't hit themselves");
     }
@@ -127,6 +150,7 @@ public class AttackController : MonoBehaviour
     {
         // Deactivate
         ActivateDamageVolumes(false, attack.volumeIndices);
+		_currentAttack = null;
         _agent.isAllowedMovement = true;
         _agent.isApplyGravity = true;
         _isAttacking = false;
@@ -143,8 +167,9 @@ public class AttackController : MonoBehaviour
         SetDamageToDamageVolumes(attack.damage);
         ActivateDamageVolumes(false, attack.volumeIndices);
         _currentAttack = attack;
+		_currentAttackStartTime = Time.time;
 
-        if (attack.controllerLock == AttackDescriptor.Lock.Curves)
+		if (attack.controllerLock == AttackDescriptor.Lock.Curves)
             curveLastPosition = GetPositionOnCurve(_currentAttack, 0f);
 
         float t;
@@ -158,8 +183,7 @@ public class AttackController : MonoBehaviour
                 _isAttacking = true;
                 t = _agent.animationController.animatedGameObject[_currentAttack.clipProperties.clip.name].normalizedTime;
                 ActivateDamageVolumes(t > _currentAttack.validDamageRange.x && t < _currentAttack.validDamageRange.y, _currentAttack.volumeIndices);
-
-
+				
                 // Control over agent if needed
                 if (attack.controllerLock != AttackDescriptor.Lock.None)
                 {

@@ -63,7 +63,6 @@ public abstract class NPCBrain : Brain
 
 
 	private NavMeshPath _navMeshPathToDestination;
-	private Vector3[] debugPoints;
 
 	private Vector3? _navMeshNextPosition;
 	private int _navMeshNextPositionIndex = 0;
@@ -106,7 +105,7 @@ public abstract class NPCBrain : Brain
 			_navMeshNextPositionIndex = 1;
 			_navMeshNextPosition = _navMeshPathToDestination.corners[_navMeshNextPositionIndex];
 			_destination = _navMeshPathToDestination.corners[_navMeshPathToDestination.corners.Length - 1];
-			debugPoints = _navMeshPathToDestination.corners;
+
 		}
 		else
 		{

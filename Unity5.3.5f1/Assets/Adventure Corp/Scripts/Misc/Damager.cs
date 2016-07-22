@@ -19,14 +19,19 @@ public class Damager : MonoBehaviour
     /// </summary>
     public Health owner;
 
+	/// <summary>
+	/// The (optional) AttackController that manages this Damager
+	/// </summary>
+	public AttackController attackController;
+
     /// <summary>
     /// Delay the activation of this Damager
     /// </summary>
     public bool isDelayEnable = false;
     public float initialActivateDelay = 0f;
 
-    public delegate void DamageTriggerEnter(Damager damager, Health health);
-    public event DamageTriggerEnter onDamageTriggerEnter;
+    //public delegate void DamageTriggerEnter(Damager damager, Health health);
+    //public event DamageTriggerEnter onDamageTriggerEnter;
 
     void Awake()
     {
@@ -57,19 +62,14 @@ public class Damager : MonoBehaviour
         Health otherHealth = other.GetComponent<Health>();
         if (otherHealth != null)
         {
-            if (otherHealth != owner)
-            {
-                otherHealth.TakeDamage(damage, owner == null ? this.gameObject : owner.gameObject);
-                if (onDamageTriggerEnter != null)
-                    onDamageTriggerEnter(this, otherHealth);
-            }
+            if (otherHealth != owner)            
+                otherHealth.TakeDamage(damage, owner == null ? this.gameObject : owner.gameObject, attackController);            
         }
     }
 
 
     void OnDrawGizmos()
     {
-        // TODO - we will need other shapes :) 
         if (GetComponent<SphereCollider>())
         {
             if (damage == null)

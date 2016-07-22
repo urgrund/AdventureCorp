@@ -29,13 +29,9 @@ public class AttackVolumeCollection : MonoBehaviour
     /// <summary>
     /// Really slow approach...  be good to optimise this
     /// </summary>    
-    public static Damager[] CreateDamageCollidersForAgent(Agent agent, Transform animatedObject, AttackVolumeCollection attackVolumes)
+    public static Damager[] CreateDamageCollidersForAgent(AttackController attackController, Agent agent, Transform animatedObject, AttackVolumeCollection attackVolumes)
     {
-        if (attackVolumes == null || attackVolumes.volumes == null)
-        {
-            Debug.LogError("No volumes created!");
-            return null;
-        }
+		Debug.Assert(attackVolumes != null && attackVolumes.volumes != null, "Attack Volumes null! Cannot create.");
 
         Damager[] d = new Damager[attackVolumes.volumes.Length];
         for (int i = 0; i < attackVolumes.volumes.Length; i++)
@@ -54,13 +50,17 @@ public class AttackVolumeCollection : MonoBehaviour
 
                 if (attackVolumes.volumes[i].shape == AttackVolumeDescriptor.Shape.Sphere)
                 {
-                    SphereCollider sc = go.AddComponent<SphereCollider>();
-                    sc.radius = attackVolumes.volumes[i].radius;
-                    sc.center = attackVolumes.volumes[i].center;
-                    sc.isTrigger = true;
-                    sc.enabled = false;
-                    damager.sphereCollider = sc;
-                    damager.owner = agent.health;                    
+					// Prepare sphere collider
+                    SphereCollider spherecollider = go.AddComponent<SphereCollider>();
+                    spherecollider.radius = attackVolumes.volumes[i].radius;
+                    spherecollider.center = attackVolumes.volumes[i].center;
+                    spherecollider.isTrigger = true;
+                    spherecollider.enabled = false;
+
+					// Peprare damager
+					damager.sphereCollider = spherecollider;
+                    damager.owner = agent.health;
+					damager.attackController = attackController;
                 }
                 d[i] = damager;
             }            

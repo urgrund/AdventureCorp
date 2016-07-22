@@ -54,30 +54,41 @@ public class Health : MonoBehaviour
     public class HealthChangedEventInfo
     {
         /// <summary>
-        /// The final value of damage the Health component calculated 
+        /// The final value of damage the Health component calculated from the damage
+		/// this is different to the damage value itself
         /// </summary>
         public int value;
+
         /// <summary>
         /// The details of this damage
-        /// </summary>
+        /// </summary>		 
         public Damage damage;
-        /// <summary>
-        /// Object responsible for passing the damage object
+      
+		/// <summary>
+        /// Game object from this attack
         /// </summary>
-        public GameObject responsibleGameObject; 
+        public GameObject responsibleGameObject;
+
+		/// <summary>
+		/// Attack Controller from this attack
+		/// </summary>
+		public AttackController responsibleAttackController;
     }
 
 
-
-    public void TakeDamage(Damage damage) { TakeDamage(damage, null); }
-    public void TakeDamage(Damage damage, GameObject responsibleGameObject)
+	/// <summary>
+	/// Call this to pass damage to the Health component. Optional to pass in
+	/// a responsible GameObject or AttackController 
+	/// </summary>
+	public void TakeDamage(Damage damage, GameObject responsibleGameObject = null, AttackController responsibleAttackController = null)
     {
         if (damage == null)
             return;
-
+		
         HealthChangedEventInfo info = new HealthChangedEventInfo();
         info.damage = damage;
         info.responsibleGameObject = responsibleGameObject;
+		info.responsibleAttackController = responsibleAttackController;
         info.value = damage.amount;
 
         if (damage.isDamageOverTime)
@@ -148,7 +159,6 @@ public class Health : MonoBehaviour
             yield return new WaitForSeconds(info.damage.damageOverTimeFrequency);
         }
     }
-
 
     void OnEnable()
     {

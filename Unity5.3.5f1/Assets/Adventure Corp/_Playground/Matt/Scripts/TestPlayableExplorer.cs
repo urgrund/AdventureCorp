@@ -14,14 +14,14 @@ public class TestPlayableExplorer : ExplorerBrain
 	public Transform shieldPellet;
 
     float shieldMovementScale = 0.25f;
-    Material shieldMaterial;
+	Material shieldMaterial;									
     float shieldFlashCoolDownSpeed = 4f;
     float shieldFlashCurrent = 0;
     Color shieldColorHit = Color.blue;
     Color shieldColorParry = Color.green;
     Color shieldColorFlashCurrent = Color.black;
     float shieldLastHoldTime;
-    float shieldParryTimeWindow = 0.4f;
+    public float shieldParryTimeWindow = 0.4f;
 	public List<Transform> shieldPellets = new List<Transform>();
 
 	Color parryPelletColorFull = Color.blue;
@@ -164,9 +164,18 @@ public class TestPlayableExplorer : ExplorerBrain
         if (player.GetButton(INPUT_SHIELD))
             agent.SetDesiredRotation(info.responsibleGameObject.transform, true);
 
+		//print(info.responsibleAttackController.currentAttack.name + "   " + info.responsibleAttackController.currentAttackStartTime);
+
+		// Parry based on how soon before the first damage is dealt
+		// by an agent...  this keeps the timing consistent and based on 
+		// animation times/lengths rather than 
+		float realStartTimeForDamage = info.responsibleAttackController.currentAttackStartTime + info.responsibleAttackController.currentAttackValidDamageRangeStartTime;
+		float shieldHoldTime = Time.time - shieldLastHoldTime;
+
 		// Player timed the shield hold at the right time 
 		// triggering a parry/counter attack 
-        if ((Time.time - shieldLastHoldTime) <= shieldParryTimeWindow)
+        //if ((Time.time - shieldLastHoldTime) <= shieldParryTimeWindow)
+		if((realStartTimeForDamage - shieldLastHoldTime) <= shieldParryTimeWindow)
         {
             shieldColorFlashCurrent = shieldColorParry;			
             AttackNowAsMelee(attackCollection.melee1);
@@ -186,6 +195,7 @@ public class TestPlayableExplorer : ExplorerBrain
         else
         {
 			// Absorbed hit but no parry
+			// This wil reduce pellet count and push back the explorer
 			if (parryPelletCount > 0)
 			{
 				parryPelletCount--;
@@ -194,6 +204,7 @@ public class TestPlayableExplorer : ExplorerBrain
 				agent.OverrideMove(-Helpers.DirectionTo(transform, info.responsibleGameObject.transform) * 0.3f);
 			}
 			// No pellets and was trying to block, so this is a stagger
+			// to the player explorer and should take the damage that was dealt
 			else
 			{
 				shield.gameObject.SetActive(false);

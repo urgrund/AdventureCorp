@@ -21,6 +21,6 @@ public class NPCBat : NPCBrain
 			destination = playerToAttack.transform.position;		
 
 		if (Helpers.InRadius(transform.position, playerToAttack.transform.position, 2f))
-			attackCollection.controller.AttackWithDescriptor(attackCollection.melee1);		
+			_attackController.AttackWithDescriptor(attackCollection.melee1);		
 	}
 }

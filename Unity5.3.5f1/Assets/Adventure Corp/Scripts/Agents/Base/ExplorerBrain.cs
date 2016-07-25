@@ -50,11 +50,11 @@ public abstract class ExplorerBrain : Brain
 	/// Object to hold all attack information
 	/// </summary>
 	public BaseAttackCollection attackCollection;
+	protected AttackController _attackController;
 
 
 
-
-    protected override void Awake()
+	protected override void Awake()
     {
 		Debug.Log(profile.explorerName + " entered the game!");
         _player = Rewired.ReInput.players.GetPlayer(ID);
@@ -64,8 +64,8 @@ public abstract class ExplorerBrain : Brain
     protected override void Start()
     {
         Debug.Assert(GetComponent<AttackController>() != null, "No Attack Controller on Player");
-        attackCollection.controller = GetComponent<AttackController>();
-        attackCollection.controller.SetOwnerHealthToDamageVolumes(agent.health);
+		_attackController = GetComponent<AttackController>();
+		_attackController.SetOwnerHealthToDamageVolumes(agent.health);
         base.Start();
     }
 
@@ -82,10 +82,7 @@ public abstract class ExplorerBrain : Brain
 
 
 
-    protected Vector3 GrabMovementDirRelativeToCam(Vector3 v)
-    {
-        return MathLab.ConvertVectorRelativeToCam(v, false);
-    }
+	protected Vector3 GrabMovementDirRelativeToCam(Vector3 v) { return MathLab.ConvertVectorRelativeToCam(v, false); }
 
 
     /// <summary>
@@ -93,11 +90,11 @@ public abstract class ExplorerBrain : Brain
     /// We can look at other approach such as "closest & in front"
     /// though hopefully the OVerlapSphere is enough for distance
     /// </summary>
-    void LookAtNearestHealthComponent()
+    protected void LookAtNearestHealthComponent(float range = 2.5f)
     {            
-        float biggestDotProduct = -0.707f; // -45deg
+        float biggestDotProduct = -0.707f; // cos(-45deg)
         Health mostInFrontHealth = null;
-        Collider[] c = Physics.OverlapSphere(transform.position, 2.5f);
+        Collider[] c = Physics.OverlapSphere(transform.position, range);
         for (int i = 0; i < c.Length; i++)
         {
             Health h = c[i].GetComponent<Health>();
@@ -127,7 +124,7 @@ public abstract class ExplorerBrain : Brain
 		if (agent.isGrounded)
 		{
 			LookAtNearestHealthComponent();
-			attackCollection.controller.AttackWithDescriptor(attackCollection.melee1);
+			_attackController.AttackWithDescriptor(attackCollection.melee1);
 		}
     }
 
@@ -135,7 +132,7 @@ public abstract class ExplorerBrain : Brain
     {
 		if (agent.isGrounded)
 		{
-			attackCollection.controller.AttackWithDescriptor(attackCollection.ranged1);
+			_attackController.AttackWithDescriptor(attackCollection.ranged1);
 		}
     }
 
@@ -164,8 +161,8 @@ public abstract class ExplorerBrain : Brain
 
 		// If movment, then break the attack
 		if (_inputDirection.magnitude > _inputThreshold)
-            if (attackCollection.controller.isAttacking)
-                attackCollection.controller.YieldControlFromAttack();
+            if (_attackController.isAttacking)
+				_attackController.YieldControlFromAttack();
 
         if (player.GetButtonDown(INPUT_MELEE))
             AttackNowAsMelee(attackCollection.melee1);
@@ -178,7 +175,7 @@ public abstract class ExplorerBrain : Brain
     {
         if (_inputDirection.magnitude > 0)
         {
-			if (!attackCollection.controller.isControllingAgentVelocity
+			if (!_attackController.isControllingAgentVelocity
 				&& agent.isGrounded
 				&& !agent.isOverrideMoveThisFrame)
 			{

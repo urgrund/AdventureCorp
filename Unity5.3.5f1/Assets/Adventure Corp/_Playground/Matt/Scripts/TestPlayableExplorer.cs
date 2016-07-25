@@ -21,13 +21,12 @@ public class TestPlayableExplorer : ExplorerBrain
     Color shieldColorParry = Color.green;
     Color shieldColorFlashCurrent = Color.black;
     float shieldLastHoldTime;
-    public float shieldParryTimeWindow = 0.4f;
-	public List<Transform> shieldPellets = new List<Transform>();
+    float shieldParryTimeWindow = 0.4f;
+	List<Transform> shieldPellets = new List<Transform>();
 
 	Color parryPelletColorFull = Color.blue;
 	Color parryPelletColorDefault = Color.cyan;
-
-	public int parryPelletCount;
+	int parryPelletCount;
 
 	void SetupShield()
 	{
@@ -123,7 +122,7 @@ public class TestPlayableExplorer : ExplorerBrain
 			Camera.main.transform.position = transform.position + offset;
 		}
 #endif
-		base.Update();
+		base.Update();		
 		if (!agent.isStaggered)
 		{
 			UpdateRangedFocusing();
@@ -152,7 +151,8 @@ public class TestPlayableExplorer : ExplorerBrain
         if (player.GetButton(INPUT_SHIELD) && !agent.health.isDead)
         {
             shield.gameObject.SetActive(true);
-            agent.SetVelocityScaleThisFrame(shieldMovementScale);            
+            agent.SetVelocityScaleThisFrame(shieldMovementScale);			
+			LookAtNearestHealthComponent(5f);    
         }
         else
             shield.gameObject.SetActive(false);

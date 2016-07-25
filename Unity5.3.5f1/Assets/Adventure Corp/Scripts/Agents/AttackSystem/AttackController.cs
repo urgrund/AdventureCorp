@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 
 
 /// <summary>
@@ -46,12 +47,11 @@ public class AttackController : MonoBehaviour
 	}
 
 
-
+	// ------------------------------------------------------------------------------
 
 	void Awake()
 	{
 		Debug.Assert(GetComponent<Agent>() != null, "No agent or animated object on " + this.name);
-
 		_agent = GetComponent<Agent>();
 		_agent.onStaggered += OnAgentStaggered; 
 	}
@@ -63,7 +63,15 @@ public class AttackController : MonoBehaviour
 		Debug.LogWarning("TODO - Fix layer masking so enemies don't hit themselves");
     }
 
-    public bool isPastYieldControlTime
+	// ------------------------------------------------------------------------------
+
+
+
+
+	/// <summary>
+	/// Returns if the attack animation is allowed to be broken
+	/// </summary>
+	public bool isPastYieldControlTime
     {
         get
         {
@@ -75,6 +83,9 @@ public class AttackController : MonoBehaviour
     }
 
 
+	/// <summary>
+	/// Pass an AttackDescriptor to begin attacking
+	/// </summary>	
     public void AttackWithDescriptor(AttackDescriptor d)
     {
         if (isPastYieldControlTime)
@@ -123,6 +134,11 @@ public class AttackController : MonoBehaviour
         }
     }
 
+
+	/// <summary>
+	/// Ask for the attack to stop playback and return control of the agent
+	/// This can be forced, or on condition of the attacks yeild time
+	/// </summary>
     public void YieldControlFromAttack() { YieldControlFromAttack(false); }
     public void YieldControlFromAttack(bool force)
     {
@@ -159,6 +175,44 @@ public class AttackController : MonoBehaviour
 
         _agent.animationController.overrideCountDown = -1;
     }
+
+
+	public bool CheckAttackInRangeForTarget(AttackDescriptor attack, Transform target)
+	{
+		return !Helpers.InRadius(transform.position, target.position, attack.suggestedUseRange.x) && Helpers.InRadius(transform.position, target.position, attack.suggestedUseRange.y);
+	}
+
+	public bool CheckAttackInAngleForTarget(AttackDescriptor attack, Transform target)
+	{
+		print(attack.suggestedUseAngle + "     " + (int)attack.suggestedUseAngle);
+		print("target is " + target.name);
+		Vector3 dirTo = Helpers.DirectionTo(transform, target);
+		return (Vector3.Angle(dirTo, transform.forward) < (int)attack.suggestedUseAngle * 0.5f);
+	}
+
+	public bool CheckAttackIsValidForTarget(AttackDescriptor attack, Transform target)
+	{
+		print("\n ------- Checking " + attack.name);
+		return CheckAttackInAngleForTarget(attack, target) && CheckAttackInRangeForTarget(attack, target);
+	}
+
+	public List<AttackDescriptor> GetSuggestedAttacksForTarget(BaseAttackCollection collection, Transform target)
+	{
+		List<AttackDescriptor> attacks = null;
+		for (int i = 0; i < collection.AsArray().Length; i++)
+		{
+			if (CheckAttackIsValidForTarget(collection.AsArray()[i], target))
+			{
+				if (collection.AsArray()[i] != null)
+				{
+					if (attacks == null)
+						attacks = new List<AttackDescriptor>();
+					attacks.Add(collection.AsArray()[i]);
+				}
+			}
+		}
+		return attacks;
+	}
 
 
     IEnumerator RunJobRoutine(AttackDescriptor attack)
@@ -220,8 +274,7 @@ public class AttackController : MonoBehaviour
         if(curveDirection.magnitude > 0)
             _agent.OverrideMove(curveDirection);
 
-        curveLastPosition = curvePosition;
-        //Debug.Log("  dir:" + curveDirection+ "   lP:" + curveLastPosition + "  cP:" + curvePosition);
+        curveLastPosition = curvePosition;        
     }
 
     Vector3 GetPositionOnCurve(AttackDescriptor attack, float normalizedTime)
@@ -234,21 +287,7 @@ public class AttackController : MonoBehaviour
     }	
 
 
-
-
-    void OnGUI()
-    {
-        if (!showDebugGUI)
-            return;        
-
-        //if (attacks == null)
-        //    return;
-
-        //foreach (AttackDescriptor s in attacks)
-        //    if (GUILayout.Button(s.name))
-        //        AttackWithDescriptor(s);        
-    }
-
+    
     void OnDrawGizmos()
     {
         if (damagers == null)

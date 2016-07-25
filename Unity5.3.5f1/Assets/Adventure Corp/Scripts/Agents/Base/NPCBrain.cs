@@ -21,8 +21,8 @@ public abstract class NPCBrain : Brain
 	public event ArrivedAtDestination onArrivedAtNavMeshPosition;
 
 	public BaseAttackCollection attackCollection;
+	protected AttackController _attackController;   
 
-	//public AttackController attackCollection.controller;   
 
 
 	// NPC's should modify these properties which this
@@ -136,8 +136,9 @@ public abstract class NPCBrain : Brain
 		onArrivedAtNavMeshPosition += OnArrivedAtNavMeshPosition;
 
 		//FindAllPotentialHostileTargets(); 
-		attackCollection.controller = GetComponent<AttackController>();
-		Debug.Assert(attackCollection.controller != null, "No Attack Controller");
+		//attackCollection.controller = GetComponent<AttackController>();
+		_attackController = GetComponent<AttackController>();
+		Debug.Assert(_attackController != null, "No Attack Controller");
 		base.Awake();
 	}
 
@@ -159,7 +160,7 @@ public abstract class NPCBrain : Brain
 	{
 		StartCoroutine(Spawn());
 		_desiredMoveSpeed = agent.properties.speed.max;
-		attackCollection.controller.SetOwnerHealthToDamageVolumes(agent.health);
+		_attackController.SetOwnerHealthToDamageVolumes(agent.health);
 		StartCoroutine(LogicRoutineInternal());
         StartCoroutine(Patrol());
 		base.Start();
@@ -246,7 +247,7 @@ public abstract class NPCBrain : Brain
 
 	protected void MoveAgent()
 	{
-		if (!attackCollection.controller.isControllingAgentVelocity)
+		if (!_attackController.isControllingAgentVelocity)
 			agent.SetDesiredVelocity(_desiredMoveDirection * _desiredMoveSpeed, true);
 	}
 

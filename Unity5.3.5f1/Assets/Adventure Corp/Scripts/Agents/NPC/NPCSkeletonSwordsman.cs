@@ -23,9 +23,9 @@ public class NPCSkeletonSwordsman : NPCBrain
 					if (Helpers.InRadiusGrounded(transform.position, target.position, 3f))
 					{
 						if (Random.value > 0.4f)
-							attackCollection.controller.AttackWithDescriptor(attackCollection.melee1);
+							_attackController.AttackWithDescriptor(attackCollection.melee1);
 						else
-							attackCollection.controller.AttackWithDescriptor(attackCollection.melee2);
+							_attackController.AttackWithDescriptor(attackCollection.melee2);
 					}
 					else
 					{
@@ -34,7 +34,7 @@ public class NPCSkeletonSwordsman : NPCBrain
 					}
 				}
 
-				if (attackCollection.controller.isAttacking)
+				if (_attackController.isAttacking)
 				{					
 					agent.SetDesiredRotation(target);
 				}

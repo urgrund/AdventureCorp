@@ -10,7 +10,10 @@ public class Patrol : MonoBehaviour
     public float radius = 10f;
     public float offsetDistance = 8;
     public int numberOfPoints = 8;
+    [HideInInspector]
     public List<PatrolP> patrolPoints = new List<PatrolP>();
+
+    public List<Patrol> connectedPatrolAreas = new List<Patrol>();
 
     void Awake()
     {
@@ -41,14 +44,14 @@ public class Patrol : MonoBehaviour
         Gizmos.DrawCube(transform.position + offset, size);
         Gizmos.DrawSphere(transform.position + Vector3.up * h, 0.3f);
 
-        for(int i = 0; i < patrolPoints.Count; i++)
-        {
-            if (patrolPoints[i].isBusy)
-                Gizmos.color = Color.red;
-            else
-                Gizmos.color = Color.green;
 
-            Gizmos.DrawSphere(patrolPoints[i].transform.position, 0.2f);
+        Gizmos.color = Color.yellow;
+        if(connectedPatrolAreas.Count > 0)
+        {
+            for(int i = 0; i < connectedPatrolAreas.Count; i++)
+            {
+                Debug.DrawLine(transform.position, connectedPatrolAreas[i].transform.position);
+            }
         }
     }
 

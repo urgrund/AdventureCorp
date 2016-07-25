@@ -15,6 +15,7 @@ using System.Collections.Generic;
 /// </summary>
 public abstract class NPCBrain : Brain
 {
+    public bool isDebugOn = false;
 	// Callbacks for the Brain arriving at positions of interest
 	public delegate void ArrivedAtDestination();
 	public event ArrivedAtDestination onArrivedAtDestination;
@@ -253,6 +254,9 @@ public abstract class NPCBrain : Brain
 
 	void OnDrawGizmos()
 	{
+        if (!isDebugOn)
+            return;
+
 		if (Application.isPlaying)
 		{
 			Gizmos.color = Color.yellow;

@@ -57,9 +57,17 @@ public abstract class NPCBrain : Brain
 
 
 	// TODO - this should go into a properties container?
-	private float _destinationBias = 1f;
+	private float _destinationBias = 1;
 
 	protected Vector3 _desiredVelocity = Vector3.zero;
+
+    //-------------------------------------------------------//
+    //Patrol stuff here
+    [HideInInspector]
+    public PatrolProperties patrolProperties;
+    [HideInInspector]
+    public bool isPatrol = false;
+    //-------------------------------------------------------//
 
 
 	private NavMeshPath _navMeshPathToDestination;
@@ -142,6 +150,7 @@ public abstract class NPCBrain : Brain
 			agent.isAllowedRotation= false;
 			yield return null;
 		}
+
 		agent.isAllowedMovement = true;
 		agent.isAllowedRotation = true;
 	}
@@ -152,6 +161,7 @@ public abstract class NPCBrain : Brain
 		_desiredMoveSpeed = agent.properties.speed.max;
 		attackCollection.controller.SetOwnerHealthToDamageVolumes(agent.health);
 		StartCoroutine(LogicRoutineInternal());
+        StartCoroutine(Patrol());
 		base.Start();
 	}
 
@@ -161,7 +171,7 @@ public abstract class NPCBrain : Brain
 	private IEnumerator LogicRoutineInternal()
 	{
 		while (isSpawning)
-			yield return null;
+            yield return null;
 
 		while (!agent.health.isDead)
 		{
@@ -169,6 +179,35 @@ public abstract class NPCBrain : Brain
 			yield return null;
 		}
 	}
+
+    private IEnumerator Patrol()
+    {
+        while (isSpawning)
+           yield return null;
+
+        while (!agent.health.isDead)
+        {
+            if (!isPatrol)
+                yield return null;
+            else
+            {
+                if (PatrolManager.instance)
+                    patrolProperties = PatrolManager.instance.GrabPatrolProperties(this);
+
+                if (!patrolProperties.patrolPoint)
+                    destination = transform.position;
+                else
+                    destination = patrolProperties.patrolPoint.transform.position;
+
+                while (_navMeshNextPosition != null)
+                    yield return null;
+
+                yield return new WaitForSeconds(2.5f);
+
+                yield return null;
+            }
+        }
+    }
 
 
 	protected override void Update()
@@ -210,9 +249,6 @@ public abstract class NPCBrain : Brain
 		if (!attackCollection.controller.isControllingAgentVelocity)
 			agent.SetDesiredVelocity(_desiredMoveDirection * _desiredMoveSpeed, true);
 	}
-
-
-
 
 	void OnDrawGizmos()
 	{

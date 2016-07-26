@@ -60,7 +60,20 @@ public class PatrolManager : MonoBehaviour
             patrolArea = npc.patrolProperties.patrolArea;
 
         if (patrolArea)
+        {
+            if(patrolArea.connectedPatrolAreas.Count > 0)
+            {
+                float rand = Random.Range(0.0f, 100.0f);
+                if(rand < 20)
+                {
+                    int index = Random.Range(0, patrolArea.connectedPatrolAreas.Count);
+                    patrolArea = patrolArea.connectedPatrolAreas[index];
+                }
+            }
+
             patrolPoint = patrolArea.GrabRandomFreePatrolPoint();
+        }
+            
 
         if (npc.patrolProperties.patrolPoint)
             npc.patrolProperties.patrolPoint.isBusy = false;

@@ -11,11 +11,19 @@ public class PatrolZoneEditor : Editor
 		DrawDefaultInspector();
 
 		PatrolZone myScript = (PatrolZone)target;
-		if (GUILayout.Button("Generate Patrol Points"))
+		if (GUILayout.Button("Generate Patrol Points In Circle"))
 		{
-			myScript.GeneratePatrolPoints();
+			myScript.GeneratePatrolPointsInCircle();
 		}
-	}
+        if (GUILayout.Button("Generate Patrol Points Randomly"))
+        {
+            myScript.GeneratePatrolPointsRandomly();
+        }
+        if (GUILayout.Button("Sample Patrol Points"))
+        {
+            myScript.SamplePatrolPointsOnNavMesh();
+        }
+    }
 
 	void OnSceneGUI()
 	{
@@ -25,8 +33,6 @@ public class PatrolZoneEditor : Editor
 		foreach (PatrolZone pz in p.connectedPatrolAreas)
 			Handles.DrawLine(pz.transform.position, p.transform.position);
 	}
-
-
 
 
 	[MenuItem("CONTEXT/PatrolZone/Link Selected Patrol Zones")]

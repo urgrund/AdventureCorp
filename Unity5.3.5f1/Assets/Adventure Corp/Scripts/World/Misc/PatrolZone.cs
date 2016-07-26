@@ -52,13 +52,13 @@ public class PatrolZone : MonoBehaviour
         {
             for(int i = 0; i < connectedPatrolAreas.Count; i++)
             {
-                Gizmos.DrawLine(transform.position, connectedPatrolAreas[i].transform.position);
+               Gizmos.DrawLine(transform.position, connectedPatrolAreas[i].transform.position);
             }
         }
     }
 
     GameObject o;
-    public void GeneratePatrolPoints()
+    public void GeneratePatrolPointsInCircle()
     {
         if(patrolPoints.Count > 0)
         {
@@ -70,7 +70,7 @@ public class PatrolZone : MonoBehaviour
         children.ForEach(child => DestroyImmediate(child));
 
         if (numberOfPoints == 0)
-            Debug.LogError("Patrol points array length should not be zero.");
+            Debug.LogError("Number of points should not be zero");
         else
         {
             float div = (1 / (float)numberOfPoints) * Mathf.PI * 2;
@@ -94,6 +94,59 @@ public class PatrolZone : MonoBehaviour
             }
         }
 
+    }
+
+    public void GeneratePatrolPointsRandomly()
+    {
+        if (patrolPoints.Count > 0)
+        {
+            patrolPoints.Clear();
+        }
+
+        var children = new List<GameObject>();
+        foreach (Transform child in transform) children.Add(child.gameObject);
+        children.ForEach(child => DestroyImmediate(child));
+
+        if (numberOfPoints == 0)
+            Debug.LogError("Number of points should not be zero");
+        else
+        {
+            for (int i = 0; i < numberOfPoints; i++)
+            {
+                Vector2 randomPoint = Random.insideUnitCircle * radius;
+                Vector3 p = new Vector3(randomPoint.x, transform.position.y, randomPoint.y) + transform.position;
+                p.y = transform.position.y;
+                o = new GameObject("Patrol Point " + i.ToString());
+                o.transform.position = p;
+                if (Helpers.IsPointOnNavMesh(o.transform.position))
+                {
+                    NavMeshHit hit;
+                    if (NavMesh.SamplePosition(o.transform.position, out hit, 10, NavMesh.AllAreas))
+                    {
+                        o.transform.position = hit.position;
+                    }
+                }
+                o.transform.parent = transform;
+                PatrolPoint point = o.AddComponent<PatrolPoint>();
+                patrolPoints.Add(point);
+            }
+        }
+    }
+
+    public void SamplePatrolPointsOnNavMesh()
+    {
+        var children = new List<GameObject>();
+        foreach (Transform child in transform)
+        {
+            if (Helpers.IsPointOnNavMesh(child.transform.position))
+            {
+                NavMeshHit hit;
+                if (NavMesh.SamplePosition(child.transform.position, out hit, 10, NavMesh.AllAreas))
+                {
+                    child.transform.position = hit.position;
+                }
+            }
+        }
     }
 
     public bool IsPatrolAreaFree()

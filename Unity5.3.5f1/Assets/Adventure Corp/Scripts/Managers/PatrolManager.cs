@@ -4,10 +4,10 @@ using System.Collections.Generic;
 
 public struct PatrolProperties
 {
-    public Patrol patrolArea;
-    public PatrolP patrolPoint;
+    public PatrolZone patrolArea;
+    public PatrolPoint patrolPoint;
 
-    public void SetProperties(Patrol patrolArea, PatrolP patrolPoint)
+    public void SetProperties(PatrolZone patrolArea, PatrolPoint patrolPoint)
     {
         this.patrolArea = patrolArea;
         this.patrolPoint = patrolPoint;
@@ -16,18 +16,18 @@ public struct PatrolProperties
 
 public class PatrolManager : MonoBehaviour
 {
-    private static PatrolManager _instance = null; // LevelManager is a singleton
+    private static PatrolManager _instance = null; 
     public static PatrolManager instance { get { return _instance; } }
 
-    private List<Patrol> _allPatrolAreas= new List<Patrol>(); // All objects with a health script are found here
-    public static List<Patrol> allPatrolAreas { get { return _instance._allPatrolAreas; } }
+    private List<PatrolZone> _allPatrolAreas= new List<PatrolZone>(); // All objects with a health script are found here
+    public static List<PatrolZone> allPatrolAreas { get { return _instance._allPatrolAreas; } }
 
     void Awake()
     {
         _instance = this;
     }
 
-    public static void Register(Patrol p)
+    public static void Register(PatrolZone p)
     {
         if (_instance == null)
         {
@@ -38,7 +38,7 @@ public class PatrolManager : MonoBehaviour
         allPatrolAreas.Add(p);
     }
 
-    public static void DeRegister(Patrol p)
+    public static void DeRegister(PatrolZone p)
     {
         if (_instance == null)
         {
@@ -51,8 +51,8 @@ public class PatrolManager : MonoBehaviour
 
     public PatrolProperties GrabPatrolProperties(NPCBrain npc)
     {
-        Patrol patrolArea = null;
-        PatrolP patrolPoint = null;
+        PatrolZone patrolArea = null;
+        PatrolPoint patrolPoint = null;
 
         if (!npc.patrolProperties.patrolArea)
             patrolArea = FindNearestPatrolArea(npc.transform.position);
@@ -74,7 +74,7 @@ public class PatrolManager : MonoBehaviour
         return p;
     }
 
-    public Patrol FindNearestPatrolArea(Vector3 pos)
+    public PatrolZone FindNearestPatrolArea(Vector3 pos)
     {
         for(int i = _allPatrolAreas.Count - 1; i >= 0; i--)
         {
@@ -84,7 +84,7 @@ public class PatrolManager : MonoBehaviour
                 float d2 = Vector3.Distance(_allPatrolAreas[j].transform.position, pos);
                 if(d1 > d2)
                 {
-                    Patrol temp = _allPatrolAreas[j - 1];
+                    PatrolZone temp = _allPatrolAreas[j - 1];
                     _allPatrolAreas[j - 1] = _allPatrolAreas[j];
                     _allPatrolAreas[j] = temp;
                 }

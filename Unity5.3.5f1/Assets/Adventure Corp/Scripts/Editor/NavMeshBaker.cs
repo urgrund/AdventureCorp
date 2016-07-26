@@ -86,14 +86,14 @@ public class NavMeshBaker : EditorWindow
             }
             isBuildLightProbes = EditorGUILayout.Toggle("Light Probes", isBuildLightProbes);
         }
-    }
+     }
 
 
     
 
     private void BakeColliders()
     {
-        CleanUpOldNavMeshItems();
+        CleanUpOldNavMeshItems();	
         navMeshPrefabs = new List<GameObject>();
         SetupBoxes();
         SetupCapsules();

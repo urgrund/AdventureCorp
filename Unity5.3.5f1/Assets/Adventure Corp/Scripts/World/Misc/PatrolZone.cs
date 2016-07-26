@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 
 [ExecuteInEditMode]
-public class Patrol : MonoBehaviour
+public class PatrolZone : MonoBehaviour
 {
     [HideInInspector]
     public bool isBusy = false;
@@ -11,9 +11,9 @@ public class Patrol : MonoBehaviour
     public float offsetDistance = 8;
     public int numberOfPoints = 8;
     [HideInInspector]
-    public List<PatrolP> patrolPoints = new List<PatrolP>();
+    public List<PatrolPoint> patrolPoints = new List<PatrolPoint>();
 
-    public List<Patrol> connectedPatrolAreas = new List<Patrol>();
+    public List<PatrolZone> connectedPatrolAreas = new List<PatrolZone>();
 
     void Awake()
     {
@@ -21,8 +21,8 @@ public class Patrol : MonoBehaviour
         {
             foreach (Transform child in transform)
             {
-                if (child.GetComponent<PatrolP>())
-                    patrolPoints.Add(child.GetComponent<PatrolP>());
+                if (child.GetComponent<PatrolPoint>())
+                    patrolPoints.Add(child.GetComponent<PatrolPoint>());
             }
         }
     }
@@ -45,12 +45,14 @@ public class Patrol : MonoBehaviour
         Gizmos.DrawSphere(transform.position + Vector3.up * h, 0.3f);
 
 
-        Gizmos.color = Color.yellow;
+		Color c = Color.yellow;
+		c.a = 0.125f;
+        Gizmos.color = c;
         if(connectedPatrolAreas.Count > 0)
         {
             for(int i = 0; i < connectedPatrolAreas.Count; i++)
             {
-                Debug.DrawLine(transform.position, connectedPatrolAreas[i].transform.position);
+                Gizmos.DrawLine(transform.position, connectedPatrolAreas[i].transform.position);
             }
         }
     }
@@ -78,7 +80,7 @@ public class Patrol : MonoBehaviour
                 p.y = transform.position.y;
                 o = new GameObject("Patrol Point " + i.ToString());
                 o.transform.position = p;
-                if(Helpers.isPointOnNavMesh(o.transform.position))
+                if(Helpers.IsPointOnNavMesh(o.transform.position))
                 {
                     NavMeshHit hit;
                     if(NavMesh.SamplePosition(o.transform.position,out hit, 10, NavMesh.AllAreas))
@@ -87,7 +89,7 @@ public class Patrol : MonoBehaviour
                     }
                 }
                 o.transform.parent = transform;
-                PatrolP point = o.AddComponent<PatrolP>();
+                PatrolPoint point = o.AddComponent<PatrolPoint>();
                 patrolPoints.Add(point);
             }
         }
@@ -104,9 +106,9 @@ public class Patrol : MonoBehaviour
         return false;
     }
 
-    public PatrolP GrabRandomFreePatrolPoint()
+    public PatrolPoint GrabRandomFreePatrolPoint()
     {
-        List<PatrolP> nonBusyPoints = new List<PatrolP>();
+        List<PatrolPoint> nonBusyPoints = new List<PatrolPoint>();
         for(int i =0; i< patrolPoints.Count; i++)
         {
             if(!patrolPoints[i].isBusy)

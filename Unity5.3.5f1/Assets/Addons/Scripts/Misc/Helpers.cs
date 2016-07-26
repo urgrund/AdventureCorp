@@ -242,7 +242,7 @@ public static class Helpers
         return bestTarget;
     }
 
-    public static bool isPointOnNavMesh(Vector3 p)
+    public static bool IsPointOnNavMesh(Vector3 p)
     {
         NavMeshHit hit;
         return !NavMesh.Raycast(p + Vector3.up, p - Vector3.down * 3, out hit, NavMesh.AllAreas);

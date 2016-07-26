@@ -6,7 +6,6 @@ using System.Collections.Generic;
 public class BaseAttackCollection
 {
 	[HideInInspector] 
-    //public AttackController controller;	// Auto assigned
     public AttackDescriptor melee1;
     public AttackDescriptor melee2;
     public AttackDescriptor melee3;
@@ -35,30 +34,3 @@ public class BaseAttackCollection
 			return allAsArray;
 	}
 }
-
-
-
-//
-// Exmaple below how the collection can be extended
-//
-
-
-//public class GruntAttackCollection : BaseAttackCollection
-//{
-//    public float extraGruntPower = 3;
-//}
-
-
-
-
-//public class TestNPC
-//{
-//    public BaseAttackCollection collection;    
-//}
-
-
-//public class GruntNPC : TestNPC
-//{
-//	// override the underlaying collection 
-//	public new GruntAttackCollection collection;
-//}

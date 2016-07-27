@@ -46,13 +46,22 @@ public class PatrolZone : MonoBehaviour
 
 
 		Color c = Color.yellow;
-		c.a = 0.125f;
+		c.a = 0.2f;
         Gizmos.color = c;
         if(connectedPatrolAreas.Count > 0)
         {
             for(int i = 0; i < connectedPatrolAreas.Count; i++)
             {
-               Gizmos.DrawLine(transform.position, connectedPatrolAreas[i].transform.position);
+               NavMeshPath path = new NavMeshPath();
+               NavMesh.CalculatePath(transform.position, connectedPatrolAreas[i].transform.position,NavMesh.AllAreas, path);
+               if(path != null)
+               {
+                    for(int j = 0; j <  path.corners.Length - 1; j++)
+                    {
+                        Gizmos.DrawLine(path.corners[j], path.corners[j + 1]);
+                        Helpers.GizmoDrawRing(path.corners[j], 1.0f);
+                    }
+               }
             }
         }
     }

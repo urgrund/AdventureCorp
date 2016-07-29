@@ -15,6 +15,23 @@ using System.Collections.Generic;
 /// </summary>
 public abstract class NPCBrain : Brain
 {
+
+	public enum State
+	{
+		Idle,
+		Patrol,
+		Retreat,
+		Attack
+	}
+
+	private State _state = State.Idle;
+	public State state
+	{
+		get { return _state; }
+		set { _state = value; }
+	}
+
+
     public bool isDebugOn = false;
 	// Callbacks for the Brain arriving at positions of interest
 	public delegate void ArrivedAtDestination();
@@ -75,6 +92,7 @@ public abstract class NPCBrain : Brain
 
 	private Vector3? _navMeshNextPosition;
 	private int _navMeshNextPositionIndex = 0;
+	public int navMeshNextPositionIndex { get { return _navMeshNextPositionIndex; } }
 	private bool _isNavMeshPositionFinal = false;
 
 	protected bool _isArrivedAtDestination = false;
@@ -114,6 +132,9 @@ public abstract class NPCBrain : Brain
 			_navMeshNextPositionIndex = 1;
 			_navMeshNextPosition = _navMeshPathToDestination.corners[_navMeshNextPositionIndex];
 			_destination = _navMeshPathToDestination.corners[_navMeshPathToDestination.corners.Length - 1];
+
+			if (_navMeshPathToDestination.corners.Length <= 2)
+				_isNavMeshPositionFinal = true;
 
 		}
 		else
@@ -169,7 +190,6 @@ public abstract class NPCBrain : Brain
 
 
 	protected abstract IEnumerator LogicRoutine();
-
 	private IEnumerator LogicRoutineInternal()
 	{
 		while (isSpawning)
@@ -181,6 +201,7 @@ public abstract class NPCBrain : Brain
 			yield return null;
 		}
 	}
+	
 
     private IEnumerator Patrol()
     {

@@ -155,10 +155,7 @@ public abstract class NPCBrain : Brain
 	protected override void Awake()
 	{
 		onArrivedAtDestination += OnArrivedAtDestination;
-		onArrivedAtNavMeshPosition += OnArrivedAtNavMeshPosition;
-
-		//FindAllPotentialHostileTargets(); 
-		//attackCollection.controller = GetComponent<AttackController>();
+		onArrivedAtNavMeshPosition += OnArrivedAtNavMeshPosition;		
 		_attackController = GetComponent<AttackController>();
 		Debug.Assert(_attackController != null, "No Attack Controller");
 		base.Awake();

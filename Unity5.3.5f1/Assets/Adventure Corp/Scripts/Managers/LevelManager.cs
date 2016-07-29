@@ -37,7 +37,7 @@ public class LevelManager : MonoBehaviour
     void Awake()
     {
         _instance = this;
-        Application.targetFrameRate = 60;
+        Application.targetFrameRate = 20;
     }
 
     public static void Register(Health h)

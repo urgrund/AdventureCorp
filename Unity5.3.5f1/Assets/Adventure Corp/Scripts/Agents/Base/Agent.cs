@@ -7,6 +7,7 @@ public sealed class Agent : MonoBehaviour
 {
     private CharacterController _controller;
 	public bool isGrounded { get { return _controller.isGrounded; } }
+    public CharacterController controller { get { return _controller; } }
 
     private AgentAnimationController _animationController;
     public AgentAnimationController animationController { get { return _animationController; } }

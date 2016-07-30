@@ -160,9 +160,13 @@ public class PatrolZone : MonoBehaviour
 
     public bool IsPatrolAreaFree()
     {
+        int count = 0;
         for (int i = 0; i < patrolPoints.Count; i++)
         {
             if (!patrolPoints[i].isBusy)
+                count++;
+
+            if (count >= 2)
                 return true;
         }
         return false;

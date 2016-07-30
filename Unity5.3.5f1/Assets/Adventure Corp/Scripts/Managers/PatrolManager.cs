@@ -73,9 +73,10 @@ public class PatrolManager : MonoBehaviour
 
             patrolPoint = patrolArea.GrabRandomFreePatrolPoint();
         }
-            
 
-        if (npc.patrolProperties.patrolPoint)
+        if (!patrolPoint && npc.patrolProperties.patrolPoint)
+            patrolPoint = npc.patrolProperties.patrolPoint;
+        else if (npc.patrolProperties.patrolPoint)
             npc.patrolProperties.patrolPoint.isBusy = false;
 
         if(patrolPoint)

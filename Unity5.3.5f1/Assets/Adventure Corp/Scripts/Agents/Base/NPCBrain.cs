@@ -87,8 +87,20 @@ public abstract class NPCBrain : Brain
     public bool isPatrol = false;
     //-------------------------------------------------------//
 
+    //-------------------------------------------------------//
+    //Personal space stuff here
+    List<NPCBrain> NPCsInPersonalSpace = new List<NPCBrain>();
+    List<NPCBrain> NPCsBlockingPath = new List<NPCBrain>();
+    float personalSpaceRadius = 1.0f;
+    const float tangentDist = 1.0f; // This is a fixed value that represents a point tangentDist away from target destination 
+    //in the direction perpendicular to direction of NPC and destination this is used to calculate the angle to check for enemies. As the NPC is closer to  target destination the bigger the angle
+    const float minAngle = 10; //Angle to check cannot be less than this value
+    const float maxAngle = 70;
+    const float pathClearFactor = 1.5f; // Until path is clear by 1.5 times than the original angle keep avoiding NPC
+    //-------------------------------------------------------//
 
-	private NavMeshPath _navMeshPathToDestination;
+
+    private NavMeshPath _navMeshPathToDestination;
 
 	private Vector3? _navMeshNextPosition;
 	private int _navMeshNextPositionIndex = 0;
@@ -182,7 +194,8 @@ public abstract class NPCBrain : Brain
 		_attackController.SetOwnerHealthToDamageVolumes(agent.health);
 		StartCoroutine(LogicRoutineInternal());
         StartCoroutine(Patrol());
-		base.Start();
+        personalSpaceRadius = agent.controller.radius * 3.5f;//Personal space radius is always three times the size of the radius of the controller
+        base.Start();
 	}
 
 
@@ -233,10 +246,22 @@ public abstract class NPCBrain : Brain
 	protected override void Update()
 	{
 		// If staggered don't bother movement update
-		if (agent.isStaggered)
+		if (agent.isStaggered || isSpawning)
 			return;
 
-		if (_destination != null && _navMeshNextPosition != null)
+        UpdateNPCsInPersonalSpace(); // Add all NPCs in your personal space
+        if(NPCsInPersonalSpace.Count > 0) // Check if there is any NPCs in your personal space
+        {
+            if(isNPCsBlockingPath()) // Check if any NPCs in personal space blocking you path
+            {
+                Vector3 moveDir = GrabMoveDirectionAwayFromBlockedPath(); // Get a movement direction to avoid bumping into NPC
+                _desiredMoveDirection = moveDir;
+                MoveAgent();
+                return;
+            }
+        }
+
+        if (_destination != null && _navMeshNextPosition != null)
 		{
 			Vector3 nextPosition = (Vector3)_navMeshNextPosition;
 
@@ -270,6 +295,70 @@ public abstract class NPCBrain : Brain
 			agent.SetDesiredVelocity(_desiredMoveDirection * _desiredMoveSpeed, true);
 	}
 
+    void UpdateNPCsInPersonalSpace()
+    {
+        NPCsInPersonalSpace.Clear();
+        Collider[] c = Physics.OverlapSphere(transform.position, personalSpaceRadius);
+        for(int i = 0; i < c.Length; i++)
+        {
+            NPCBrain b = c[i].transform.GetComponent<NPCBrain>();
+            if(b && b != this)
+            {
+                NPCsInPersonalSpace.Add(b);
+            }
+        }
+    }
+
+    bool isNPCsBlockingPath()
+    {
+        if (_navMeshNextPosition == null)
+            return false;
+        else
+        {
+            NPCsBlockingPath.Clear();
+            Vector3 dir = MathLab.GrabDirection(transform.position, (Vector3)_navMeshNextPosition);
+            Vector3 dest = (Vector3)_navMeshNextPosition;
+            Vector3 currentPos = transform.position;
+            dest.y = 0;
+            currentPos.y = 0;
+            float distaneToTarget = Vector3.Distance(currentPos, dest);
+            float angle = Mathf.Atan(tangentDist / distaneToTarget) * Mathf.Rad2Deg * 2;
+            angle = Mathf.Clamp(angle, minAngle, maxAngle);
+            for(int i = 0; i < NPCsInPersonalSpace.Count; i++)
+            {
+                Vector3 npcPos = NPCsInPersonalSpace[i].transform.position;
+                npcPos.y = 0;
+                if(MathLab.IsTargetInCone(currentPos, npcPos, angle, dir, personalSpaceRadius))
+                {
+                    NPCsBlockingPath.Add(NPCsInPersonalSpace[i]);
+                }
+            }
+        }
+        if (NPCsBlockingPath.Count == 0)
+            return false;
+        else
+            return true;
+    }
+
+    Vector3 GrabMoveDirectionAwayFromBlockedPath()
+    {
+        Vector3 averagePos = Vector3.zero;
+        Vector3 tempPos = Vector3.zero;
+        for(int i = 0; i < NPCsBlockingPath.Count; i ++)
+        {
+            tempPos = NPCsBlockingPath[i].transform.position;
+            tempPos.y = 0;
+            averagePos += tempPos;
+        }
+        averagePos = averagePos / NPCsBlockingPath.Count;
+        Vector3 dir1 = MathLab.GrabDirection(transform.position, averagePos);
+        Vector3 dir2 = MathLab.GrabDirection(transform.position, (Vector3)_navMeshNextPosition);
+        if (Vector3.Dot(dir1, dir2) <= 0)
+            return Vector3.Cross(dir1, Vector3.down);
+        else
+            return Vector3.Cross(dir1, Vector3.up);
+    }
+
 	void OnDrawGizmos()
 	{
         if (!isDebugOn)
@@ -299,6 +388,9 @@ public abstract class NPCBrain : Brain
 					Helpers.GizmoDrawRing(p.corners[i], _destinationBias);
 				}
 			}
+
+            Gizmos.color = Color.yellow;
+            Gizmos.DrawWireSphere(transform.position, personalSpaceRadius); // Debug personal space sphere
 		}
 	}
 }

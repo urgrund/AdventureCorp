@@ -82,9 +82,7 @@ public abstract class NPCBrain : Brain
     //-------------------------------------------------------//
     //Patrol stuff here
     [HideInInspector]
-    public PatrolProperties patrolProperties;
-    [HideInInspector]
-    public bool isPatrol = false;
+    public PatrolProperties patrolProperties;    
     //-------------------------------------------------------//
 
     //-------------------------------------------------------//
@@ -220,7 +218,7 @@ public abstract class NPCBrain : Brain
 
         while (!agent.health.isDead)
         {
-            if (!isPatrol)
+            if (state != State.Patrol)
                 yield return null;
             else
             {
@@ -249,19 +247,19 @@ public abstract class NPCBrain : Brain
 		if (agent.isStaggered || isSpawning)
 			return;
 
-        UpdateNPCsInPersonalSpace(); // Add all NPCs in your personal space
-        if(NPCsInPersonalSpace.Count > 0) // Check if there is any NPCs in your personal space
-        {
-            if(isNPCsBlockingPath()) // Check if any NPCs in personal space blocking you path
-            {
-                Vector3 moveDir = GrabMoveDirectionAwayFromBlockedPath(); // Get a movement direction to avoid bumping into NPC
-                _desiredMoveDirection = moveDir;
-                MoveAgent();
-                return;
-            }
-        }
+		UpdateNPCsInPersonalSpace(); // Add all NPCs in your personal space
+		if (NPCsInPersonalSpace.Count > 0) // Check if there is any NPCs in your personal space
+		{
+			if (IsNPCsBlockingPath()) // Check if any NPCs in personal space blocking you path
+			{
+				Vector3 moveDir = GrabMoveDirectionAwayFromBlockedPath(); // Get a movement direction to avoid bumping into NPC
+				_desiredMoveDirection = moveDir;
+				MoveAgent();
+				return;
+			}
+		}
 
-        if (_destination != null && _navMeshNextPosition != null)
+		if (_destination != null && _navMeshNextPosition != null)
 		{
 			Vector3 nextPosition = (Vector3)_navMeshNextPosition;
 
@@ -309,14 +307,14 @@ public abstract class NPCBrain : Brain
         }
     }
 
-    bool isNPCsBlockingPath()
+    bool IsNPCsBlockingPath()
     {
         if (_navMeshNextPosition == null)
             return false;
         else
         {
-            NPCsBlockingPath.Clear();
-            Vector3 dir = MathLab.GrabDirection(transform.position, (Vector3)_navMeshNextPosition);
+            NPCsBlockingPath.Clear();			
+            Vector3 dir = Helpers.DirectionTo(transform.position, (Vector3)_navMeshNextPosition);
             Vector3 dest = (Vector3)_navMeshNextPosition;
             Vector3 currentPos = transform.position;
             dest.y = 0;
@@ -351,8 +349,8 @@ public abstract class NPCBrain : Brain
             averagePos += tempPos;
         }
         averagePos = averagePos / NPCsBlockingPath.Count;
-        Vector3 dir1 = MathLab.GrabDirection(transform.position, averagePos);
-        Vector3 dir2 = MathLab.GrabDirection(transform.position, (Vector3)_navMeshNextPosition);
+        Vector3 dir1 = Helpers.DirectionTo(transform.position, averagePos);
+        Vector3 dir2 = Helpers.DirectionTo(transform.position, (Vector3)_navMeshNextPosition);
         if (Vector3.Dot(dir1, dir2) <= 0)
             return Vector3.Cross(dir1, Vector3.down);
         else

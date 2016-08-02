@@ -109,33 +109,8 @@ public static class MathLab
 
 	public static bool IsTargetInCone(Vector3 from,Vector3 target, float angle, Vector3 forward, float coneRadius)
 	{
-		Vector3 dir = GrabDirection(from,target);
+		Vector3 dir = Helpers.DirectionTo(from,target);
 		return (Vector3.Angle(forward, dir) <= angle && Vector3.Distance(from,target) <= coneRadius);
 	}
-
-	public static Vector3 GrabDirection(Vector3 from, Vector3 to)
-	{
-		to.y = 0;
-		from.y = 0;
-		Vector3 dir = (to - from).normalized;
-		return dir;
-	}
-
-    public static bool IsTargetWithinDistane(Vector3 from, Vector3 target, float distance)
-    {
-        return (Vector3.Distance(from,target) <= distance);
-    }
-
-    //public static void GizmoDrawRing(Vector3 position, float radius)
-    //{
-    //    int count = 32;
-    //    Vector3 start, end;
-    //    float div = (1 / (float)count) * Mathf.PI * 2;
-    //    for (int i = 0; i < count; i++)
-    //    {
-    //        start = new Vector3(Mathf.Sin(div * i), 0f, Mathf.Cos(div * i)).normalized * radius;
-    //        end = new Vector3(Mathf.Sin(div * (i + 1)), 0f, Mathf.Cos(div * (i + 1))).normalized * radius;
-    //        Gizmos.DrawLine(position + start, position + end);
-    //    }
-    //}
+	
 }

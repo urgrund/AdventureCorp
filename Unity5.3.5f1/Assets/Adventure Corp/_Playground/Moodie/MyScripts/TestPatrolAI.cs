@@ -5,10 +5,10 @@ public class TestPatrolAI : NPCBrain
 {
 	protected override IEnumerator LogicRoutine()
 	{
-		if (isPatrol)
+		if (state != State.Patrol)
 			yield return null;
 
-		isPatrol = true;
+		state = State.Patrol;
 		yield return null;
 	}
 }

@@ -93,8 +93,10 @@ public abstract class NPCBrain : Brain
     const float tangentDist = 1.0f; // This is a fixed value that represents a point tangentDist away from target destination 
     //in the direction perpendicular to direction of NPC and destination this is used to calculate the angle to check for enemies. As the NPC is closer to  target destination the bigger the angle
     const float minAngle = 10; //Angle to check cannot be less than this value
-    const float maxAngle = 70;
-    const float pathClearFactor = 1.5f; // Until path is clear by 1.5 times than the original angle keep avoiding NPC
+    const float maxAngle = 45;
+    const float pathClearFactor = 1.15f; // Until path is clear by 1.5 times than the original angle keep avoiding NPC
+    bool isAvoidingNPC = false;
+    public bool disableAvoidance = false;
     //-------------------------------------------------------//
 
 
@@ -241,25 +243,32 @@ public abstract class NPCBrain : Brain
     }
 
 
-	protected override void Update()
-	{
-		// If staggered don't bother movement update
-		if (agent.isStaggered || isSpawning)
-			return;
+    
+    protected override void Update()
+    {
+        // If staggered don't bother movement update
+        if (agent.isStaggered || isSpawning)
+            return;
 
-		UpdateNPCsInPersonalSpace(); // Add all NPCs in your personal space
-		if (NPCsInPersonalSpace.Count > 0) // Check if there is any NPCs in your personal space
-		{
-			if (IsNPCsBlockingPath()) // Check if any NPCs in personal space blocking you path
-			{
-				Vector3 moveDir = GrabMoveDirectionAwayFromBlockedPath(); // Get a movement direction to avoid bumping into NPC
-				_desiredMoveDirection = moveDir;
-				MoveAgent();
-				return;
-			}
-		}
+        if(!disableAvoidance)
+        {
+            UpdateNPCsInPersonalSpace(); // Add all NPCs in your personal space
+            if (NPCsInPersonalSpace.Count > 0) // Check if there is any NPCs in your personal space
+            {
+                if (IsNPCsBlockingPath()) // Check if any NPCs in personal space blocking you path
+                {
+                    isAvoidingNPC = true;
+                    Vector3 moveDir = GrabMoveDirectionAwayFromBlockedPath(); // Get a movement direction to avoid bumping into NPC
+                    _desiredMoveDirection = moveDir;
+                    MoveAgent();
+                    return;
+                }
+            }
 
-		if (_destination != null && _navMeshNextPosition != null)
+            isAvoidingNPC = false;
+        }
+        
+        if (_destination != null && _navMeshNextPosition != null)
 		{
 			Vector3 nextPosition = (Vector3)_navMeshNextPosition;
 
@@ -322,11 +331,14 @@ public abstract class NPCBrain : Brain
             float distaneToTarget = Vector3.Distance(currentPos, dest);
             float angle = Mathf.Atan(tangentDist / distaneToTarget) * Mathf.Rad2Deg * 2;
             angle = Mathf.Clamp(angle, minAngle, maxAngle);
-            for(int i = 0; i < NPCsInPersonalSpace.Count; i++)
+            float fact = 1;
+            if (isAvoidingNPC)
+                fact = pathClearFactor;
+            for (int i = 0; i < NPCsInPersonalSpace.Count; i++)
             {
                 Vector3 npcPos = NPCsInPersonalSpace[i].transform.position;
                 npcPos.y = 0;
-                if(MathLab.IsTargetInCone(currentPos, npcPos, angle, dir, personalSpaceRadius))
+                if (MathLab.IsTargetInCone(currentPos, npcPos, angle * fact, dir, personalSpaceRadius))
                 {
                     NPCsBlockingPath.Add(NPCsInPersonalSpace[i]);
                 }

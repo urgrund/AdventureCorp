@@ -226,14 +226,20 @@ public class AgentAnimationController : MonoBehaviour
     bool isAlreadyDead = false;
     public void Play(AnimationClipProperties clipProperties)
     {
-        if (clipProperties.clip == null)
+        if (clipProperties == null)
         {
-            Debug.LogError("No clip on animation property on {0}  " + this.name, clipProperties);
+            Debug.LogError("Clip Properties NULL!!");
             return;
         }
 
+		if (clipProperties.clip == null)
+		{
+			Debug.LogError("No clip on animation property on {0}  " + this.name, clipProperties);
+			return;
+		}
 
-        if (state == State.Dead)
+
+		if (state == State.Dead)
         {
             if (isAlreadyDead)
                 return;

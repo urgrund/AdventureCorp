@@ -17,6 +17,7 @@ public class AttackSetupScrubberEditor : Editor
 	SerializedProperty suggestedUseRange;
     SerializedProperty suggestedUseAngle;
     SerializedProperty validDamageRange;
+	SerializedProperty turnToTargetRatio;
     SerializedProperty volumeIndices;
     SerializedProperty clipProperties;
     SerializedProperty eventor;
@@ -51,7 +52,8 @@ public class AttackSetupScrubberEditor : Editor
 		controllerGravity = attDesc.FindProperty("controllerGravity");
 		suggestedUseRange = attDesc.FindProperty("suggestedUseRange");
         suggestedUseAngle = attDesc.FindProperty("suggestedUseAngle");
-        validDamageRange = attDesc.FindProperty("validDamageRange");
+		turnToTargetRatio = attDesc.FindProperty("turnToTargetRatio");
+		validDamageRange = attDesc.FindProperty("validDamageRange");
         volumeIndices = attDesc.FindProperty("volumeIndices");
         clipProperties = attDesc.FindProperty("clipProperties");
         eventor = attDesc.FindProperty("eventor");
@@ -121,15 +123,22 @@ public class AttackSetupScrubberEditor : Editor
         float clipTime = (a.clip.length * (1/c.attackDescriptor.clipProperties.playSpeed)) * c.scrubTime;
 
         BoldLabel("Damage Range and Movement Curves");
-        EditorGUILayout.LabelField("(" + (c.scrubTime/a.clip.length)+ "/" + clipTime + ")");
+        EditorGUILayout.LabelField("Clip Length/Time - (" + (c.scrubTime/a.clip.length)+ "/" + clipTime + ")", EditorStyles.miniLabel);
         Rect constraints = new Rect(0, 0, 1, 10);
         curveX.animationCurveValue = EditorGUILayout.CurveField(curveX.animationCurveValue, Color.red, constraints, null);
         curveY.animationCurveValue = EditorGUILayout.CurveField(curveY.animationCurveValue, Color.green, constraints, null);
         curveZ.animationCurveValue = EditorGUILayout.CurveField(curveZ.animationCurveValue, Color.cyan, constraints, null);
-        Vector2 mm = c.attackDescriptor.validDamageRange;
+
+		EditorGUILayout.LabelField("Valid Damage Range", EditorStyles.miniLabel);
+		Vector2 mm = c.attackDescriptor.validDamageRange;
         EditorGUILayout.MinMaxSlider(ref mm.x, ref mm.y, 0f, 1f);
 
-        GUI.color = Color.grey;
+		EditorGUILayout.LabelField("Turn to Target Ratio", EditorStyles.miniLabel);
+		turnToTargetRatio.floatValue = GUILayout.HorizontalSlider(turnToTargetRatio.floatValue, 0, 1);
+
+
+		EditorGUILayout.LabelField("Animation Clip Scrubbing", EditorStyles.miniLabel);
+		GUI.color = Color.grey;
         c.scrubTime = GUILayout.HorizontalSlider(c.scrubTime, 0f, a.clip.length);
         validDamageRange.vector2Value = mm;
         a[a.clip.name].time = c.scrubTime;

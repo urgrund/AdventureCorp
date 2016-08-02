@@ -19,6 +19,10 @@ public class AttackDescriptor : ScriptableObject
 	[Range(0, 1)]
 	public float yieldControlRatio = 1f;
 
+	// The agent will turn towards a target Transform 
+	[Range(0, 1)]
+	public float turnToTargetRatio = 0f;
+
 	public Vector2 suggestedUseRange = new Vector2(0.5f, 3f);
 
 	[HideInInspector]

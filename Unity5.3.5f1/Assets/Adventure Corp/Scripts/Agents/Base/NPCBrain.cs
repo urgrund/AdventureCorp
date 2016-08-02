@@ -45,7 +45,7 @@ public abstract class NPCBrain : Brain
 
 	// NPC's should modify these properties which this
 	// base class will use to call the Agent
-	protected Vector3 _desiredLookAt = Vector3.zero;
+	protected Vector3? _desiredLookAt = null;
 	protected Vector3 _desiredMoveDirection = Vector3.zero;
 	protected float _desiredMoveSpeed;
 
@@ -299,7 +299,12 @@ public abstract class NPCBrain : Brain
 	protected void MoveAgent()
 	{
 		if (!_attackController.isControllingAgentVelocity)
-			agent.SetDesiredVelocity(_desiredMoveDirection * _desiredMoveSpeed, true);
+		{
+			if(_desiredLookAt != null)
+				agent.SetDesiredVelocity(_desiredMoveDirection * _desiredMoveSpeed, (Vector3)_desiredLookAt);
+			else
+				agent.SetDesiredVelocity(_desiredMoveDirection * _desiredMoveSpeed, true);
+		}
 	}
 
     void UpdateNPCsInPersonalSpace()

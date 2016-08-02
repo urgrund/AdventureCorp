@@ -7,20 +7,22 @@ using System.Linq;
 /// Helpers
 /// A generic helpers class with some common methods that could be used accross
 /// any project.
-/// Matt Bell (c) 2011
+/// Matt Bell (c) Flame Shark 2011-2016
 /// </summary>
 public static class Helpers
 {
     /// <summary>
-    /// If a point lies within another point given a radius
+    /// If a point lies within another point given a radius using fast sqr magnitude
     /// </summary>        
     public static bool InRadius(Vector3 p1, Vector3 p2, float radius) { return ((p1 - p2).sqrMagnitude < radius * radius); }
+	public static bool InRadius(Transform t1, Transform t2, float radius)	{		return InRadius(t1.position, t2.position, radius);	}
+	public static bool InRadius(Transform t1, Vector3 p2, float radius) { return InRadius(t1.position, p2, radius); }
+	public static bool InRadius(Vector3 p1, Transform t2, float radius) { return InRadius(p1, t2.position, radius); }
 
-
-    /// <summary>
-    /// If a point lies within another point given a radius. Assumes height of 0.
-    /// </summary>    
-    public static bool InRadiusGrounded(Vector3 p1, Vector3 p2, float radius) { return InRadius(new Vector3(p1.x, 0f, p1.z), new Vector3(p2.x, 0f, p2.z), radius); }
+	/// <summary>
+	/// If a point lies within another point given a radius. Assumes height of 0.
+	/// </summary>    
+	public static bool InRadiusGrounded(Vector3 p1, Vector3 p2, float radius) { return InRadius(new Vector3(p1.x, 0f, p1.z), new Vector3(p2.x, 0f, p2.z), radius); }
 
 
     /// <summary>

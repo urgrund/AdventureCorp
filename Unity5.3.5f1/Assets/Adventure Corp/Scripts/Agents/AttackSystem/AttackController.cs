@@ -12,7 +12,11 @@ public class AttackController : MonoBehaviour
     public bool showDebugGUI = false;
 	public LayerMask damageColliderLayer;// = LayerMask.NameToLayer("Everything");  
 
+	// Agent owning this attack controller
 	Agent _agent;
+
+	// Target to turn towards whilst attacking
+	Transform turnToTarget = null;
     
     [HideInInspector]
     public Damager[] damagers;
@@ -86,17 +90,20 @@ public class AttackController : MonoBehaviour
 	/// <summary>
 	/// Pass an AttackDescriptor to begin attacking
 	/// </summary>	
-    public void AttackWithDescriptor(AttackDescriptor d)
+    public void AttackWithDescriptor(AttackDescriptor d, Transform target = null)
     {
+		if (_agent.isStaggered)
+			return;
+
         if (isPastYieldControlTime)
         {
             StopAllCoroutines();
+			turnToTarget = target;
             StartCoroutine(RunJobRoutine(d));
             if (d.eventor != null)
                 EventorSchedule.RunAtTransformAsChild(d.eventor, this.transform);
         }
-    }
-
+    }	
 
 	public void SetLayerToDamageVolumes(LayerMask layer)
 	{
@@ -139,21 +146,26 @@ public class AttackController : MonoBehaviour
 	/// Ask for the attack to stop playback and return control of the agent
 	/// This can be forced, or on condition of the attacks yeild time
 	/// </summary>
-    public void YieldControlFromAttack() { YieldControlFromAttack(false); }
-    public void YieldControlFromAttack(bool force)
+    public bool YieldControlFromAttack() { return YieldControlFromAttack(false); }
+    public bool YieldControlFromAttack(bool force)
     {
         if (force)
         {
             ReleaseAttack(_currentAttack);
+			return true;
         }
         else
         {
             if (isAttacking)
             {
-                if (isPastYieldControlTime)
-                    ReleaseAttack(_currentAttack);
+				if (isPastYieldControlTime)
+				{
+					ReleaseAttack(_currentAttack);
+					return true;
+				}
             }
         }
+		return false;
     }
 
     void OnAgentStaggered()
@@ -171,7 +183,9 @@ public class AttackController : MonoBehaviour
         _agent.isApplyGravity = true;
         _isAttacking = false;
         _isControllingAgentVelocity = false;
-        StopAllCoroutines();
+		turnToTarget = null;
+
+		StopAllCoroutines();
 
         _agent.animationController.overrideCountDown = -1;
     }
@@ -184,23 +198,31 @@ public class AttackController : MonoBehaviour
 
 	public bool CheckAttackInAngleForTarget(AttackDescriptor attack, Transform target)
 	{
-		print(attack.suggestedUseAngle + "     " + (int)attack.suggestedUseAngle);
-		print("target is " + target.name);
+		//print(attack.suggestedUseAngle + "     " + (int)attack.suggestedUseAngle);
+		//print("target is " + target.name);
 		Vector3 dirTo = Helpers.DirectionTo(transform, target);
 		return (Vector3.Angle(dirTo, transform.forward) < (int)attack.suggestedUseAngle * 0.5f);
 	}
 
 	public bool CheckAttackIsValidForTarget(AttackDescriptor attack, Transform target)
 	{
-		print("\n ------- Checking " + attack.name);
+		//print("\n ------- Checking " + attack.name);
 		return CheckAttackInAngleForTarget(attack, target) && CheckAttackInRangeForTarget(attack, target);
 	}
 
+
+	// TODO - 
+	// Optimisation, call this for general scenarios (in front, behind... etc) 
+	// then could use a lookup based on direction/distance 
 	public List<AttackDescriptor> GetSuggestedAttacksForTarget(BaseAttackCollection collection, Transform target)
 	{
 		List<AttackDescriptor> attacks = null;
+
 		for (int i = 0; i < collection.AsArray().Length; i++)
 		{
+			if (collection.AsArray()[i] == null)
+				continue;
+			
 			if (CheckAttackIsValidForTarget(collection.AsArray()[i], target))
 			{
 				if (collection.AsArray()[i] != null)
@@ -237,7 +259,14 @@ public class AttackController : MonoBehaviour
                 _isAttacking = true;
                 t = _agent.animationController.animatedGameObject[_currentAttack.clipProperties.clip.name].normalizedTime;
                 ActivateDamageVolumes(t > _currentAttack.validDamageRange.x && t < _currentAttack.validDamageRange.y, _currentAttack.volumeIndices);
-				
+
+				// Rotate to target if available
+				if (turnToTarget != null)
+				{
+					if (t < _currentAttack.turnToTargetRatio)					
+						_agent.SetDesiredRotation(Helpers.DirectionTo(this.transform, turnToTarget));					
+				}
+
                 // Control over agent if needed
                 if (attack.controllerLock != AttackDescriptor.Lock.None)
                 {

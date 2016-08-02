@@ -160,17 +160,16 @@ public sealed class Agent : MonoBehaviour
 	// S T A G G E R 
 
 	bool _isStaggered = false;
-    public bool isStaggered { get { return _isStaggered; } }
-    float _staggerTime = 2f;
+    public bool isStaggered { get { return _isStaggered; } }    
     float _staggerTimeCount = 0f;
 
     public delegate void OnStaggered();
-    public OnStaggered onStaggered; 
+    public OnStaggered onStaggered;
 
-    /// <summary>
-    /// Stagger the Agent, restricting movement 
-    /// </summary>
-    public void Stagger()
+	/// <summary>
+	/// Stagger the Agent, restricting movement 
+	/// </summary>
+	public void Stagger(float time = 3)
     {
         if (!_isStaggered)
         {
@@ -178,7 +177,7 @@ public sealed class Agent : MonoBehaviour
                 onStaggered();
 
             _isStaggered = true;
-            _staggerTimeCount = _staggerTime;
+            _staggerTimeCount = time;
             animationController.Play(animationController.animationProperties.reaction.stagger);
             StartCoroutine(StaggerRoutine());
 			if (_overrideMoveRoutine != null)

@@ -4,8 +4,7 @@ using System.Collections.Generic;
 
 [System.Serializable]
 public class BaseAttackCollection
-{
-	[HideInInspector] 
+{	
     public AttackDescriptor melee1;
     public AttackDescriptor melee2;
     public AttackDescriptor melee3;

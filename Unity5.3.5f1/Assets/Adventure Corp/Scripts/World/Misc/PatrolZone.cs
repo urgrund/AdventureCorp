@@ -76,11 +76,11 @@ public class PatrolZone : MonoBehaviour
 
         var children = new List<GameObject>();
         foreach (Transform child in transform) children.Add(child.gameObject);
-        children.ForEach(child => DestroyImmediate(child));
+        children.ForEach(child => DestroyImmediate(child)); // Destroy all current patrol points if exiting
 
         if (numberOfPoints == 0)
             Debug.LogError("Number of points should not be zero");
-        else
+        else //Create patrol points in a circle given an offset distance
         {
             float div = (1 / (float)numberOfPoints) * Mathf.PI * 2;
             for (int i = 0; i < numberOfPoints; i++)
@@ -89,7 +89,7 @@ public class PatrolZone : MonoBehaviour
                 p.y = transform.position.y;
                 o = new GameObject("Patrol Point " + i.ToString());
                 o.transform.position = p;
-                if(Helpers.IsPointOnNavMesh(o.transform.position))
+                if(Helpers.IsPointOutsideNavMesh(o.transform.position)) //Sample patrol point if outside navmesh
                 {
                     NavMeshHit hit;
                     if(NavMesh.SamplePosition(o.transform.position,out hit, 10, NavMesh.AllAreas))
@@ -114,12 +114,13 @@ public class PatrolZone : MonoBehaviour
 
         var children = new List<GameObject>();
         foreach (Transform child in transform) children.Add(child.gameObject);
-        children.ForEach(child => DestroyImmediate(child));
+        children.ForEach(child => DestroyImmediate(child)); // Destroy all current patrol points if exiting
 
         if (numberOfPoints == 0)
             Debug.LogError("Number of points should not be zero");
         else
         {
+            //Create patrol points randomly in circle and sample them on navmesh
             for (int i = 0; i < numberOfPoints; i++)
             {
                 Vector2 randomPoint = Random.insideUnitCircle * radius;
@@ -127,7 +128,7 @@ public class PatrolZone : MonoBehaviour
                 p.y = transform.position.y;
                 o = new GameObject("Patrol Point " + i.ToString());
                 o.transform.position = p;
-                if (Helpers.IsPointOnNavMesh(o.transform.position))
+                if (Helpers.IsPointOutsideNavMesh(o.transform.position))
                 {
                     NavMeshHit hit;
                     if (NavMesh.SamplePosition(o.transform.position, out hit, 10, NavMesh.AllAreas))
@@ -147,7 +148,7 @@ public class PatrolZone : MonoBehaviour
         var children = new List<GameObject>();
         foreach (Transform child in transform)
         {
-            if (Helpers.IsPointOnNavMesh(child.transform.position))
+            if (Helpers.IsPointOutsideNavMesh(child.transform.position))
             {
                 NavMeshHit hit;
                 if (NavMesh.SamplePosition(child.transform.position, out hit, 10, NavMesh.AllAreas))

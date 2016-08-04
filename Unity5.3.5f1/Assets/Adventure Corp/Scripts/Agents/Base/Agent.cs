@@ -333,7 +333,9 @@ public sealed class Agent : MonoBehaviour
     public void SetDesiredVelocity(Vector3 velocity, Vector3 lookAtTarget)
     {
         CalculateDesiredVelocity(velocity);
-        SetDesiredRotation(lookAtTarget);        
+        Vector3 dir = Helpers.DirectionTo(transform.position, lookAtTarget);
+        dir.y = 0;
+        SetDesiredRotation(dir);        
     }
 
 

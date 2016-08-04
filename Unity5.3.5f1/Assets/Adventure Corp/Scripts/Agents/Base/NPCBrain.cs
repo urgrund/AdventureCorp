@@ -21,14 +21,26 @@ public abstract class NPCBrain : Brain
 		Idle,
 		Patrol,
 		Retreat,
+        SizeUp,
 		Attack
 	}
-
+    private State _previousState;
+    public State previousState {get {return _previousState; }}
 	private State _state = State.Idle;
 	public State state
 	{
 		get { return _state; }
-		set { _state = value; }
+		set
+        {
+            if (_state == value)
+                return;
+            else
+            {
+                _previousState = _state;
+                _state = value;
+                ChangeState();
+            }
+        }
 	}
 
 
@@ -192,8 +204,8 @@ public abstract class NPCBrain : Brain
 		StartCoroutine(Spawn());
 		_desiredMoveSpeed = agent.properties.speed.max;
 		_attackController.SetOwnerHealthToDamageVolumes(agent.health);
-		StartCoroutine(LogicRoutineInternal());
-        StartCoroutine(Patrol());
+		StartCoroutine(LogicRoutineInternal()); // Coroutine that handles unique behaviours for each AI
+        StartCoroutine(LogicStateRoutine()); // Coroutine that handles all common states between AI
         personalSpaceRadius = agent.controller.radius * 3.5f;//Personal space radius is always three times the size of the radius of the controller
         base.Start();
 	}
@@ -211,39 +223,97 @@ public abstract class NPCBrain : Brain
 			yield return null;
 		}
 	}
-	
 
-    private IEnumerator Patrol()
+    private IEnumerator LogicStateRoutine()
     {
         while (isSpawning)
-           yield return null;
+            yield return null;
 
         while (!agent.health.isDead)
         {
-            if (state != State.Patrol)
-                yield return null;
-            else
+            //-----------------------------------------Patrol State-----------------------------------------------
+            if (state == State.Patrol)
             {
                 if (PatrolManager.instance)
-                    patrolProperties = PatrolManager.instance.GrabPatrolProperties(this);
+                    patrolProperties = PatrolManager.instance.GrabPatrolProperties(this); // Find the nearest patrol zone and point
 
-                if (!patrolProperties.patrolPoint)
+                if (!patrolProperties.patrolPoint) // If patrol point does not exist just stand still
                     destination = transform.position;
                 else
-                    destination = patrolProperties.patrolPoint.transform.position;
+                    destination = patrolProperties.patrolPoint.transform.position; // Move towards patrol point
 
-                while (_navMeshNextPosition != null)
+                while (_navMeshNextPosition != null && state == State.Patrol) // Until destination is reached and I am still patroling keep moving towards destination
                     yield return null;
 
-                yield return new WaitForSeconds(2.5f);
+                float t = 0;
+                while (t < 2.5f && state == State.Patrol) // Once arrive to destination and I am still patroling, wait X time on the patrol point
+                {
+                    t += Time.deltaTime;
+                    yield return null;
+                }
 
                 yield return null;
             }
+            //----------------------------------RETREAT STATE-------------------------------------------------------
+            else if (state == State.Retreat)
+            {
+                destination = FindRetreatTarget(); // Find a retreat position to move towards to
+
+                float t = 0;
+                while (t < 0.2f && state == State.Retreat) // If I am still retreating, wait X time before calculating a new retreat point
+                {
+                    t += Time.deltaTime;
+                    yield return null;
+                }
+
+                yield return null;
+            }
+            //---------------------------------SIZE UP STATE--------------------------------------------------------
+            else if(state == State.SizeUp)
+            {
+                float x = MathLab.CosWave(2, 0.65f, 0, Time.time);
+                float z = MathLab.SinWave(2, 0.65f, 0, Time.time);
+                Vector3 pos = new Vector3(x, 0, z) + sizeUpPos;
+                destination = pos;
+                HelpLab.DrawMarker(pos, 2, Color.red, 0, true);
+            }
+
+            yield return null;
         }
     }
 
+    void ChangeState()
+    {
+        if (_previousState == State.Patrol)
+            PatrolExit();
 
-    
+        if (_previousState == State.SizeUp)
+            SizeUpExit();
+
+        if (_state == State.SizeUp)
+            SizeUpEnter();
+
+    }
+
+    void PatrolExit()
+    {
+        patrolProperties.Clear();
+    }
+
+    Vector3 sizeUpPos;
+    void SizeUpEnter()
+    {
+        _desiredMoveSpeed = agent.properties.speed.max * 0.15f;
+        isLookAtPlayer = true;
+        sizeUpPos = transform.position;
+    }
+
+    void SizeUpExit()
+    {
+        _desiredMoveSpeed = agent.properties.speed.max;
+        isLookAtPlayer = false;
+    }
+
     protected override void Update()
     {
         // If staggered don't bother movement update
@@ -296,24 +366,27 @@ public abstract class NPCBrain : Brain
 	}
 
 
+    protected bool isLookAtPlayer = false;
 	protected void MoveAgent()
 	{
-		if (!_attackController.isControllingAgentVelocity)
+		if (!_attackController.isControllingAgentVelocity && !isLookAtPlayer)
 		{
 			if(_desiredLookAt != null)
 				agent.SetDesiredVelocity(_desiredMoveDirection * _desiredMoveSpeed, (Vector3)_desiredLookAt);
 			else
 				agent.SetDesiredVelocity(_desiredMoveDirection * _desiredMoveSpeed, true);
 		}
-	}
+        else if (!_attackController.isControllingAgentVelocity && isLookAtPlayer && LevelManager.players[0])
+            agent.SetDesiredVelocity(_desiredMoveDirection * _desiredMoveSpeed, LevelManager.players[0].transform.position);
+    }
 
     void UpdateNPCsInPersonalSpace()
     {
-        NPCsInPersonalSpace.Clear();
-        Collider[] c = Physics.OverlapSphere(transform.position, personalSpaceRadius);
+        NPCsInPersonalSpace.Clear(); // Clear all NPCs in the personal space
+        Collider[] c = Physics.OverlapSphere(transform.position, personalSpaceRadius); //Grab all colliders in the personal space
         for(int i = 0; i < c.Length; i++)
         {
-            NPCBrain b = c[i].transform.GetComponent<NPCBrain>();
+            NPCBrain b = c[i].transform.GetComponent<NPCBrain>(); //If collider is an NPCBrain add to the NPC in personal space list
             if(b && b != this)
             {
                 NPCsInPersonalSpace.Add(b);
@@ -323,22 +396,25 @@ public abstract class NPCBrain : Brain
 
     bool IsNPCsBlockingPath()
     {
-        if (_navMeshNextPosition == null)
+        if (_navMeshNextPosition == null) //If I am not moving there is no reason to check if any NPC is blocking my path
             return false;
         else
         {
-            NPCsBlockingPath.Clear();			
-            Vector3 dir = Helpers.DirectionTo(transform.position, (Vector3)_navMeshNextPosition);
-            Vector3 dest = (Vector3)_navMeshNextPosition;
-            Vector3 currentPos = transform.position;
-            dest.y = 0;
-            currentPos.y = 0;
-            float distaneToTarget = Vector3.Distance(currentPos, dest);
-            float angle = Mathf.Atan(tangentDist / distaneToTarget) * Mathf.Rad2Deg * 2;
-            angle = Mathf.Clamp(angle, minAngle, maxAngle);
+            NPCsBlockingPath.Clear();
+            Vector3 dir = Helpers.DirectionTo(transform.position, (Vector3)_navMeshNextPosition); // Grab a direction to my next direction
+            Vector3 dest = (Vector3)_navMeshNextPosition; //Store my next destination as a vector
+            Vector3 currentPos = transform.position; //Store my current destination as a vector
+            dest.y = 0; // Zero out Y
+            currentPos.y = 0; // Zero out Y
+            float distaneToTarget = Vector3.Distance(currentPos, dest); // Calculate distance from my position to my destination
+            float angle = Mathf.Atan(tangentDist / distaneToTarget) * Mathf.Rad2Deg * 2; //Calculate angle needed to use if an NPC is blocking my path. The closer I am to my destination the bigger the angle
+            // TODO IS THE ABOVE IMPORTANT? MAYBE JUST FIX ANGLE IS FINE....
+            angle = Mathf.Clamp(angle, minAngle, maxAngle); //Clamp angle between a min and max
             float fact = 1;
-            if (isAvoidingNPC)
+            if (isAvoidingNPC) // If my current status is avoiding an NPC, multiplying the angle by a factor to avoid stuttering
                 fact = pathClearFactor;
+
+            //For all NPCs in personal space check if they are blocking my path in a cone infront of me given the angle
             for (int i = 0; i < NPCsInPersonalSpace.Count; i++)
             {
                 Vector3 npcPos = NPCsInPersonalSpace[i].transform.position;
@@ -349,6 +425,7 @@ public abstract class NPCBrain : Brain
                 }
             }
         }
+        //If count is zero, then no NPC is blocking my path
         if (NPCsBlockingPath.Count == 0)
             return false;
         else
@@ -357,6 +434,7 @@ public abstract class NPCBrain : Brain
 
     Vector3 GrabMoveDirectionAwayFromBlockedPath()
     {
+        //From all NPCs that are blocking my path calculate the average position
         Vector3 averagePos = Vector3.zero;
         Vector3 tempPos = Vector3.zero;
         for(int i = 0; i < NPCsBlockingPath.Count; i ++)
@@ -366,12 +444,39 @@ public abstract class NPCBrain : Brain
             averagePos += tempPos;
         }
         averagePos = averagePos / NPCsBlockingPath.Count;
-        Vector3 dir1 = Helpers.DirectionTo(transform.position, averagePos);
-        Vector3 dir2 = Helpers.DirectionTo(transform.position, (Vector3)_navMeshNextPosition);
-        if (Vector3.Dot(dir1, dir2) <= 0)
+
+        Vector3 dir1 = Helpers.DirectionTo(transform.position, averagePos); // Grab a direction to the average position of NPCs blocking my path
+        Vector3 dir2 = Helpers.DirectionTo(transform.position, (Vector3)_navMeshNextPosition); // Grab a direction to my destination
+        if (Vector3.Dot(dir1, dir2) <= 0) // If dot product is negative NPC on my left, other wise on my right
             return Vector3.Cross(dir1, Vector3.down);
         else
             return Vector3.Cross(dir1, Vector3.up);
+    }
+
+    Vector3 FindRetreatTarget()
+    {
+        //TODO Have some logic here to find retreat points set up by player or dynamic like hide behind a grunt or something.
+
+        //If no specific retreat point is found simply run away from target in the opposite direction
+        Vector3 dest = transform.position;
+        Vector3 playerPos;
+        if (LevelManager.players[0])
+            playerPos = LevelManager.players[0].transform.position; //TODO, if multiplayer mode need to change this
+        else
+            return dest;
+
+        dest += Helpers.DirectionTo(playerPos, transform.position)*15; //Destination is X units in a direction away from the player
+
+        if (Helpers.IsPointOutsideNavMesh(dest))
+        {
+            NavMeshHit hit;
+            if (NavMesh.SamplePosition(dest, out hit, 30, NavMesh.AllAreas))
+            {
+                dest = hit.position;
+            }
+        }
+
+        return dest;
     }
 
 	void OnDrawGizmos()

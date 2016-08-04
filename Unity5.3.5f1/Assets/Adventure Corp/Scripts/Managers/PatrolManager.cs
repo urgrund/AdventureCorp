@@ -4,13 +4,20 @@ using System.Collections.Generic;
 
 public struct PatrolProperties
 {
-    public PatrolZone patrolArea;
+    public PatrolZone patrolZone;
     public PatrolPoint patrolPoint;
 
-    public void SetProperties(PatrolZone patrolArea, PatrolPoint patrolPoint)
+    public void SetProperties(PatrolZone patrolZone, PatrolPoint patrolPoint)
     {
-        this.patrolArea = patrolArea;
+        this.patrolZone = patrolZone;
         this.patrolPoint = patrolPoint;
+    }
+
+    public void Clear()
+    {
+        this.patrolPoint.isBusy = false;
+        this.patrolZone = null;
+        this.patrolPoint = null;
     }
 }
 
@@ -51,45 +58,46 @@ public class PatrolManager : MonoBehaviour
 
     public PatrolProperties GrabPatrolProperties(NPCBrain npc)
     {
-        PatrolZone patrolArea = null;
+        PatrolZone patrolZone = null;
         PatrolPoint patrolPoint = null;
 
-        if (!npc.patrolProperties.patrolArea)
-            patrolArea = FindNearestPatrolArea(npc.transform.position);
+        if (!npc.patrolProperties.patrolZone) // If npc does not have a patrol zone, find the closest one to him
+            patrolZone = FindNearestPatrolArea(npc.transform.position);
         else
-            patrolArea = npc.patrolProperties.patrolArea;
+            patrolZone = npc.patrolProperties.patrolZone; //If npc does have a patrol zone, just use that
 
-        if (patrolArea)
+        if (patrolZone)
         {
-            if(patrolArea.connectedPatrolAreas.Count > 0)
+            if(patrolZone.connectedPatrolAreas.Count > 0) //If patrol zone is connected to other patrol zones. There is 20% chance of switching patrol zones
             {
                 float rand = Random.Range(0.0f, 100.0f);
                 if(rand < 20)
                 {
-                    int index = Random.Range(0, patrolArea.connectedPatrolAreas.Count);
-                    patrolArea = patrolArea.connectedPatrolAreas[index];
+                    int index = Random.Range(0, patrolZone.connectedPatrolAreas.Count);
+                    patrolZone = patrolZone.connectedPatrolAreas[index];
                 }
             }
 
-            patrolPoint = patrolArea.GrabRandomFreePatrolPoint();
+            patrolPoint = patrolZone.GrabRandomFreePatrolPoint(); //Grab a random patrol point in patrol zone
         }
 
-        if (!patrolPoint && npc.patrolProperties.patrolPoint)
+        if (!patrolPoint && npc.patrolProperties.patrolPoint) //If new patrol point does not exist and NPC already has a patrol point, just stay there
             patrolPoint = npc.patrolProperties.patrolPoint;
         else if (npc.patrolProperties.patrolPoint)
-            npc.patrolProperties.patrolPoint.isBusy = false;
+            npc.patrolProperties.patrolPoint.isBusy = false; //If new patrol point exist, then set NPC patrol point busy to false
 
         if(patrolPoint)
-            patrolPoint.isBusy = true;
+            patrolPoint.isBusy = true; // Set new patrol point busy to true
 
         PatrolProperties p = new PatrolProperties();
-        p.SetProperties(patrolArea, patrolPoint);
+        p.SetProperties(patrolZone, patrolPoint); // Set patrol properties and return to NPC
 
         return p;
     }
 
     public PatrolZone FindNearestPatrolArea(Vector3 pos)
     {
+        //For all patrol zones, resort the array in order of distance from NPC
         for(int i = _allPatrolAreas.Count - 1; i >= 0; i--)
         {
             for(int j = 1; j <= i; j++)
@@ -105,6 +113,7 @@ public class PatrolManager : MonoBehaviour
             }
         }
 
+        //Pick the closest free patrol zone
         for(int i = 0; i < _allPatrolAreas.Count; i++)
         {
             if (_allPatrolAreas[i].IsPatrolAreaFree())

@@ -239,6 +239,7 @@ public class TestPlayableExplorer : ExplorerBrain
 
 	protected override void OnHealthZero(Health.HealthChangedEventInfo info)
 	{
+		StartCoroutine(HackDeathRestartLevel());
 		base.OnHealthZero(info);
 	}
 

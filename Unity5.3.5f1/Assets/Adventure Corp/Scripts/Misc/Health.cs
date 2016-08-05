@@ -17,17 +17,12 @@ public class Health : MonoBehaviour
 
     [SerializeField]
     private int _currentHealth;
-    public int currentHealth { get { return _currentHealth; } }
-
-    private float _lastDamageAmount;
-    public float lastDamageAmount { get { return _lastDamageAmount; } }
-
-    private float _lastDamageTime;
-    public float lastDamageTime { get { return _lastDamageTime; } }
-
+    public int currentHealth { get { return _currentHealth; } }    
     
     public bool isDead { get { return _currentHealth <= 0; } }
 
+	private float _sameRecieverTimeEpsilon = 0.1f;
+	private HealthChangedEventInfo _lastHealthEventInfo = null;
 
     public delegate void OnHealthChanged(HealthChangedEventInfo info);
     public event OnHealthChanged onHealthWasInvincible;     // Health was invincible but raise an event anyway
@@ -53,6 +48,11 @@ public class Health : MonoBehaviour
     /// </summary>
     public class HealthChangedEventInfo
     {
+		/// <summary>
+		/// Time that the event took place since application start
+		/// </summary>
+		public float time;
+
         /// <summary>
         /// The final value of damage the Health component calculated from the damage
 		/// this is different to the damage value itself
@@ -84,12 +84,25 @@ public class Health : MonoBehaviour
     {
         if (damage == null)
             return;
-		
-        HealthChangedEventInfo info = new HealthChangedEventInfo();
+
+		// This attack was from the same attacker and far too soon
+		// so to avoid "million punch death" we have a small cooldown
+		if (_lastHealthEventInfo != null
+			&& (_lastHealthEventInfo.responsibleGameObject == responsibleGameObject)
+			&& ((Time.time - _lastHealthEventInfo.time) < _sameRecieverTimeEpsilon))
+		{
+			return;
+		}
+
+
+		HealthChangedEventInfo info = new HealthChangedEventInfo();
+		info.time = Time.time;
         info.damage = damage;
         info.responsibleGameObject = responsibleGameObject;
 		info.responsibleAttackController = responsibleAttackController;
         info.value = damage.amount;
+
+		_lastHealthEventInfo = info;
 
         if (damage.isDamageOverTime)
             StartCoroutine(ApplyDamageToHealthOverTime(info));          
@@ -99,11 +112,7 @@ public class Health : MonoBehaviour
 
     private void ApplyDamageToHealth(HealthChangedEventInfo info)
     {
-        // Time registers
-        _lastDamageTime = Time.time;
-        _lastDamageAmount = info.damage.amount;
-
-        // Already below zero
+		// Already below zero
         if (currentHealth <= 0)
             return;
 

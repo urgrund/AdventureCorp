@@ -13,9 +13,25 @@ public class NPCSkeletonGrunt : NPCBrain
 		base.Start();
 	}
 
-	protected override IEnumerator LogicRoutine()
+	public float gruntDistanceToRun = 4f;
+	public AttackDescriptor gruntJumpAnimation;	
+
+
+	protected override void OnHealthLost(Health.HealthChangedEventInfo info)
 	{
-		//yield return new WaitForSeconds(1f);
+		if (Random.value > 0.5f)
+			return;
+
+		_attackController.YieldControlFromAttack(Random.value > 0.5f);
+		agent.SetDesiredRotation(Helpers.DirectionTo(transform, target), true);
+		_attackController.AttackWithDescriptor(gruntJumpAnimation);
+
+		base.OnHealthLost(info);
+	}
+
+
+	protected override IEnumerator LogicRoutine()
+	{		
 		List<AttackDescriptor> aDescs = _attackController.GetSuggestedAttacksForTarget(attackCollection, target);
 		if (aDescs != null)
 		{
@@ -31,7 +47,7 @@ public class NPCSkeletonGrunt : NPCBrain
 		else
 			destination = target.position;
 
-		if (Helpers.InRadius(transform, target, 5f))
+		if (Helpers.InRadius(transform, target, gruntDistanceToRun))
 		{
 			_desiredMoveSpeed = agent.properties.speed.max * 0.33f;
 			_desiredLookAt = Helpers.DirectionTo(transform, target);

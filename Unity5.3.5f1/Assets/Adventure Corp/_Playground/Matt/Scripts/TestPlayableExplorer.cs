@@ -199,12 +199,21 @@ public class TestPlayableExplorer : ExplorerBrain
 			{
 				// Absorbed hit but no parry
 				// This wil reduce pellet count and push back the explorer
+				// based on the pushback values
 				if (parryPelletCount > 0)
 				{
 					parryPelletCount--;
 					AdjustShieldParryPellets();
 					shieldColorFlashCurrent = shieldColorHit;
-					agent.OverrideMove(-Helpers.DirectionTo(transform, info.responsibleGameObject.transform) * 0.3f);
+
+					float pushBack = agent.properties.pushBackVelocityScale;
+					if (info.responsibleAttackController != null)
+						pushBack *= info.responsibleAttackController.currentAttack.pushBackScale;
+					
+					// For now, blocking can reduce pushback by 2/3rds
+					pushBack *= 0.33f;		
+
+					agent.OverrideMove(-Helpers.DirectionTo(transform, info.responsibleGameObject.transform) * pushBack);
 				}
 				// No pellets and was trying to block, so this is a stagger
 				// to the player explorer and should take the damage that was dealt
@@ -222,7 +231,24 @@ public class TestPlayableExplorer : ExplorerBrain
     }
 
 
-    // ------------------------------------------------------------------------
+	protected override void OnHealthLost(Health.HealthChangedEventInfo info)
+	{
+		Debug.Log("Player lost health - " + info.value + "   at : " + Time.realtimeSinceStartup);
+		base.OnHealthLost(info);
+	}
+
+	protected override void OnHealthZero(Health.HealthChangedEventInfo info)
+	{
+		base.OnHealthZero(info);
+	}
+
+	IEnumerator HackDeathRestartLevel()
+	{
+		yield return new WaitForSeconds(2f);
+		UnityEngine.SceneManagement.SceneManager.LoadScene(UnityEngine.SceneManagement.SceneManager.GetActiveScene().buildIndex);
+	}
+
+	// ------------------------------------------------------------------------
 
 
 
@@ -232,9 +258,9 @@ public class TestPlayableExplorer : ExplorerBrain
 
 
 
-    // --------------------  RANGED FOCUS TEST -------------------------------------
+	// --------------------  RANGED FOCUS TEST -------------------------------------
 
-    float rangedFocusSpeed = 60f;
+	float rangedFocusSpeed = 60f;
     float rangedStartAngle = 45f;
     float rangedDeFocusSpeed = 100f;
     float rangedCurrentAngle = 45;

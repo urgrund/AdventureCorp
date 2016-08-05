@@ -149,22 +149,23 @@ public class AttackController : MonoBehaviour
     public bool YieldControlFromAttack() { return YieldControlFromAttack(false); }
     public bool YieldControlFromAttack(bool force)
     {
-        if (force)
-        {
-            ReleaseAttack(_currentAttack);
-			return true;
-        }
-        else
-        {
-            if (isAttacking)
-            {
+		if (_isAttacking)
+		{
+			if (force)
+			{
+				ReleaseAttack(_currentAttack);
+				return true;
+			}
+			else
+			{
+
 				if (isPastYieldControlTime)
 				{
 					ReleaseAttack(_currentAttack);
 					return true;
 				}
-            }
-        }
+			}
+		}
 		return false;
     }
 
@@ -176,6 +177,8 @@ public class AttackController : MonoBehaviour
 
     void ReleaseAttack(AttackDescriptor attack)
     {
+		Debug.Assert(attack != null, "AttackDescriptor was null");
+
         // Deactivate
         ActivateDamageVolumes(false, attack.volumeIndices);
 		_currentAttack = null;
@@ -187,6 +190,8 @@ public class AttackController : MonoBehaviour
 
 		StopAllCoroutines();
 
+		// Set override cooldown below zero so that
+		// the animation controller can take over
         _agent.animationController.overrideCountDown = -1;
     }
 

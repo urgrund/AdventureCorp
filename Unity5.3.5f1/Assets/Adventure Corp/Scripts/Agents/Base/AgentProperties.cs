@@ -21,6 +21,7 @@ public class AgentProperties : MonoBehaviour
     public AgentPropertiesMovementContainer speed;
     public AgentPropertiesMovementContainer rotation;
     public int pushBackDamageThreshold = 1;
+	public float pushBackVelocityScale = 1;
 }
 
 

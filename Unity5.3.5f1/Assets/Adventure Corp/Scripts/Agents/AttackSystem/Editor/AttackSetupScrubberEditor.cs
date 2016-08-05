@@ -124,7 +124,8 @@ public class AttackSetupScrubberEditor : Editor
 
         BoldLabel("Damage Range and Movement Curves");
         EditorGUILayout.LabelField("Clip Length/Time - (" + (c.scrubTime/a.clip.length)+ "/" + clipTime + ")", EditorStyles.miniLabel);
-        Rect constraints = new Rect(0, 0, 1, 10);
+		float constraintLimit = 5f;
+        Rect constraints = new Rect(0, -constraintLimit, 1, constraintLimit*2f);
         curveX.animationCurveValue = EditorGUILayout.CurveField(curveX.animationCurveValue, Color.red, constraints, null);
         curveY.animationCurveValue = EditorGUILayout.CurveField(curveY.animationCurveValue, Color.green, constraints, null);
         curveZ.animationCurveValue = EditorGUILayout.CurveField(curveZ.animationCurveValue, Color.cyan, constraints, null);

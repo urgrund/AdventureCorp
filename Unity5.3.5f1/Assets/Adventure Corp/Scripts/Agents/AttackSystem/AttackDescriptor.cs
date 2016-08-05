@@ -22,6 +22,9 @@ public class AttackDescriptor : ScriptableObject
 	[Range(0, 1)]
 	public float turnToTargetRatio = 0f;
 
+	// Scalar this attack has on pushback 
+	public float pushBackScale = 1f;
+
 	public Vector2 suggestedUseRange = new Vector2(0.5f, 3f);
 
 	[HideInInspector]

@@ -349,9 +349,13 @@ public sealed class Agent : MonoBehaviour
             this.enabled = false;
         }
         else
-        {            
+        {
+			float pushBack = properties.pushBackVelocityScale;
+			if (info.responsibleAttackController != null)
+				pushBack *= info.responsibleAttackController.currentAttack.pushBackScale;
+
             if (info.value > properties.pushBackDamageThreshold) 
-                OverrideMove(-Helpers.DirectionTo(transform, info.responsibleGameObject.transform) * 0.75f);
+                OverrideMove(-Helpers.DirectionTo(transform, info.responsibleGameObject.transform) * pushBack);
         }
     }
 }

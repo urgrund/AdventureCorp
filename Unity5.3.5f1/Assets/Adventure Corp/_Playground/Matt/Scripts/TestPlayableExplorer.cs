@@ -230,9 +230,25 @@ public class TestPlayableExplorer : ExplorerBrain
         base.OnHealthWasInvincible(info);
     }
 
+	public float lastHitTime = 0f;
+	public float staggerWindow = 1f;
+	public float staggerDmg = 50;
+	public float dmgCount = 0;
 
 	protected override void OnHealthLost(Health.HealthChangedEventInfo info)
 	{
+		if ((Time.time - lastHitTime) < staggerWindow)
+		{
+			dmgCount += info.value;
+			if (dmgCount > staggerDmg)
+				agent.Stagger();
+		}
+		else
+		{			
+			lastHitTime = info.time;
+			dmgCount = info.value;
+		}
+
 		Debug.Log("Player lost health - " + info.value + "   at : " + Time.realtimeSinceStartup);
 		base.OnHealthLost(info);
 	}
@@ -282,7 +298,7 @@ public class TestPlayableExplorer : ExplorerBrain
         }
         else
         {
-            rangedCurrentAngle += Time.deltaTime * rangedDeFocusSpeed;
+			rangedCurrentAngle = rangedStartAngle;// Time.deltaTime * rangedDeFocusSpeed;
         }
 
         if (lr == null)

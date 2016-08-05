@@ -32,6 +32,8 @@ public class NPCSkeletonGrunt : NPCBrain
 
 	protected override IEnumerator LogicRoutine()
 	{		
+		// TODO
+		// Make this into a lookup/dictionary at start 
 		List<AttackDescriptor> aDescs = _attackController.GetSuggestedAttacksForTarget(attackCollection, target);
 		if (aDescs != null)
 		{

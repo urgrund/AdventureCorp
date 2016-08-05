@@ -210,8 +210,11 @@ public abstract class NPCBrain : Brain
         base.Start();
 	}
 
-
+	protected virtual IEnumerator StatePatrolRoutine() { yield return null; }
+	protected virtual IEnumerator StateRetreatRoutine() { yield return null; }
+	protected virtual IEnumerator StateAttackRoutine() { yield return null; }
 	protected abstract IEnumerator LogicRoutine();
+
 	private IEnumerator LogicRoutineInternal()
 	{
 		while (isSpawning)
@@ -275,7 +278,7 @@ public abstract class NPCBrain : Brain
                 float z = MathLab.SinWave(2, 0.65f, 0, Time.time);
                 Vector3 pos = new Vector3(x, 0, z) + sizeUpPos;
                 destination = pos;
-                HelpLab.DrawMarker(pos, 2, Color.red, 0, true);
+                Helpers.Draw.Marker(pos, 2, Color.red, 0, true);
             }
 
             yield return null;
@@ -490,7 +493,7 @@ public abstract class NPCBrain : Brain
 			if (_destination != null)
 			{
 				//Gizmos.DrawLine(transform.position, (Vector3)_destination);
-				Helpers.GizmoDrawRing((Vector3)_destination, _destinationBias);
+				Helpers.Draw.GizmoRing((Vector3)_destination, _destinationBias);
 			}
 
 			Gizmos.color = Color.cyan;
@@ -505,7 +508,7 @@ public abstract class NPCBrain : Brain
 				{
 					if ((i + 1) < p.corners.Length)
 						Gizmos.DrawLine(p.corners[i], p.corners[i + 1]);
-					Helpers.GizmoDrawRing(p.corners[i], _destinationBias);
+					Helpers.Draw.GizmoRing(p.corners[i], _destinationBias);
 				}
 			}
 

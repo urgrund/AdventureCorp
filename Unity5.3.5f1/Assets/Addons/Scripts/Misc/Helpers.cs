@@ -134,24 +134,7 @@ public static class Helpers
             screenPos.y = pad.y;
 
         return Camera.main.ScreenToWorldPoint(screenPos);
-    }
-
-
-    /// <summary>
-    /// Draw a Gizmos ring oriented to the ground
-    /// </summary>
-    public static void GizmoDrawRing(Vector3 position, float radius)
-    {
-        int count = 32;
-        Vector3 start, end;
-        float div = (1 / (float)count) * Mathf.PI * 2;
-        for (int i = 0; i < count; i++)
-        {
-            start = new Vector3(Mathf.Sin(div * i), 0f, Mathf.Cos(div * i)).normalized * radius;
-            end = new Vector3(Mathf.Sin(div * (i + 1)), 0f, Mathf.Cos(div * (i + 1))).normalized * radius;
-            Gizmos.DrawLine(position + start, position + end);
-        }
-    }
+    }  
 
 
     public static Vector3 DirectionTo(Transform from, Vector3 to) { return DirectionTo(from.position, to); }
@@ -252,21 +235,52 @@ public static class Helpers
 
 
 
-	public static void DrawMarker(Vector3 position, float size, Color color, float duration, bool depthTest)
+	
+
+
+
+
+
+	public static class Draw
 	{
-		Vector3 line1PosA = position + Vector3.up * size * 0.5f;
-		Vector3 line1PosB = position - Vector3.up * size * 0.5f;
+		/// <summary>
+		/// Draw a Gizmos ring oriented to the ground
+		/// </summary>
+		public static void GizmoRing(Vector3 position, float radius)
+		{
+			int count = 32;
+			Vector3 start, end;
+			float div = (1 / (float)count) * Mathf.PI * 2;
+			for (int i = 0; i < count; i++)
+			{
+				start = new Vector3(Mathf.Sin(div * i), 0f, Mathf.Cos(div * i)).normalized * radius;
+				end = new Vector3(Mathf.Sin(div * (i + 1)), 0f, Mathf.Cos(div * (i + 1))).normalized * radius;
+				Gizmos.DrawLine(position + start, position + end);
+			}
+		}
 
-		Vector3 line2PosA = position + Vector3.right * size * 0.5f;
-		Vector3 line2PosB = position - Vector3.right * size * 0.5f;
 
-		Vector3 line3PosA = position + Vector3.forward * size * 0.5f;
-		Vector3 line3PosB = position - Vector3.forward * size * 0.5f;
+		/// <summary>
+		/// Draws a cross shaped marker
+		/// </summary>
+		public static void Marker(Vector3 position, float size, Color color, float duration, bool depthTest)
+		{
+			Vector3 line1PosA = position + Vector3.up * size * 0.5f;
+			Vector3 line1PosB = position - Vector3.up * size * 0.5f;
 
-		Debug.DrawLine(line1PosA, line1PosB, color, duration, depthTest);
-		Debug.DrawLine(line2PosA, line2PosB, color, duration, depthTest);
-		Debug.DrawLine(line3PosA, line3PosB, color, duration, depthTest);
+			Vector3 line2PosA = position + Vector3.right * size * 0.5f;
+			Vector3 line2PosB = position - Vector3.right * size * 0.5f;
+
+			Vector3 line3PosA = position + Vector3.forward * size * 0.5f;
+			Vector3 line3PosB = position - Vector3.forward * size * 0.5f;
+
+			Debug.DrawLine(line1PosA, line1PosB, color, duration, depthTest);
+			Debug.DrawLine(line2PosA, line2PosB, color, duration, depthTest);
+			Debug.DrawLine(line3PosA, line3PosB, color, duration, depthTest);
+		}
 	}
+
+
 
 
 }

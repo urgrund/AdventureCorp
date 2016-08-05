@@ -35,8 +35,8 @@ public class PatrolZone : MonoBehaviour
 
     void OnDrawGizmos()
     {
-        Gizmos.color = Color.blue;
-        Helpers.GizmoDrawRing(transform.position, radius);
+        Gizmos.color = Color.blue * new Color(1,1,1,0.25f);
+        Helpers.Draw.GizmoRing(transform.position, radius);
 
         float h = 1f;
         Vector3 size = new Vector3(h * 0.2f, h, h * 0.2f);
@@ -59,7 +59,7 @@ public class PatrolZone : MonoBehaviour
                     for(int j = 0; j <  path.corners.Length - 1; j++)
                     {
                         Gizmos.DrawLine(path.corners[j], path.corners[j + 1]);
-                        Helpers.GizmoDrawRing(path.corners[j], 1.0f);
+                        Helpers.Draw.GizmoRing(path.corners[j], 1.0f);
                     }
                }
             }

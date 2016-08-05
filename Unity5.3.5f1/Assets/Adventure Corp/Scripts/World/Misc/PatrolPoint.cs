@@ -8,14 +8,16 @@ public class PatrolPoint : MonoBehaviour
 
     void OnDrawGizmos()
     {
+		Color alpha = new Color(1, 1, 1, 0.25f);
         if (isBusy)
             Gizmos.color = Color.red;
         else
             Gizmos.color = Color.green;
 
-        Gizmos.DrawSphere(transform.position, 0.2f);
+		Gizmos.color = Gizmos.color * alpha;
 
-        Helpers.GizmoDrawRing(transform.position, 1);
+        Gizmos.DrawSphere(transform.position, 0.2f);
+        Helpers.Draw.GizmoRing(transform.position, 1);
     }
 
 }

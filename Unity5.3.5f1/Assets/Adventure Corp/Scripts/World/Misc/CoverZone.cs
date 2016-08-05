@@ -14,7 +14,7 @@ public class CoverZone : MonoBehaviour
 	public float size = 1f;
 	public Shape shape = Shape.Square;
 
-	public float rayUp = 3;
+	float rayUp = 3;
 
 	float _pointSpacing = 4.5f;
 	private List<Vector3> _points = new List<Vector3>();

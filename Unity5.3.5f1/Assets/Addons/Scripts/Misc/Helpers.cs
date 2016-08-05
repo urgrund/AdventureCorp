@@ -69,9 +69,22 @@ public static class Helpers
 
 
 
+	public static Bounds GetBoundsOfCompoundObject(GameObject gameObject)
+	{
+		MeshRenderer firstRenderer = gameObject.GetComponent<MeshRenderer>();
+		Bounds combinedBounds = firstRenderer.bounds;
+		MeshRenderer[] renderers = gameObject.GetComponentsInChildren(typeof(MeshRenderer)) as MeshRenderer[];
+		if (renderers != null)
+		{
+			for (int i = 0; i < renderers.Length; i++)
+				if (renderers[i] != firstRenderer) combinedBounds.Encapsulate(renderers[i].bounds);
+		}
+		return combinedBounds;
+	}
 
 
-    public static List<T> ListResize<T>(List<T> list, int sz, T c = default(T))
+
+	public static List<T> ListResize<T>(List<T> list, int sz, T c = default(T))
     {
         int cur = list.Count;
         if (sz < cur)

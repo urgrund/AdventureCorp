@@ -14,12 +14,20 @@ public class CoverZone : MonoBehaviour
 
 	void Reset()
 	{
-
+		Bounds b = Helpers.GetBoundsOfCompoundObject(this.gameObject);
+		size = b.size.magnitude * 0.5f;
 	}
+
+
+	// TODO 
+	// Use the code I wrote for the 'coin spacing' 
+	// that had rings and straight lines to dynamically 
+	// space out cover points
+	private float spacing = 1f;
 
 	void OnDrawGizmos()
 	{
 		Gizmos.color = Color.yellow;
-		Helpers.Draw.GizmoRing(transform.position, size);
+		Helpers.Draw.GizmoRing(transform.position + Vector3.up, size);
 	}
 }

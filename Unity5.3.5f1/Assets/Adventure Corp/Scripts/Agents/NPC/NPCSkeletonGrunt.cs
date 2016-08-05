@@ -16,16 +16,17 @@ public class NPCSkeletonGrunt : NPCBrain
 	protected override IEnumerator LogicRoutine()
 	{
 		//yield return new WaitForSeconds(1f);
-		List<AttackDescriptor> ad = _attackController.GetSuggestedAttacksForTarget(attackCollection, target);
-		if (ad != null)
+		List<AttackDescriptor> aDescs = _attackController.GetSuggestedAttacksForTarget(attackCollection, target);
+		if (aDescs != null)
 		{
+			AttackDescriptor ad = aDescs[Random.Range(0, aDescs.Count)];
 			if (_attackController.isAttacking)
 			{
 				if (_attackController.YieldControlFromAttack())
-					_attackController.AttackWithDescriptor(ad[0], target);
+					_attackController.AttackWithDescriptor(ad, target);
 			}
 			else
-				_attackController.AttackWithDescriptor(ad[0], target);
+				_attackController.AttackWithDescriptor(ad, target);
 		}
 		else
 			destination = target.position;

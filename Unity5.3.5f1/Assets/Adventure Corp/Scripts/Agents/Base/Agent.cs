@@ -169,7 +169,7 @@ public sealed class Agent : MonoBehaviour
 	/// <summary>
 	/// Stagger the Agent, restricting movement 
 	/// </summary>
-	public void Stagger(float time = 3)
+	public void Stagger(float time = 2)
     {
         if (!_isStaggered)
         {

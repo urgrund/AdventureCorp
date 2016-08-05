@@ -50,7 +50,7 @@ PluginImporter:
       settings:
         CPU: AnyCPU
         DontProcess: False
-        PlaceholderPath: Assets/Rewired/Internal/Libraries/Runtime/Rewired_Core.dll
+        PlaceholderPath: Assets/Addons/AssetStore/Rewired/Internal/Libraries/Runtime/Rewired_Core.dll
         SDK: UWP
         ScriptingBackend: DotNet
     iOS:

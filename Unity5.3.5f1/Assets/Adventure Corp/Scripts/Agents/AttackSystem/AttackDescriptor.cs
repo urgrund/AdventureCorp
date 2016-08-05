@@ -10,11 +10,10 @@ public class AttackDescriptor : ScriptableObject
 	// --------------------------------------------------------------------------
 	// Attack Descriptor Members
 
-	public bool canBeBroken = false;
+	public bool canAttackBeParried = true;
 	public Lock controllerLock = Lock.None;
 	public bool controllerGravity = true;
-
-	//[Range(0,360)]public float suggestedUseAngle = 90f;
+		
 	public Angle suggestedUseAngle = Angle.Breadth;
 	[Range(0, 1)]
 	public float yieldControlRatio = 1f;

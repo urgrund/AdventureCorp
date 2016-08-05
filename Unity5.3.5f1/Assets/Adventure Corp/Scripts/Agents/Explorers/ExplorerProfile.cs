@@ -39,10 +39,10 @@ public class ExplorerProfile : ScriptableObject
 	/// <summary>
 	/// Container for all visuals for this explorer for use in HUD's, menu's... etc
 	/// </summary>
-    public Visuals visuals;
+    public Visuals visuals = new Visuals();
 
 	/// <summary>
 	/// Stats of the explorer 
 	/// </summary>
-    public Stats statistics; 
+    public Stats statistics = new Stats(); 
 }

@@ -115,13 +115,13 @@ public class TestPlayableExplorer : ExplorerBrain
 
     protected override void Update()
 	{
-#if UNITY_EDITOR
+//#if UNITY_EDITOR
 		if (!CameraSystem.instance)
 		{
 			Vector3 offset = new Vector3(-5, 8, -5);
 			Camera.main.transform.position = transform.position + offset;
 		}
-#endif
+//#endif
 		base.Update();		
 		if (!agent.isStaggered)
 		{
@@ -164,55 +164,59 @@ public class TestPlayableExplorer : ExplorerBrain
         if (player.GetButton(INPUT_SHIELD))
             agent.SetDesiredRotation(info.responsibleGameObject.transform, true);
 
-		//print(info.responsibleAttackController.currentAttack.name + "   " + info.responsibleAttackController.currentAttackStartTime);
 
-		// Parry based on how soon before the first damage is dealt
-		// by an agent...  this keeps the timing consistent and based on 
-		// animation times/lengths rather than 
-		float realStartTimeForDamage = info.responsibleAttackController.currentAttackStartTime + info.responsibleAttackController.currentAttackValidDamageRangeStartTime;
-		float shieldHoldTime = Time.time - shieldLastHoldTime;
+		// Parry is based on the responsible object 
+		// having a valid attack controller 
+		if (info.responsibleAttackController != null)
+		{
+			// Parry based on how soon before the first damage is dealt
+			// by an agent...  this keeps the timing consistent and based on 
+			// animation times/lengths rather than 
+			float realStartTimeForDamage = info.responsibleAttackController.currentAttackStartTime + info.responsibleAttackController.currentAttackValidDamageRangeStartTime;
+			float shieldHoldTime = Time.time - shieldLastHoldTime;
 
-		// Player timed the shield hold at the right time 
-		// triggering a parry/counter attack 
-        //if ((Time.time - shieldLastHoldTime) <= shieldParryTimeWindow)
-		if((realStartTimeForDamage - shieldLastHoldTime) <= shieldParryTimeWindow)
-        {
-            shieldColorFlashCurrent = shieldColorParry;			
-            AttackNowAsMelee(attackCollection.melee1);
-
-            // Stagger and pushback on successful parry                                 
-            Agent a = info.responsibleGameObject.GetComponent<Agent>();
-            if (a)
-            {
-                a.OverrideMove(Helpers.DirectionTo(transform, info.responsibleGameObject.transform) * 1f);
-                a.Stagger();
-            }
-
-            // Test idea - push camera in a little
-            Vector3 p = Camera.main.transform.position + Camera.main.transform.forward;
-            Camera.main.transform.position = p;
-        }
-        else
-        {
-			// Absorbed hit but no parry
-			// This wil reduce pellet count and push back the explorer
-			if (parryPelletCount > 0)
+			// Player timed the shield hold at the right time 
+			// triggering a parry/counter attack 
+			if (info.responsibleAttackController.currentAttack.canAttackBeParried &&
+				(realStartTimeForDamage - shieldLastHoldTime) <= shieldParryTimeWindow)
 			{
-				parryPelletCount--;
-				AdjustShieldParryPellets();
-				shieldColorFlashCurrent = shieldColorHit;
-				agent.OverrideMove(-Helpers.DirectionTo(transform, info.responsibleGameObject.transform) * 0.3f);
+				shieldColorFlashCurrent = shieldColorParry;
+				AttackNowAsMelee(attackCollection.melee1);
+
+				// Stagger and pushback on successful parry                                 
+				Agent a = info.responsibleGameObject.GetComponent<Agent>();
+				if (a)
+				{
+					a.OverrideMove(Helpers.DirectionTo(transform, info.responsibleGameObject.transform) * 1f);
+					a.Stagger();
+				}
+
+				// Test idea - push camera in a little
+				Vector3 p = Camera.main.transform.position + Camera.main.transform.forward;
+				Camera.main.transform.position = p;
 			}
-			// No pellets and was trying to block, so this is a stagger
-			// to the player explorer and should take the damage that was dealt
 			else
 			{
-				shield.gameObject.SetActive(false);
-				agent.health.invincible = false;
-				agent.health.TakeDamage(info.damage, info.responsibleGameObject);
-				agent.Stagger();
+				// Absorbed hit but no parry
+				// This wil reduce pellet count and push back the explorer
+				if (parryPelletCount > 0)
+				{
+					parryPelletCount--;
+					AdjustShieldParryPellets();
+					shieldColorFlashCurrent = shieldColorHit;
+					agent.OverrideMove(-Helpers.DirectionTo(transform, info.responsibleGameObject.transform) * 0.3f);
+				}
+				// No pellets and was trying to block, so this is a stagger
+				// to the player explorer and should take the damage that was dealt
+				else
+				{
+					shield.gameObject.SetActive(false);
+					agent.health.invincible = false;
+					agent.health.TakeDamage(info.damage, info.responsibleGameObject);
+					agent.Stagger();
+				}
 			}
-        }
+		}
 
         base.OnHealthWasInvincible(info);
     }
@@ -269,10 +273,21 @@ public class TestPlayableExplorer : ExplorerBrain
         lr.material.color = c;
     }
 
-    // ------------------------------------------------------------------------
-
-	
+	// ------------------------------------------------------------------------
 
 
+
+	void OnGUI()
+	{
+		int healthPellets = agent.health.maxHealth / 10;
+
+		GUILayout.BeginHorizontal();
+		for (int i = 0; i < healthPellets; i++)
+		{			
+			GUI.color = agent.health.currentHealth > (i * 10) ? Color.green : Color.red;
+			GUILayout.Label("♥");			
+		}
+		GUILayout.EndHorizontal();
+	}
 
 }

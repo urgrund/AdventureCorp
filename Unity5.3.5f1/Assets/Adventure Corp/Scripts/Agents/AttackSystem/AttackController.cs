@@ -296,9 +296,10 @@ public class AttackController : MonoBehaviour
     private Vector3 curveDirection;
     void MoveAgentWithAttackCurves(AttackDescriptor attack, float normalizedTime)
     {
-        _agent.isApplyGravity = false;
         curvePosition = GetPositionOnCurve(attack, normalizedTime);
         curveDirection = _agent.transform.TransformDirection(curvePosition - curveLastPosition);
+
+		Debug.DrawRay(transform.position + Vector3.up, curveDirection, Color.red, 1f);
 
         if(curveDirection.magnitude > 0)
             _agent.OverrideMove(curveDirection);

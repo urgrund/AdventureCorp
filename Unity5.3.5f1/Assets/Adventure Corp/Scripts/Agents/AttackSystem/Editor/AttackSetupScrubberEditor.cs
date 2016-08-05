@@ -11,7 +11,7 @@ public class AttackSetupScrubberEditor : Editor
 
     SerializedObject attDesc;
 
-    SerializedProperty canBeBroken;
+    SerializedProperty canAttackBeParried;
     SerializedProperty controllerLock;
 	SerializedProperty controllerGravity;
 	SerializedProperty suggestedUseRange;
@@ -47,7 +47,7 @@ public class AttackSetupScrubberEditor : Editor
         AttackSetupScrubber t = target as AttackSetupScrubber;
         attDesc = new SerializedObject(t.attackDescriptor);
 
-        canBeBroken = attDesc.FindProperty("canBeBroken");
+		canAttackBeParried = attDesc.FindProperty("canAttackBeParried");
         controllerLock = attDesc.FindProperty("controllerLock");
 		controllerGravity = attDesc.FindProperty("controllerGravity");
 		suggestedUseRange = attDesc.FindProperty("suggestedUseRange");
@@ -98,7 +98,7 @@ public class AttackSetupScrubberEditor : Editor
         Animation a = c.animatedGO;
 
         BoldLabel("Attack Properties");
-        EditorGUILayout.PropertyField(canBeBroken);
+        EditorGUILayout.PropertyField(canAttackBeParried);
         EditorGUILayout.PropertyField(controllerLock);
 		EditorGUILayout.PropertyField(controllerGravity);
 		EditorGUILayout.PropertyField(suggestedUseRange);

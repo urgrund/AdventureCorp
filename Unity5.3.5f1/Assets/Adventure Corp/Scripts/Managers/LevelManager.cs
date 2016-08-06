@@ -37,8 +37,9 @@ public class LevelManager : MonoBehaviour
     void Awake()
     {
         _instance = this;
-        Application.targetFrameRate = 20;
-    }
+        Application.targetFrameRate = 60;
+		Random.seed = (int)System.DateTime.Now.Ticks;
+	}
 
     public static void Register(Health h)
     {

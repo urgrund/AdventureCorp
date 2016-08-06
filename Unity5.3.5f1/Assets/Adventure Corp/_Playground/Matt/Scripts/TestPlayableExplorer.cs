@@ -232,7 +232,7 @@ public class TestPlayableExplorer : ExplorerBrain
 
 	public float lastHitTime = 0f;
 	public float staggerWindow = 1f;
-	public float staggerDmg = 50;
+	public float staggerDmg = 30;
 	public float dmgCount = 0;
 
 	protected override void OnHealthLost(Health.HealthChangedEventInfo info)
@@ -241,7 +241,9 @@ public class TestPlayableExplorer : ExplorerBrain
 		{
 			dmgCount += info.value;
 			if (dmgCount > staggerDmg)
+			{				
 				agent.Stagger();
+			}
 		}
 		else
 		{			
@@ -249,7 +251,7 @@ public class TestPlayableExplorer : ExplorerBrain
 			dmgCount = info.value;
 		}
 
-		Debug.Log("Player lost health - " + info.value + "   at : " + Time.realtimeSinceStartup);
+		//Debug.Log("Player lost health - " + info.value + "   at : " + Time.realtimeSinceStartup);
 		base.OnHealthLost(info);
 	}
 
@@ -325,6 +327,7 @@ public class TestPlayableExplorer : ExplorerBrain
 		int healthPellets = agent.health.maxHealth / 10;
 
 		GUILayout.BeginHorizontal();
+		GUILayout.Label("     -");
 		for (int i = 0; i < healthPellets; i++)
 		{			
 			GUI.color = agent.health.currentHealth > (i * 10) ? Color.green : Color.red;

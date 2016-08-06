@@ -19,7 +19,10 @@ public class NPCSkeletonGrunt : NPCBrain
 
 	protected override void OnHealthLost(Health.HealthChangedEventInfo info)
 	{
-		if (Random.value > 0.5f)
+		if (info.responsibleAttackController == null)
+			return; 
+
+		if (Random.value > 0.33f)
 			return;
 
 		_attackController.YieldControlFromAttack(Random.value > 0.5f);
@@ -30,6 +33,20 @@ public class NPCSkeletonGrunt : NPCBrain
 	}
 
 
+
+	void Attack(AttackDescriptor ad)
+	{
+		if (_attackController.isAttacking)
+		{
+			if (_attackController.YieldControlFromAttack())
+				_attackController.AttackWithDescriptor(ad, target);
+		}
+		else
+			_attackController.AttackWithDescriptor(ad, target);
+	}
+
+	
+
 	protected override IEnumerator LogicRoutine()
 	{		
 		// TODO
@@ -38,21 +55,33 @@ public class NPCSkeletonGrunt : NPCBrain
 		if (aDescs != null)
 		{
 			AttackDescriptor ad = aDescs[Random.Range(0, aDescs.Count)];
-			if (_attackController.isAttacking)
+
+			// If the distance of the attack is 'far', then 
+			// chose whether to actually use it or to run
+			// closer for a different attack
+			if (!Helpers.InRadius(transform, target, gruntDistanceToRun))
 			{
-				if (_attackController.YieldControlFromAttack())
-					_attackController.AttackWithDescriptor(ad, target);
+				if (Random.value > 0.2f)
+				{
+					_desiredMoveSpeed = agent.properties.speed.max;
+					_desiredLookAtTarget = target;
+					yield return new WaitForSeconds(0.3f);												
+				}
+				else
+					Attack(ad);
 			}
 			else
-				_attackController.AttackWithDescriptor(ad, target);
+				Attack(ad);
 		}
 		else
 			destination = target.position;
 
+
+		// Change speed depending on distance 
 		if (Helpers.InRadius(transform, target, gruntDistanceToRun))
 		{
 			_desiredMoveSpeed = agent.properties.speed.max * 0.33f;
-			_desiredLookAt = Helpers.DirectionTo(transform, target);
+			_desiredLookAtTarget = target;
 		}
 		else
 		{

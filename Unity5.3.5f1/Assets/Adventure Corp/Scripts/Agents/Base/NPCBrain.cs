@@ -51,12 +51,13 @@ public abstract class NPCBrain : Brain
 	public event ArrivedAtDestination onArrivedAtNavMeshPosition;
 
 	public BaseAttackCollection attackCollection;
-	protected AttackController _attackController;   
+	protected AttackController _attackController;
 
 
 
 	// NPC's should modify these properties which this
 	// base class will use to call the Agent
+	protected Transform _desiredLookAtTarget = null;
 	protected Vector3? _desiredLookAt = null;
 	protected Vector3 _desiredMoveDirection = Vector3.zero;
 	protected float _desiredMoveSpeed;
@@ -374,7 +375,9 @@ public abstract class NPCBrain : Brain
 	{
 		if (!_attackController.isControllingAgentVelocity && !isLookAtPlayer)
 		{
-			if(_desiredLookAt != null)
+			if(_desiredLookAtTarget !=null)
+				agent.SetDesiredVelocity(_desiredMoveDirection * _desiredMoveSpeed, _desiredLookAtTarget.position);
+			else if(_desiredLookAt != null)
 				agent.SetDesiredVelocity(_desiredMoveDirection * _desiredMoveSpeed, (Vector3)_desiredLookAt);
 			else
 				agent.SetDesiredVelocity(_desiredMoveDirection * _desiredMoveSpeed, true);

@@ -9,10 +9,7 @@ public class PatrolPoint : MonoBehaviour
     void OnDrawGizmos()
     {
 		Color alpha = new Color(1, 1, 1, 0.25f);
-        if (isBusy)
-            Gizmos.color = Color.red;
-        else
-            Gizmos.color = Color.green;
+		Gizmos.color = isBusy ? Color.green : Color.red;        
 
 		Gizmos.color = Gizmos.color * alpha;
 
@@ -21,3 +18,4 @@ public class PatrolPoint : MonoBehaviour
     }
 
 }
+ 

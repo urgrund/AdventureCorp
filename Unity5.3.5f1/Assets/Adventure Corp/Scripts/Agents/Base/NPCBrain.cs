@@ -19,9 +19,7 @@ public abstract class NPCBrain : Brain
 	public enum State
 	{
 		Idle,
-		Patrol,
 		Retreat,
-        SizeUp,
 		Attack
 	}
     private State _previousState;
@@ -38,7 +36,6 @@ public abstract class NPCBrain : Brain
             {
                 _previousState = _state;
                 _state = value;
-                ChangeState();
             }
         }
 	}
@@ -115,7 +112,7 @@ public abstract class NPCBrain : Brain
 
     private NavMeshPath _navMeshPathToDestination;
 
-	private Vector3? _navMeshNextPosition;
+	protected Vector3? _navMeshNextPosition;
 	private int _navMeshNextPositionIndex = 0;
 	public int navMeshNextPositionIndex { get { return _navMeshNextPositionIndex; } }
 	private bool _isNavMeshPositionFinal = false;
@@ -206,7 +203,7 @@ public abstract class NPCBrain : Brain
 		_desiredMoveSpeed = agent.properties.speed.max;
 		_attackController.SetOwnerHealthToDamageVolumes(agent.health);
 		StartCoroutine(LogicRoutineInternal()); // Coroutine that handles unique behaviours for each AI
-        StartCoroutine(LogicStateRoutine()); // Coroutine that handles all common states between AI
+        StartCoroutine(LogicStates());
         personalSpaceRadius = agent.controller.radius * 3.5f;//Personal space radius is always three times the size of the radius of the controller
         base.Start();
 	}
@@ -214,6 +211,7 @@ public abstract class NPCBrain : Brain
 	protected virtual IEnumerator StatePatrolRoutine() { yield return null; }
 	protected virtual IEnumerator StateRetreatRoutine() { yield return null; }
 	protected virtual IEnumerator StateAttackRoutine() { yield return null; }
+    protected virtual IEnumerator StateSizeUpRoutine() { yield return null; }
 	protected abstract IEnumerator LogicRoutine();
 
 	private IEnumerator LogicRoutineInternal()
@@ -228,94 +226,18 @@ public abstract class NPCBrain : Brain
 		}
 	}
 
-    private IEnumerator LogicStateRoutine()
+    private IEnumerator LogicStates()
     {
         while (isSpawning)
             yield return null;
 
         while (!agent.health.isDead)
         {
-            //-----------------------------------------Patrol State-----------------------------------------------
-            if (state == State.Patrol)
-            {
-                if (PatrolManager.instance)
-                    patrolProperties = PatrolManager.instance.GrabPatrolProperties(this); // Find the nearest patrol zone and point
-
-                if (!patrolProperties.patrolPoint) // If patrol point does not exist just stand still
-                    destination = transform.position;
-                else
-                    destination = patrolProperties.patrolPoint.transform.position; // Move towards patrol point
-
-                while (_navMeshNextPosition != null && state == State.Patrol) // Until destination is reached and I am still patroling keep moving towards destination
-                    yield return null;
-
-                float t = 0;
-                while (t < 2.5f && state == State.Patrol) // Once arrive to destination and I am still patroling, wait X time on the patrol point
-                {
-                    t += Time.deltaTime;
-                    yield return null;
-                }
-
-                yield return null;
-            }
-            //----------------------------------RETREAT STATE-------------------------------------------------------
-            else if (state == State.Retreat)
-            {
-                destination = FindRetreatTarget(); // Find a retreat position to move towards to
-
-                float t = 0;
-                while (t < 0.2f && state == State.Retreat) // If I am still retreating, wait X time before calculating a new retreat point
-                {
-                    t += Time.deltaTime;
-                    yield return null;
-                }
-
-                yield return null;
-            }
-            //---------------------------------SIZE UP STATE--------------------------------------------------------
-            else if(state == State.SizeUp)
-            {
-                float x = MathLab.CosWave(2, 0.65f, 0, Time.time);
-                float z = MathLab.SinWave(2, 0.65f, 0, Time.time);
-                Vector3 pos = new Vector3(x, 0, z) + sizeUpPos;
-                destination = pos;
-                Helpers.Draw.Marker(pos, 2, Color.red, 0, true);
-            }
-
+            yield return StatePatrolRoutine();
+            yield return StateRetreatRoutine();
+            yield return StateSizeUpRoutine();
             yield return null;
         }
-    }
-
-    void ChangeState()
-    {
-        if (_previousState == State.Patrol)
-            PatrolExit();
-
-        if (_previousState == State.SizeUp)
-            SizeUpExit();
-
-        if (_state == State.SizeUp)
-            SizeUpEnter();
-
-    }
-
-    void PatrolExit()
-    {
-        patrolProperties.Clear();
-    }
-
-    Vector3 sizeUpPos;
-    void SizeUpEnter()
-    {
-        _desiredMoveSpeed = agent.properties.speed.max * 0.15f;
-        isLookAtPlayer = true;
-        sizeUpPos = transform.position;
-    }
-
-    void SizeUpExit()
-    {
-        _desiredMoveSpeed = agent.properties.speed.max;
-        isLookAtPlayer = false;
     }
 
     protected override void Update()
@@ -459,7 +381,7 @@ public abstract class NPCBrain : Brain
             return Vector3.Cross(dir1, Vector3.up);
     }
 
-    Vector3 FindRetreatTarget()
+    protected Vector3 FindRetreatTarget()
     {
         //TODO Have some logic here to find retreat points set up by player or dynamic like hide behind a grunt or something.
 

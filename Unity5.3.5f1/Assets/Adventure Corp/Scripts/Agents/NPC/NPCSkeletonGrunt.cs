@@ -65,7 +65,7 @@ public class NPCSkeletonGrunt : NPCBrain
 				{
 					_desiredMoveSpeed = agent.properties.speed.max;
 					_desiredLookAtTarget = target;
-					yield return new WaitForSeconds(0.3f);												
+					yield return new WaitForSeconds(0.5f);												
 				}
 				else
 					Attack(ad);

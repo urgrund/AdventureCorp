@@ -210,8 +210,8 @@ public class TestPlayableExplorer : ExplorerBrain
 					if (info.responsibleAttackController != null)
 						pushBack *= info.responsibleAttackController.currentAttack.pushBackScale;
 					
-					// For now, blocking can reduce pushback by 2/3rds
-					pushBack *= 0.33f;		
+					// Temp idea to reduce push back if blocking
+					pushBack *= 0.66f;		
 
 					agent.OverrideMove(-Helpers.DirectionTo(transform, info.responsibleGameObject.transform) * pushBack);
 				}
@@ -222,6 +222,7 @@ public class TestPlayableExplorer : ExplorerBrain
 					shield.gameObject.SetActive(false);
 					agent.health.invincible = false;
 					agent.health.TakeDamage(info.damage, info.responsibleGameObject);
+					print("foo");
 					agent.Stagger();
 				}
 			}

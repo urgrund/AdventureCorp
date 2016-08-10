@@ -1,11 +1,33 @@
 ﻿using UnityEngine;
+using UnityEditor;
 using System.Collections;
 
 [RequireComponent(typeof(CharacterController))]
 [RequireComponent(typeof(Health))]
 public sealed class Agent : MonoBehaviour
 {
-    private CharacterController _controller;
+	[MenuItem("GameObject/Adventure Corp/Agent", false, 10)]
+	static void CreateCustomGameObject(MenuCommand menuCommand)
+	{
+		// Create a custom game object
+		GameObject go = new GameObject("p_Agent_NewAgent");
+		go.AddComponent<CharacterController>();
+		go.AddComponent<Agent>();
+		go.AddComponent<Health>();
+		go.AddComponent<AttackController>();
+		go.AddComponent<AgentAnimationController>();
+
+		// Ensure it gets reparented if this was a context click (otherwise does nothing)
+		GameObjectUtility.SetParentAndAlign(go, menuCommand.context as GameObject);
+		// Register the creation in the undo system
+		Undo.RegisterCreatedObjectUndo(go, "Create " + go.name);
+		Selection.activeObject = go;
+	}
+
+
+
+
+	private CharacterController _controller;
 	public bool isGrounded { get { return _controller.isGrounded; } }
     public CharacterController controller { get { return _controller; } }
 

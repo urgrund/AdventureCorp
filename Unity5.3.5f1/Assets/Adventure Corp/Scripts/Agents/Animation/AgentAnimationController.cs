@@ -17,7 +17,7 @@ public class AgentAnimationController : MonoBehaviour
     private bool _isAgentAttached = false;
 
 
-    public string upperBodyTransformBoneName = "spine";
+    public string upperBodyTransformBoneName = "Character1_Spine";
     Transform _upperBodyTransform;
     
     /// <summary>
@@ -59,7 +59,7 @@ public class AgentAnimationController : MonoBehaviour
     private Animation _animatedGameObject;
     public Animation animatedGameObject { get { return _animatedGameObject; } }
 
-    public List<Material> _materials;
+    List<Material> _materials;
 
     // ----------------------------------------
     void Awake()

@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 
 
 /// <summary>
@@ -8,9 +9,7 @@ using System.Collections;
 /// </summary>
 public abstract class ExplorerBrain : Brain
 {
-
-
-    // ------   INPUT -----------------------------
+	// ------   INPUT -----------------------------
 
     /// <summary>
     /// ID for player controllers
@@ -45,18 +44,15 @@ public abstract class ExplorerBrain : Brain
     /// The profile object of this explorer
     /// </summary>
     public ExplorerProfile profile;
-
-	/// <summary>
-	/// Object to hold all attack information
-	/// </summary>
-	public BaseAttackCollection attackCollection;
+	public ExplorerAttackCollection attackCollection;
+	public AnimationClipProperties shiledUpClipProperties;
 	protected AttackController _attackController;
 
 
 
 	protected override void Awake()
     {
-		Debug.Log(profile.explorerName + " entered the game!");
+		Debug.Log(profile.explorerName + " entered the dungeon!");
         _player = Rewired.ReInput.players.GetPlayer(ID);
         base.Awake();
     }
@@ -119,12 +115,12 @@ public abstract class ExplorerBrain : Brain
 
 
 
-    protected void AttackNowAsMelee(AttackDescriptor attack)
+    protected void AttackNowAsMelee()
     {
 		if (agent.isGrounded)
 		{
-			LookAtNearestHealthComponent();
-			_attackController.AttackWithDescriptor(attackCollection.melee1);
+			LookAtNearestHealthComponent();		
+			_attackController.AttackWithDescriptor(attackCollection.GetNextMeleeFromSequence(_attackController));
 		}
     }
 
@@ -132,7 +128,7 @@ public abstract class ExplorerBrain : Brain
     {
 		if (agent.isGrounded)
 		{
-			_attackController.AttackWithDescriptor(attackCollection.ranged1);
+			_attackController.AttackWithDescriptor(attack);
 		}
     }
 
@@ -152,22 +148,21 @@ public abstract class ExplorerBrain : Brain
 				if (_inputDirection.magnitude > _inputThreshold)
 				{
 					agent.SetDesiredRotation(_inputDirection.normalized, true);
-					agent.OverrideMove(_inputDirection.normalized * Time.deltaTime * profile.statistics.dashSpeed, profile.statistics.dashDuration );
+					//agent.OverrideMove(_inputDirection.normalized * Time.deltaTime * profile.statistics.dashSpeed, profile.statistics.dashDuration );
+					_attackController.AttackWithDescriptor(attackCollection.dash);
 					return;
 				}
 			}
 		}
 
-
 		// If movment, then break the attack
 		if (_inputDirection.magnitude > _inputThreshold)
-            if (_attackController.isAttacking)
-				_attackController.YieldControlFromAttack();
+			_attackController.YieldControlFromAttack();
 
         if (player.GetButtonDown(INPUT_MELEE))
-            AttackNowAsMelee(attackCollection.melee1);
+            AttackNowAsMelee();
         else if (player.GetButtonDown(INPUT_RANGED))
-            AttackNowAsRanged(attackCollection.ranged1);
+            AttackNowAsRanged(attackCollection.ranged);
     }
 
 
@@ -175,21 +170,22 @@ public abstract class ExplorerBrain : Brain
     {
         if (_inputDirection.magnitude > 0)
         {
-			if (!_attackController.isControllingAgentVelocity
-				&& agent.isGrounded
-				&& !agent.isOverrideMoveThisFrame)
+			if (agent.isGrounded && !agent.isOverrideMoveThisFrame)
 			{
-				agent.SetDesiredVelocity(_inputDirection * agent.properties.speed.max, true);
+				if (!_attackController.isControllingAgentVelocity)
+				{
+					agent.SetDesiredVelocity(_inputDirection * agent.properties.speed.max, true);
+				}
+				else
+				{
+					if (_attackController.isAttacking && !_attackController.isPastTurnToTime)
+						agent.SetDesiredRotation(_inputDirection);
+				}
 			}
         }
     }
 
-	void OnGUI()
-	{
-		if (GUILayout.Button("Stagger"))
-			agent.Stagger();
-	}
-
+	
 
     void OnDrawGizmos()
     {

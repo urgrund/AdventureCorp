@@ -15,6 +15,12 @@ public class AttackDescriptor : ScriptableObject
 	public bool controllerGravity = true;
 		
 	public Angle suggestedUseAngle = Angle.Breadth;
+
+	// Start playing this animation this far in already
+	[Range(0, 1)]
+	public float attackStartOffset = 0f;
+
+	// The attack can yield control back to another animation after this
 	[Range(0, 1)]
 	public float yieldControlRatio = 1f;
 

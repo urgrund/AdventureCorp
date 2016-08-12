@@ -16,23 +16,24 @@ public class AttackController : MonoBehaviour
 	Agent _agent;
 
 	// Target to turn towards whilst attacking
-	Transform turnToTarget = null;
+	Transform _turnToTarget = null;
     
     [HideInInspector]
     public Damager[] damagers;
 		
-	//public AttackDescriptor[] attacks;
-    AttackDescriptor _currentAttack;
-	public AttackDescriptor currentAttack { get { return _currentAttack; } }
-
-	float _currentAttackStartTime = 0;
-	public float currentAttackStartTime { get { return _currentAttackStartTime; } }
-
     private bool _isAttacking = false;
     public bool isAttacking { get { return _isAttacking; } }
 
     private bool _isControllingAgentVelocity = false;
     public bool isControllingAgentVelocity { get { return _isControllingAgentVelocity; } }
+
+
+
+	AttackDescriptor _currentAttack;
+	public AttackDescriptor currentAttack { get { return _currentAttack; } }
+
+	float _currentAttackStartTime = 0;
+	public float currentAttackStartTime { get { return _currentAttackStartTime; } }
 
 	/// <summary>
 	/// Length, in seconds, of the clip played in this attack
@@ -41,6 +42,11 @@ public class AttackController : MonoBehaviour
 	{
 		get { return _currentAttack.clipProperties.clip.length * (1f / _currentAttack.clipProperties.playSpeed); }
 	}
+
+	/// <summary>
+	/// Normalized time into this attack
+	/// </summary>
+	public float currentAttackTime { get { return t; } }
 
 	/// <summary>
 	/// When, in seconds, does this attack activate the damage volumes
@@ -70,11 +76,7 @@ public class AttackController : MonoBehaviour
 	// ------------------------------------------------------------------------------
 
 
-
-
-	/// <summary>
-	/// Returns if the attack animation is allowed to be broken
-	/// </summary>
+		
 	public bool isPastYieldControlTime
     {
         get
@@ -85,6 +87,17 @@ public class AttackController : MonoBehaviour
                 return true;
         }
     }
+
+	public bool isPastTurnToTime
+	{
+		get
+		{
+			if (isAttacking)
+				return t > _currentAttack.turnToTargetRatio;
+			else
+				return true;
+		}
+	}
 
 
 	/// <summary>
@@ -98,7 +111,7 @@ public class AttackController : MonoBehaviour
         if (isPastYieldControlTime)
         {
             StopAllCoroutines();
-			turnToTarget = target;
+			_turnToTarget = target;
             StartCoroutine(RunJobRoutine(d));
             if (d.eventor != null)
                 EventorSchedule.RunAtTransformAsChild(d.eventor, this.transform);
@@ -186,7 +199,7 @@ public class AttackController : MonoBehaviour
         _agent.isApplyGravity = true;
         _isAttacking = false;
         _isControllingAgentVelocity = false;
-		turnToTarget = null;
+		_turnToTarget = null;
 
 		StopAllCoroutines();
 
@@ -241,8 +254,8 @@ public class AttackController : MonoBehaviour
 		return attacks;
 	}
 
-
-    IEnumerator RunJobRoutine(AttackDescriptor attack)
+	private float t;
+	IEnumerator RunJobRoutine(AttackDescriptor attack)
     {
         // Setup volumes
         SetDamageToDamageVolumes(attack.damage);
@@ -253,11 +266,11 @@ public class AttackController : MonoBehaviour
 		if (attack.controllerLock == AttackDescriptor.Lock.Curves)
             curveLastPosition = GetPositionOnCurve(_currentAttack, 0f);
 
-        float t;
+		t = _currentAttack.attackStartOffset;        
         // Play animation and activate volumes during damage range
         if (_agent.animationController.animatedGameObject != null && _currentAttack != null)
         {            
-            _agent.animationController.Play(_currentAttack.clipProperties);
+            _agent.animationController.Play(_currentAttack.clipProperties, _currentAttack.attackStartOffset);
             while (_agent.animationController.animatedGameObject.IsPlaying(_currentAttack.clipProperties.clip.name))
             {
                 // Activate volumes during the attack
@@ -266,10 +279,10 @@ public class AttackController : MonoBehaviour
                 ActivateDamageVolumes(t > _currentAttack.validDamageRange.x && t < _currentAttack.validDamageRange.y, _currentAttack.volumeIndices);
 
 				// Rotate to target if available
-				if (turnToTarget != null)
+				if (_turnToTarget != null)
 				{
 					if (t < _currentAttack.turnToTargetRatio)					
-						_agent.SetDesiredRotation(Helpers.DirectionTo(this.transform, turnToTarget));					
+						_agent.SetDesiredRotation(Helpers.DirectionTo(this.transform, _turnToTarget));					
 				}
 
                 // Control over agent if needed

@@ -163,7 +163,7 @@ public sealed class Agent : MonoBehaviour
 		{
 			t += Time.deltaTime;
 			ApplyGravityToVelocity(ref velocity);
-			_controller.Move(velocity);
+			_controller.Move(velocity * Time.deltaTime);
 			_isBrainSetVelocityThisFrame = true;
 			_isOverrideMoveThisFrame = true;
 			_isOverrideTimedMoveThisFrame = true;
@@ -376,8 +376,15 @@ public sealed class Agent : MonoBehaviour
 			if (info.responsibleAttackController != null)
 				pushBack *= info.responsibleAttackController.currentAttack.pushBackScale;
 
-            if (info.value > properties.pushBackDamageThreshold) 
-                OverrideMove(-Helpers.DirectionTo(transform, info.responsibleGameObject.transform) * pushBack);
+			if (info.value > properties.pushBackDamageThreshold)
+			{
+				// HACKY!!!
+				// This creates a smoother push back, but need 
+				// put these values elsewhere
+				float time = 0.25f;
+				float speed = pushBack / time;			
+				OverrideMove(-Helpers.DirectionTo(transform, info.responsibleGameObject.transform) * speed, time);
+			}
         }
     }
 }

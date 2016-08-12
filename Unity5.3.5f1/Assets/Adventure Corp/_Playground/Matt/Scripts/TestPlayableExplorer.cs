@@ -181,7 +181,7 @@ public class TestPlayableExplorer : ExplorerBrain
 				(realStartTimeForDamage - shieldLastHoldTime) <= shieldParryTimeWindow)
 			{
 				shieldColorFlashCurrent = shieldColorParry;
-				AttackNowAsMelee(attackCollection.melee1);
+				_attackController.AttackWithDescriptor(attackCollection.parry);
 
 				// Stagger and pushback on successful parry                                 
 				Agent a = info.responsibleGameObject.GetComponent<Agent>();

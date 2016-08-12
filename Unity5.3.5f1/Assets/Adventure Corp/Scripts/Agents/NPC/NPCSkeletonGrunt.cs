@@ -43,10 +43,11 @@ public class NPCSkeletonGrunt : NPCBrain
 		}
 		else
 			_attackController.AttackWithDescriptor(ad, target);
+		hasWaited = false;
 	}
 
-	
 
+	bool hasWaited = false;
 	protected override IEnumerator LogicRoutine()
 	{		
 		// TODO
@@ -61,11 +62,15 @@ public class NPCSkeletonGrunt : NPCBrain
 			// closer for a different attack
 			if (!Helpers.InRadius(transform, target, gruntDistanceToRun))
 			{
-				if (Random.value > 0.2f)
+				if (Random.value > 0.5f)
 				{
 					_desiredMoveSpeed = agent.properties.speed.max;
 					_desiredLookAtTarget = target;
-					yield return new WaitForSeconds(0.5f);												
+					if (!hasWaited)
+					{
+						yield return new WaitForSeconds(0.25f);
+						hasWaited = true;
+					}
 				}
 				else
 					Attack(ad);

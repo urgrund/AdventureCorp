@@ -14,14 +14,22 @@ public class TestZombieBrain : NPCBrain
 			{
 				AttackDescriptor ad = aDescs[Random.Range(0, aDescs.Count)];
 				_attackController.AttackWithDescriptor(ad);
+				yield return new WaitForSeconds(Random.value);
 			}
 			else
 			{
 				destination = target.position;
 				_desiredMoveSpeed = agent.properties.speed.max;
-				yield return new WaitForSeconds(1f);
+				yield return new WaitForSeconds((Random.value + 1));
 			}
 		}
 		yield return null;
+	}
+
+	protected override void OnHealthLost(Health.HealthChangedEventInfo info)
+	{
+		if (info.value > 10)
+			agent.Stagger();
+		base.OnHealthLost(info);
 	}
 }

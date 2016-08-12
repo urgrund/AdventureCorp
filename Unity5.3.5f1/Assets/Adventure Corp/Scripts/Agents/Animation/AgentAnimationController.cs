@@ -23,7 +23,7 @@ public class AgentAnimationController : MonoBehaviour
     /// <summary>
     /// Locomotion such as walking and idle will be taken care of automatically
     /// </summary>
-    public bool isAutoHandleBasicLocomotion = true;
+    bool isAutoHandleBasicLocomotion = true;
         
     
     // -----  Animation State -----------------
@@ -53,7 +53,7 @@ public class AgentAnimationController : MonoBehaviour
 
 
 
-    //[HideInInspector]
+    [HideInInspector]
     public float overrideCountDown = 0;
 
     private Animation _animatedGameObject;
@@ -224,7 +224,7 @@ public class AgentAnimationController : MonoBehaviour
     }
 
     bool isAlreadyDead = false;
-    public void Play(AnimationClipProperties clipProperties)
+    public void Play(AnimationClipProperties clipProperties, float offsetRatio=0f)
     {
         if (clipProperties == null)
         {
@@ -237,7 +237,6 @@ public class AgentAnimationController : MonoBehaviour
 			Debug.LogError("No clip on animation property on {0}  " + this.name, clipProperties);
 			return;
 		}
-
 
 		if (state == State.Dead)
         {
@@ -255,22 +254,18 @@ public class AgentAnimationController : MonoBehaviour
         _animatedGameObject[clipProperties.clip.name].blendMode = clipProperties.blendMode;
         _animatedGameObject[clipProperties.clip.name].layer = (int)clipProperties.layer;
         _animatedGameObject[clipProperties.clip.name].enabled = true;
-        
-        if (clipProperties.isMixingTransform)
+
+		if (clipProperties.isMixingTransform)
             _animatedGameObject[clipProperties.clip.name].AddMixingTransform(_upperBodyTransform);
 
         if (clipProperties.isOverriding)
         {
-           // Debug.Assert (!agent.isStaggered,"Is staggered and trying to play...");
-
             _animatedGameObject.Rewind(clipProperties.clip.name);
             _animatedGameObject.clip = clipProperties.clip;
-            _animatedGameObject.CrossFade(clipProperties.clip.name, clipProperties.blendTime);
+			_animatedGameObject[clipProperties.clip.name].normalizedTime = offsetRatio;
+			_animatedGameObject.CrossFade(clipProperties.clip.name, clipProperties.blendTime);
 
             overrideCountDown = clipProperties.clip.length * (1f / clipProperties.playSpeed);
-
-            //Debug.Assert(!agent.isStaggered, "stagger " + overrideCountDown);
-
             state = State.Override;
         }
         else
@@ -278,11 +273,13 @@ public class AgentAnimationController : MonoBehaviour
             if (clipProperties.isMixingTransform)
             {
                 _animatedGameObject.Rewind(clipProperties.clip.name);
-                _animatedGameObject.Blend(clipProperties.clip.name, clipProperties.weight, clipProperties.blendTime);
+				_animatedGameObject[clipProperties.clip.name].normalizedTime = offsetRatio;
+				_animatedGameObject.Blend(clipProperties.clip.name, clipProperties.weight, clipProperties.blendTime);
             }
             else
-            {                
-                _animatedGameObject.CrossFade(clipProperties.clip.name, clipProperties.blendTime);
+            {
+				_animatedGameObject[clipProperties.clip.name].normalizedTime = offsetRatio;
+				_animatedGameObject.CrossFade(clipProperties.clip.name, clipProperties.blendTime);
             }
         }
     }

@@ -1,0 +1,20 @@
+Sonja
+
+Generic_____________________
+frame: 002-018: walk (loop)
+frame: 021-035: run (loop)	
+frame: 038-061: idle (loop)
+frame: 063-087: chop		
+frame: 089-124: SpinAttack 	
+frame: 126-138: Stab		
+frame: 141-159: Jump		
+frame: 162-181: Uppercut	
+frame: 184-216: WalkBlock (loop)
+frame: 219-231: GetHitRight	
+frame: 234-247: GetHitLeft	
+frame: 250-279: Knockdown	
+frame: 282-312: DoubleChop	
+frame: 315-347: 1HandedBlock		
+frame: 351-381: SpawnFromAbove 
+frame: 384-408: GetHitBack	
+frame: 411-433: 2handedstab	

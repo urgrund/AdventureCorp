@@ -197,6 +197,26 @@ public class ModelImportProcessing : AssetPostprocessor
         if (gameObject.GetComponent<Animation>() == null)
             gameObject.AddComponent<Animation>();
     }
+
+
+	void OnPreprocessTexture()
+	{
+		//if (assetPath.Contains(".PSD") || assetPath.Contains(".psd"))
+		//{
+		//	Debug.LogWarning("Importing PSD - please use PBS layers instead.");
+		//	TextureImporter textureImporter = (TextureImporter)assetImporter;
+		//	textureImporter.maxTextureSize = 32;						
+		//	return;
+		//}
+
+		//if (assetPath.Contains("_N."))
+		//{
+		//	TextureImporter textureImporter = (TextureImporter)assetImporter;
+		//	textureImporter.textureType = TextureImporterType.Bump;
+		//}
+	}
+
+
 }
 
 

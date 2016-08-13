@@ -1,11 +1,14 @@
 ﻿using UnityEngine;
+#if UNITY_EDITOR
 using UnityEditor;
+#endif
 using System.Collections;
 
 [RequireComponent(typeof(CharacterController))]
 [RequireComponent(typeof(Health))]
 public sealed class Agent : MonoBehaviour
 {
+#if UNITY_EDITOR
 	[MenuItem("GameObject/Adventure Corp/Agent", false, 10)]
 	static void CreateCustomGameObject(MenuCommand menuCommand)
 	{
@@ -23,7 +26,7 @@ public sealed class Agent : MonoBehaviour
 		Undo.RegisterCreatedObjectUndo(go, "Create " + go.name);
 		Selection.activeObject = go;
 	}
-
+#endif
 
 
 

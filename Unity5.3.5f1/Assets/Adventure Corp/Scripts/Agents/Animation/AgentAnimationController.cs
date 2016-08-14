@@ -59,7 +59,9 @@ public class AgentAnimationController : MonoBehaviour
     private Animation _animatedGameObject;
     public Animation animatedGameObject { get { return _animatedGameObject; } }
 
-    List<Material> _materials;
+
+    List<Material> _materials;	
+
 
     // ----------------------------------------
     void Awake()
@@ -208,11 +210,6 @@ public class AgentAnimationController : MonoBehaviour
         if (overrideCountDown > 0)
             overrideCountDown -= Time.deltaTime;
 
-        if (agent.isStaggered)
-        {
-            
-        }
-
         if (_state == State.Override && overrideCountDown < 0)
         {
             overrideCountDown = 0f;
@@ -224,13 +221,17 @@ public class AgentAnimationController : MonoBehaviour
     }
 
     bool isAlreadyDead = false;
-    public void Play(AnimationClipProperties clipProperties, float offsetRatio=0f)
-    {
-        if (clipProperties == null)
-        {
-            Debug.LogError("Clip Properties NULL!!");
-            return;
-        }
+
+	public void Play(AnimationClipProperties clipProperties) { Play(clipProperties, 0f, false); }
+	public void Play(AnimationClipProperties clipProperties, bool immediateBlend) { Play(clipProperties, 0f, immediateBlend); }
+	public void Play(AnimationClipProperties clipProperties, float offsetRatio) { Play(clipProperties, offsetRatio, false); }
+	public void Play(AnimationClipProperties clipProperties, float offsetRatio, bool immediateBlend)
+	{
+		if (clipProperties == null)
+		{
+			Debug.LogError("Clip Properties NULL!!");
+			return;
+		}
 
 		if (clipProperties.clip == null)
 		{
@@ -239,58 +240,83 @@ public class AgentAnimationController : MonoBehaviour
 		}
 
 		if (state == State.Dead)
-        {
-            if (isAlreadyDead)
-                return;
+		{
+			if (isAlreadyDead)
+				return;
 
-            _animatedGameObject.Stop();
-            _animatedGameObject.clip = _locomotionClipDictionary[state].clip;
-            _animatedGameObject.Play(_locomotionClipDictionary[state].clip.name, PlayMode.StopAll);
-            isAlreadyDead = true;
-            return;
-        }
-        
-        _animatedGameObject[clipProperties.clip.name].speed = clipProperties.playSpeed;        
-        _animatedGameObject[clipProperties.clip.name].blendMode = clipProperties.blendMode;
-        _animatedGameObject[clipProperties.clip.name].layer = (int)clipProperties.layer;
-        _animatedGameObject[clipProperties.clip.name].enabled = true;
+			_animatedGameObject.Stop();
+			_animatedGameObject.clip = _locomotionClipDictionary[state].clip;
+			_animatedGameObject.Play(_locomotionClipDictionary[state].clip.name, PlayMode.StopAll);
+			isAlreadyDead = true;
+			return;
+		}
+
+		_animatedGameObject[clipProperties.clip.name].speed = clipProperties.playSpeed;
+		_animatedGameObject[clipProperties.clip.name].blendMode = clipProperties.blendMode;
+		_animatedGameObject[clipProperties.clip.name].layer = (int)clipProperties.layer;
+		_animatedGameObject[clipProperties.clip.name].enabled = true;
 
 		if (clipProperties.isMixingTransform)
-            _animatedGameObject[clipProperties.clip.name].AddMixingTransform(_upperBodyTransform);
+			_animatedGameObject[clipProperties.clip.name].AddMixingTransform(_upperBodyTransform);
 
-        if (clipProperties.isOverriding)
-        {
-            _animatedGameObject.Rewind(clipProperties.clip.name);
-            _animatedGameObject.clip = clipProperties.clip;
+		if (clipProperties.isOverriding)
+		{
+			_animatedGameObject.Rewind(clipProperties.clip.name);
+			_animatedGameObject.clip = clipProperties.clip;
 			_animatedGameObject[clipProperties.clip.name].normalizedTime = offsetRatio;
 			_animatedGameObject.CrossFade(clipProperties.clip.name, clipProperties.blendTime);
 
-            overrideCountDown = clipProperties.clip.length * (1f / clipProperties.playSpeed);
-            state = State.Override;
-        }
-        else
-        {
-            if (clipProperties.isMixingTransform)
-            {
-                _animatedGameObject.Rewind(clipProperties.clip.name);
+			overrideCountDown = clipProperties.clip.length * (1f / clipProperties.playSpeed);
+			state = State.Override;
+		}
+		else
+		{
+			if (clipProperties.isMixingTransform)
+			{
+				_animatedGameObject.Rewind(clipProperties.clip.name);
 				_animatedGameObject[clipProperties.clip.name].normalizedTime = offsetRatio;
 				_animatedGameObject.Blend(clipProperties.clip.name, clipProperties.weight, clipProperties.blendTime);
-            }
-            else
-            {
+			}
+			else
+			{
 				_animatedGameObject[clipProperties.clip.name].normalizedTime = offsetRatio;
 				_animatedGameObject.CrossFade(clipProperties.clip.name, clipProperties.blendTime);
-            }
-        }
-    }
+			}
+		}
+	}
 
 
+	public void Stop(AnimationClipProperties clipProperties, bool useBlendTime=false)
+	{
+		if (useBlendTime)
+		{
+			StartCoroutine(StopAnimationOverTimeRoutine(clipProperties));
+		}
+		else
+		{
+			_animatedGameObject[clipProperties.clip.name].weight = 0f;
+			_animatedGameObject.Stop(clipProperties.clip.name);
+		}
+	}
 
-    // Flashes materials red
-    // This is a bit sloppy here perhaps.   Will
-    // need a specific character shader anyway that has flash
-    // perameters among other things
-    float flashValue = 0;
+	IEnumerator StopAnimationOverTimeRoutine(AnimationClipProperties clipProperties)
+	{
+		float t = 0;
+		while (t < clipProperties.blendTime)
+		{
+			t += Time.deltaTime;
+			_animatedGameObject[clipProperties.clip.name].weight = 1f-(t/clipProperties.blendTime);
+			yield return null;
+		}
+		Stop(clipProperties);
+	}
+
+
+	// Flashes materials red
+	// This is a bit sloppy here perhaps.   Will
+	// need a specific character shader anyway that has flash
+	// perameters among other things
+	float flashValue = 0;
     Color flashColor = Color.red;
     float flashFadeSpeed = 5;    
     void FlashMaterials()

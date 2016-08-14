@@ -32,7 +32,7 @@ public abstract class ExplorerBrain : Brain
     protected static readonly string INPUT_AIM_HORIZONTAL = "Aim Horizontal";
     protected static readonly string INPUT_AIM_VERTICAL = "Aim Vertical";
 
-    protected Vector3 _inputDirection;
+    protected Vector3 _inputDirection;	
     protected Vector3 _inputAim;
     // --------------------------------------------
 	
@@ -45,7 +45,7 @@ public abstract class ExplorerBrain : Brain
     /// </summary>
     public ExplorerProfile profile;
 	public ExplorerAttackCollection attackCollection;
-	public AnimationClipProperties shiledUpClipProperties;
+	public AnimationClipProperties shieldUpClipProperties;
 	protected AttackController _attackController;
 
 

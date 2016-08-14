@@ -18,8 +18,21 @@ public class AgentProperties : MonoBehaviour
     public float walkToRunSpeedRatio = 0.25f;
     public AgentPropertiesMovementContainer speed;
     public AgentPropertiesMovementContainer rotation;
-    public int pushBackDamageThreshold = 1;
-	public float pushBackVelocityScale = 1;	
+
+	/// <summary>
+	/// Damage to receive before push back counts
+	/// </summary>
+	public int pushBackDamageThreshold = 1;
+
+	/// <summary>
+	/// Scale any pushback influence by this factor
+	/// </summary>
+	public float pushBackVelocityScale = 1;
+
+	/// <summary>
+	/// Rotate toward the damage that killed this agent upon death
+	/// </summary>
+	public bool rotateOnDeath = false;
 }
 
 

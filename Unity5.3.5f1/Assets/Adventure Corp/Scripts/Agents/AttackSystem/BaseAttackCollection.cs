@@ -12,7 +12,7 @@ public class ExplorerAttackCollection
 
 	int _meleeSequenceIndex = 0;
 	float _lastAttackTime = 0;
-	float _attackInterval = 0.5f;
+	float _attackInterval = 1f;
 	public AttackDescriptor GetNextMeleeFromSequence(AttackController controller)
 	{
 		bool updated = false;
@@ -28,15 +28,13 @@ public class ExplorerAttackCollection
 		}
 		else
 		{
-			_lastAttackTime = Time.time;
+			//Debug.Log("wasnt' attacking");			
 			updated = true;
 			if ((Time.time - _lastAttackTime) > _attackInterval)
-			{
-				Debug.Log("too slow");
 				_meleeSequenceIndex = 0;
-			}
 			else
-				_meleeSequenceIndex++;			
+				_meleeSequenceIndex++;
+			_lastAttackTime = Time.time;
 		}
 
 
@@ -47,7 +45,7 @@ public class ExplorerAttackCollection
 			_meleeSequenceIndex = 0;
 			updated = true;
 		}
-
+		/*
 		if (updated)
 		{
 			string s = "";
@@ -55,7 +53,7 @@ public class ExplorerAttackCollection
 				s += i.ToString() + "..... ";
 			Debug.Log(s);
 		}
-
+		*/
 
 		return meleeSequence[_meleeSequenceIndex];
 	}

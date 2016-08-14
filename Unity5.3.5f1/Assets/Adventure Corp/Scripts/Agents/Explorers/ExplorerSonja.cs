@@ -8,7 +8,7 @@ public class ExplorerSonja : ExplorerBrain
 	// --------------------------------------------------------------------------
 	// ----   Shield/Parry test stuff ----
 
-	public Transform shield;
+	//public Transform shield;
 	public Transform shieldPellet;
 
     float shieldMovementScale = 0.25f;
@@ -30,9 +30,9 @@ public class ExplorerSonja : ExplorerBrain
 	{
 		parryPelletCount = profile.statistics.parryPellets;
 
-		shield = Helpers.InstantiateAndParent(shield, transform, true);
-		shield.gameObject.SetActive(false);
-		shieldMaterial = shield.GetComponentInChildren<MeshRenderer>().material;
+		//shield = Helpers.InstantiateAndParent(shield, transform, true);
+		//shield.gameObject.SetActive(false);
+		//shieldMaterial = shield.GetComponentInChildren<MeshRenderer>().material;
 		shieldLastHoldTime = -1f;
 
 		float maxDeg = 15f;		
@@ -41,7 +41,7 @@ public class ExplorerSonja : ExplorerBrain
 
 		for (int i = 0; i < parryPelletCount; i++)
 		{
-			Transform t = Helpers.InstantiateAndParent(shieldPellet, shield, true);
+			Transform t = Helpers.InstantiateAndParent(shieldPellet, this.transform, true);
 			t.Rotate(new Vector3(0, 0, maxDeg - (frac * (i))), Space.Self);
 			shieldPellets.Add(t);
 		}
@@ -93,8 +93,9 @@ public class ExplorerSonja : ExplorerBrain
 
 	public bool isShieldUpAndProtecting { get { return player.GetButton(INPUT_SHIELD) && parryPelletCount > 0; } }
 
-
 	// --------------------------------------------------------------------------
+
+
 
 
 	public LineRenderer lr;
@@ -129,6 +130,7 @@ public class ExplorerSonja : ExplorerBrain
     }
 
 
+
     // --------------------  SHIELD / PARRY TEST -------------------------------------
             
     void UpdateShieldStuff()
@@ -136,7 +138,7 @@ public class ExplorerSonja : ExplorerBrain
 		// Manages color of the shield for visual feedback
         shieldFlashCurrent -= Time.deltaTime * shieldFlashCoolDownSpeed;
         shieldFlashCurrent = Mathf.Clamp01(shieldFlashCurrent);
-        shieldMaterial.SetColor("_EmissionColor", Color.Lerp(Color.black, shieldColorFlashCurrent, shieldFlashCurrent));
+        //shieldMaterial.SetColor("_EmissionColor", Color.Lerp(Color.black, shieldColorFlashCurrent, shieldFlashCurrent));
 
 		// HACK - just set health to invincible whilst holding 
 		// shield,  this is probably not what we want, but just to see some results
@@ -146,14 +148,16 @@ public class ExplorerSonja : ExplorerBrain
 		if (player.GetButtonDown(INPUT_SHIELD))
             shieldLastHoldTime = Time.time;
 
-        if (player.GetButton(INPUT_SHIELD) && !agent.health.isDead)
-        {
-            shield.gameObject.SetActive(true);
-            agent.SetVelocityScaleThisFrame(shieldMovementScale);			
-			LookAtNearestHealthComponent(5f);    
-        }
-        else
-            shield.gameObject.SetActive(false);
+		if (player.GetButton(INPUT_SHIELD) && !agent.health.isDead)
+		{
+			agent.animationController.Play(shieldUpClipProperties, true);			
+			agent.SetVelocityScaleThisFrame(shieldMovementScale);
+			LookAtNearestHealthComponent(5f);
+		}
+		else
+		{
+			agent.animationController.Stop(shieldUpClipProperties, true);			
+		}
     }
 
     protected override void OnHealthWasInvincible(Health.HealthChangedEventInfo info)
@@ -217,7 +221,7 @@ public class ExplorerSonja : ExplorerBrain
 				// to the player explorer and should take the damage that was dealt
 				else
 				{
-					shield.gameObject.SetActive(false);
+					//shield.gameObject.SetActive(false);
 					agent.health.invincible = false;
 					agent.health.TakeDamage(info.damage, info.responsibleGameObject);					
 					agent.Stagger();
@@ -314,7 +318,7 @@ public class ExplorerSonja : ExplorerBrain
 
         Color c = rangedCurrentAngle < 1f ? Color.green : Color.blue;
         lr.material.color = c;
-    }
+    }//
 
 	// ------------------------------------------------------------------------
 
@@ -323,7 +327,7 @@ public class ExplorerSonja : ExplorerBrain
 	void OnGUI()
 	{
 		int healthPellets = agent.health.maxHealth / 10;
-
+		
 		GUILayout.BeginHorizontal();
 		GUILayout.Label("     -");
 		for (int i = 0; i < healthPellets; i++)

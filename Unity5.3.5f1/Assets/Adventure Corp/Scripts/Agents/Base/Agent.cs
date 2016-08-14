@@ -184,10 +184,10 @@ public sealed class Agent : MonoBehaviour
 	// ---------------------------------------------------------------------    
 	// S T A G G E R 
 
-	bool _isStaggered = false;
-    public bool isStaggered { get { return _isStaggered; } }    
-    float _staggerTimeCount = 0f;
-
+	private float _staggerTimeCount = 0f;
+	private bool _isStaggered = false;
+    public bool isStaggered { get { return _isStaggered; } }
+	
     public delegate void OnStaggered();
     public OnStaggered onStaggered;
 
@@ -367,8 +367,10 @@ public sealed class Agent : MonoBehaviour
     public void OnHealthLost(Health.HealthChangedEventInfo info)
     {
         if (_health.isDead)
-        {
-            print("Died");
+		{
+			if (properties.rotateOnDeath)
+				SetDesiredRotation(info.responsibleGameObject.transform, true);
+		
             _controller.detectCollisions = false;
             _controller.enabled = false;
             this.enabled = false;
@@ -384,7 +386,7 @@ public sealed class Agent : MonoBehaviour
 				// HACKY!!!
 				// This creates a smoother push back, but need 
 				// put these values elsewhere
-				float time = 0.25f;
+				float time = 0.125f;
 				float speed = pushBack / time;			
 				OverrideMove(-Helpers.DirectionTo(transform, info.responsibleGameObject.transform) * speed, time);
 			}

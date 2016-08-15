@@ -33,17 +33,28 @@ public class NPCSkeletonGrunt : NPCBrain
 	}
 
 
-
-	void Attack(AttackDescriptor ad)
+	float lastAtkTime = 0f;
+	IEnumerator Attack(AttackDescriptor ad)
 	{
-		if (_attackController.isAttacking)
+		//if (_attackController.isAttacking && !_attackController.isPastYieldControlTime)
+		//return;
+
+		yield return new WaitForEndOfFrame();
+		if (_attackController.isPastYieldControlTime)
 		{
-			if (_attackController.YieldControlFromAttack())
-				_attackController.AttackWithDescriptor(ad, target);
-		}
-		else
+			Debug.Log(_attackController.isPastYieldControlTime + "  " + ad.name	);
 			_attackController.AttackWithDescriptor(ad, target);
-		hasWaited = false;
+			//float yieldTime = _attackController.currentAttackClipLength * _attackController.currentAttack.yieldControlRatio;
+			//Debug.Log(Time.time + " |  Attacked with : " + ad.name
+			//		+ "\n     Timediff (" + (Time.time - lastAtkTime) + ")  Yield Time :" + yieldTime);
+			//if ((Time.time - lastAtkTime) < yieldTime)
+			//	Debug.DebugBreak();
+
+			lastAtkTime = Time.time;
+			yield return new WaitForEndOfFrame();
+			yield return new WaitForEndOfFrame();
+			hasWaited = false;
+		}
 	}
 
 
@@ -73,10 +84,10 @@ public class NPCSkeletonGrunt : NPCBrain
 					}
 				}
 				else
-					Attack(ad);
+					yield return Attack(ad);
 			}
 			else
-				Attack(ad);
+				yield return Attack(ad);
 		}
 		else
 			destination = target.position;

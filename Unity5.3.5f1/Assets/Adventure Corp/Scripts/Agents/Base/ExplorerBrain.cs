@@ -136,6 +136,7 @@ public abstract class ExplorerBrain : Brain
 	private float _lastDashTime = 0f;
     protected void ProcessInput()
     {
+		// TODO - need to manage controller 'time outs' if they log off after being left idle
         _inputDirection = new Vector3(player.GetAxis(INPUT_MOVE_HORIZONTAL), 0, player.GetAxis(INPUT_MOVE_VERTICAL));
         _inputDirection = GrabMovementDirRelativeToCam(_inputDirection);
 

@@ -29,10 +29,6 @@ public class ExplorerSonja : ExplorerBrain
 	void SetupShield()
 	{
 		parryPelletCount = profile.statistics.parryPellets;
-
-		//shield = Helpers.InstantiateAndParent(shield, transform, true);
-		//shield.gameObject.SetActive(false);
-		//shieldMaterial = shield.GetComponentInChildren<MeshRenderer>().material;
 		shieldLastHoldTime = -1f;
 
 		float maxDeg = 15f;		
@@ -137,8 +133,7 @@ public class ExplorerSonja : ExplorerBrain
     {
 		// Manages color of the shield for visual feedback
         shieldFlashCurrent -= Time.deltaTime * shieldFlashCoolDownSpeed;
-        shieldFlashCurrent = Mathf.Clamp01(shieldFlashCurrent);
-        //shieldMaterial.SetColor("_EmissionColor", Color.Lerp(Color.black, shieldColorFlashCurrent, shieldFlashCurrent));
+        shieldFlashCurrent = Mathf.Clamp01(shieldFlashCurrent);        
 
 		// HACK - just set health to invincible whilst holding 
 		// shield,  this is probably not what we want, but just to see some results
@@ -148,7 +143,7 @@ public class ExplorerSonja : ExplorerBrain
 		if (player.GetButtonDown(INPUT_SHIELD))
             shieldLastHoldTime = Time.time;
 
-		if (player.GetButton(INPUT_SHIELD) && !agent.health.isDead)
+		if (player.GetButton(INPUT_SHIELD) && !agent.health.isDead && !agent.isStaggered)
 		{
 			agent.animationController.Play(shieldUpClipProperties, true);			
 			agent.SetVelocityScaleThisFrame(shieldMovementScale);
@@ -189,7 +184,7 @@ public class ExplorerSonja : ExplorerBrain
 				Agent a = info.responsibleGameObject.GetComponent<Agent>();
 				if (a)
 				{
-					a.OverrideMove(Helpers.DirectionTo(transform, info.responsibleGameObject.transform) * 1f);
+					a.OverrideMove(Helpers.DirectionTo(transform, info.responsibleGameObject.transform));
 					a.Stagger();
 				}
 
@@ -221,7 +216,6 @@ public class ExplorerSonja : ExplorerBrain
 				// to the player explorer and should take the damage that was dealt
 				else
 				{
-					//shield.gameObject.SetActive(false);
 					agent.health.invincible = false;
 					agent.health.TakeDamage(info.damage, info.responsibleGameObject);					
 					agent.Stagger();

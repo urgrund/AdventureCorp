@@ -81,7 +81,7 @@ public class AttackController : MonoBehaviour
     {
         get
         {
-            if (isAttacking)
+            if (_isAttacking)
                 return _agent.animationController.animatedGameObject[_currentAttack.clipProperties.clip.name].normalizedTime > _currentAttack.yieldControlRatio;
             else
                 return true;
@@ -92,31 +92,12 @@ public class AttackController : MonoBehaviour
 	{
 		get
 		{
-			if (isAttacking)
+			if (_isAttacking)
 				return t > _currentAttack.turnToTargetRatio;
 			else
 				return true;
 		}
 	}
-
-
-	/// <summary>
-	/// Pass an AttackDescriptor to begin attacking
-	/// </summary>	
-    public void AttackWithDescriptor(AttackDescriptor d, Transform target = null)
-    {
-		if (_agent.isStaggered)
-			return;
-
-        if (isPastYieldControlTime)
-        {
-            StopAllCoroutines();
-			_turnToTarget = target;
-            StartCoroutine(RunJobRoutine(d));
-            if (d.eventor != null)
-                EventorSchedule.RunAtTransformAsChild(d.eventor, this.transform);
-        }
-    }	
 
 	public void SetLayerToDamageVolumes(LayerMask layer)
 	{
@@ -190,7 +171,7 @@ public class AttackController : MonoBehaviour
 
     void ReleaseAttack(AttackDescriptor attack)
     {
-		Debug.Assert(attack != null, "AttackDescriptor was null");
+		Debug.Assert(attack != null, "AttackDescriptor was null whilst trying to release");
 
         // Deactivate
         ActivateDamageVolumes(false, attack.volumeIndices);
@@ -254,14 +235,39 @@ public class AttackController : MonoBehaviour
 		return attacks;
 	}
 
+
+
+	/// <summary>
+	/// Pass an AttackDescriptor to begin attacking
+	/// </summary>	
+	public void AttackWithDescriptor(AttackDescriptor d, Transform target = null)
+	{
+		if (_agent.isStaggered)
+			return;
+
+		if (d == null)
+			return;
+
+		if (isPastYieldControlTime)
+		{
+			StopAllCoroutines();
+			_turnToTarget = target;
+			_currentAttack = d;
+			_currentAttackStartTime = Time.time;
+			_isAttacking = true;
+			_agent.animationController.Play(_currentAttack.clipProperties, _currentAttack.attackStartOffset);
+			StartCoroutine(RunJobRoutine(d));
+			if (d.eventor != null)
+				EventorSchedule.RunAtTransformAsChild(d.eventor, this.transform);
+		}
+	}
+
 	private float t;
 	IEnumerator RunJobRoutine(AttackDescriptor attack)
     {
         // Setup volumes
         SetDamageToDamageVolumes(attack.damage);
-        ActivateDamageVolumes(false, attack.volumeIndices);
-        _currentAttack = attack;
-		_currentAttackStartTime = Time.time;
+        ActivateDamageVolumes(false, attack.volumeIndices);        
 
 		if (attack.controllerLock == AttackDescriptor.Lock.Curves)
             curveLastPosition = GetPositionOnCurve(_currentAttack, 0f);
@@ -270,11 +276,11 @@ public class AttackController : MonoBehaviour
         // Play animation and activate volumes during damage range
         if (_agent.animationController.animatedGameObject != null && _currentAttack != null)
         {            
-            _agent.animationController.Play(_currentAttack.clipProperties, _currentAttack.attackStartOffset);
             while (_agent.animationController.animatedGameObject.IsPlaying(_currentAttack.clipProperties.clip.name))
             {
-                // Activate volumes during the attack
-                _isAttacking = true;
+				_isAttacking = true;
+
+				// Activate volumes during the attack				
                 t = _agent.animationController.animatedGameObject[_currentAttack.clipProperties.clip.name].normalizedTime;
                 ActivateDamageVolumes(t > _currentAttack.validDamageRange.x && t < _currentAttack.validDamageRange.y, _currentAttack.volumeIndices);
 

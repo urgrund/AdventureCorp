@@ -188,10 +188,7 @@ public class AgentAnimationController : MonoBehaviour
 
     void SetAnimationState(State value)
     {
-        //if (agent.isStaggered)
-        //    print("Setting state : " + value.ToString() + "     " + Time.time);
-
-        // if state is the same, just return to avoid
+		// if state is the same, just return to avoid
         // setting Animation component values
         if (value != _state)
             _state = value;
@@ -216,7 +213,7 @@ public class AgentAnimationController : MonoBehaviour
             if(state != State.Dead)
                 state = State.Idle;
         }
-
+		
         FlashMaterials();
     }
 
@@ -283,14 +280,18 @@ public class AgentAnimationController : MonoBehaviour
 				_animatedGameObject.CrossFade(clipProperties.clip.name, clipProperties.blendTime);
 			}
 		}
-	}
+
+		// 
+		if(clipProperties.clip.wrapMode == WrapMode.ClampForever && !clipProperties.isOverriding)
+			Stop(clipProperties, false, clipProperties.clip.length * (1f / clipProperties.playSpeed));
+	}	
 
 
-	public void Stop(AnimationClipProperties clipProperties, bool useBlendTime=false)
+	public void Stop(AnimationClipProperties clipProperties, bool useBlendTime=false, float delay =0)
 	{
-		if (useBlendTime)
+		if (useBlendTime || delay > 0)
 		{
-			StartCoroutine(StopAnimationOverTimeRoutine(clipProperties));
+			StartCoroutine(StopAnimationOverTimeRoutine(clipProperties, useBlendTime, delay));		
 		}
 		else
 		{
@@ -299,8 +300,14 @@ public class AgentAnimationController : MonoBehaviour
 		}
 	}
 
-	IEnumerator StopAnimationOverTimeRoutine(AnimationClipProperties clipProperties)
+	IEnumerator StopAnimationOverTimeRoutine(AnimationClipProperties clipProperties, bool useBlendTime, float delay)
 	{
+		if (delay > 0)
+			yield return new WaitForSeconds(delay);
+
+		if (!useBlendTime)
+			Stop(clipProperties, false);
+
 		float t = 0;
 		while (t < clipProperties.blendTime)
 		{
@@ -308,7 +315,7 @@ public class AgentAnimationController : MonoBehaviour
 			_animatedGameObject[clipProperties.clip.name].weight = 1f-(t/clipProperties.blendTime);
 			yield return null;
 		}
-		Stop(clipProperties);
+		Stop(clipProperties, false);
 	}
 
 

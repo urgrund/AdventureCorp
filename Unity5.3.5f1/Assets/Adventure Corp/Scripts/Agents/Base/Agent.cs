@@ -173,6 +173,13 @@ public sealed class Agent : MonoBehaviour
 			yield return null;
 		}
 		_isOverrideTimedMoveThisFrame = false;
+		
+		// In case we died during the move!
+		if (_health.isDead)
+		{
+			_controller.enabled = false;
+			this.enabled = false;			
+		}
 	}
 	// ---------------------------------------------------------------------    
 
@@ -203,6 +210,7 @@ public sealed class Agent : MonoBehaviour
 
             _isStaggered = true;
             _staggerTimeCount = time;
+			animationController.animatedGameObject.Stop();
             animationController.Play(animationController.animationProperties.reaction.stagger);
             StartCoroutine(StaggerRoutine());
 			if (_overrideMoveRoutine != null)
@@ -372,8 +380,11 @@ public sealed class Agent : MonoBehaviour
 				SetDesiredRotation(info.responsibleGameObject.transform, true);
 		
             _controller.detectCollisions = false;
-            _controller.enabled = false;
-            this.enabled = false;
+			if (_overrideMoveRoutine == null)
+			{
+				_controller.enabled = false;
+				this.enabled = false;
+			}
         }
         else
         {

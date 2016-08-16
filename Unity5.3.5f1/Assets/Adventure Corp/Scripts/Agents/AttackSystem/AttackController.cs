@@ -279,7 +279,7 @@ public class AttackController : MonoBehaviour
             while (_agent.animationController.animatedGameObject.IsPlaying(_currentAttack.clipProperties.clip.name))
             {
 				_isAttacking = true;
-
+				
 				// Activate volumes during the attack				
                 t = _agent.animationController.animatedGameObject[_currentAttack.clipProperties.clip.name].normalizedTime;
                 ActivateDamageVolumes(t > _currentAttack.validDamageRange.x && t < _currentAttack.validDamageRange.y, _currentAttack.volumeIndices);

@@ -36,24 +36,13 @@ public class NPCSkeletonGrunt : NPCBrain
 	float lastAtkTime = 0f;
 	IEnumerator Attack(AttackDescriptor ad)
 	{
-		//if (_attackController.isAttacking && !_attackController.isPastYieldControlTime)
-		//return;
-
 		yield return new WaitForEndOfFrame();
 		if (_attackController.isPastYieldControlTime)
 		{
-			Debug.Log(_attackController.isPastYieldControlTime + "  " + ad.name	);
-			_attackController.AttackWithDescriptor(ad, target);
-			//float yieldTime = _attackController.currentAttackClipLength * _attackController.currentAttack.yieldControlRatio;
-			//Debug.Log(Time.time + " |  Attacked with : " + ad.name
-			//		+ "\n     Timediff (" + (Time.time - lastAtkTime) + ")  Yield Time :" + yieldTime);
-			//if ((Time.time - lastAtkTime) < yieldTime)
-			//	Debug.DebugBreak();
-
+			_attackController.AttackWithDescriptor(ad, target);		
 			lastAtkTime = Time.time;
-			yield return new WaitForEndOfFrame();
-			yield return new WaitForEndOfFrame();
 			hasWaited = false;
+			yield return new WaitForEndOfFrame();			
 		}
 	}
 

@@ -1,6 +1,10 @@
 ﻿using UnityEngine;
 using System.Collections;
 
+/// <summary>
+/// Adventure Corp Global properites
+/// (c) 2011-2016 Flame Shark
+/// </summary>
 public static class AdventureCorpGlobals
 {
     public static class Editor
@@ -22,10 +26,29 @@ public static class AdventureCorpGlobals
         }
     }
 
-    public class Agent
+    public static class Agent
     {
         public static readonly float skinWidth = 0.025f;
         public static readonly float stepOffset = 0.4f;
         public static readonly float gravity = 32f;
     }
+
+	public static class Input
+	{
+		public static class Player
+		{
+			public static readonly string MELEE = "Melee";
+			public static readonly string RANGED = "Ranged";
+			public static readonly string SHIELD = "Shield";
+			public static readonly string DASH = "Dash";
+			public static readonly string MOVE_HORIZONTAL = "Move Horizontal";
+			public static readonly string MOVE_VERTICAL = "Move Vertical";
+			public static readonly string AIM_HORIZONTAL = "Aim Horizontal";
+			public static readonly string AIM_VERTICAL = "Aim Vertical";
+		}
+
+		public static class UI
+		{
+		}
+	}
 }

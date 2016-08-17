@@ -24,11 +24,18 @@ public class ExplorerProfile : ScriptableObject
 
 		public int parryPellets = 5;
 		public float parryPelletReGenInterval = 0.5f;
+		public float parryBlockMovementScale = 0.25f;
 
 		public float dashSpeed = 16f;
 		public float dashDuration = 0.15f;
 		public float dashCoolDown = 1f;
-    }
+
+		public float rangedTimeToFocus = 60f;
+		public float rangedStartAngle = 45f;
+
+		public float staggerDmgReceiveWindow = 1f;
+		public float staggerDmgThreshold = 30;
+	}
 
 
     /// <summary>

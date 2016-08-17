@@ -31,4 +31,5 @@ public abstract class Brain : MonoBehaviour
     protected virtual void OnHealthZero(Health.HealthChangedEventInfo info) { }
     protected virtual void OnHealthGained(Health.HealthChangedEventInfo info) { }
     protected virtual void OnHealthWasInvincible(Health.HealthChangedEventInfo info) { }
+	protected virtual void OnAgentStaggered() { }
 }

@@ -93,7 +93,7 @@ public class TestPlayableExplorer : ExplorerBrain
 		}
 	}
 
-	public bool isShieldUpAndProtecting { get { return player.GetButton(INPUT_SHIELD) && parryPelletCount > 0; } }
+	public bool isShieldUpAndProtecting { get { return player.GetButton(AdventureCorpGlobals.Input.Player.SHIELD) && parryPelletCount > 0; } }
 
 
 	// --------------------------------------------------------------------------
@@ -145,10 +145,10 @@ public class TestPlayableExplorer : ExplorerBrain
 		agent.health.invincible = isShieldUpAndProtecting;
 
 
-		if (player.GetButtonDown(INPUT_SHIELD))
+		if (player.GetButtonDown(AdventureCorpGlobals.Input.Player.SHIELD))
             shieldLastHoldTime = Time.time;
 
-        if (player.GetButton(INPUT_SHIELD) && !agent.health.isDead)
+        if (player.GetButton(AdventureCorpGlobals.Input.Player.SHIELD) && !agent.health.isDead)
         {
             shield.gameObject.SetActive(true);
             agent.SetVelocityScaleThisFrame(shieldMovementScale);			
@@ -161,7 +161,7 @@ public class TestPlayableExplorer : ExplorerBrain
     protected override void OnHealthWasInvincible(Health.HealthChangedEventInfo info)
     {
         shieldFlashCurrent = 1f;
-        if (player.GetButton(INPUT_SHIELD))
+        if (player.GetButton(AdventureCorpGlobals.Input.Player.SHIELD))
             agent.SetDesiredRotation(info.responsibleGameObject.transform, true);
 
 
@@ -222,7 +222,6 @@ public class TestPlayableExplorer : ExplorerBrain
 					shield.gameObject.SetActive(false);
 					agent.health.invincible = false;
 					agent.health.TakeDamage(info.damage, info.responsibleGameObject);
-					print("foo");
 					agent.Stagger();
 				}
 			}
@@ -250,9 +249,7 @@ public class TestPlayableExplorer : ExplorerBrain
 		{			
 			lastHitTime = info.time;
 			dmgCount = info.value;
-		}
-
-		//Debug.Log("Player lost health - " + info.value + "   at : " + Time.realtimeSinceStartup);
+		}		
 		base.OnHealthLost(info);
 	}
 
@@ -286,8 +283,8 @@ public class TestPlayableExplorer : ExplorerBrain
     float rangedCurrentAngle = 45;
     void UpdateRangedFocusing()
     {
-        _inputAim.x = player.GetAxis(INPUT_AIM_HORIZONTAL);
-        _inputAim.z = player.GetAxis(INPUT_AIM_VERTICAL);
+        _inputAim.x = player.GetAxis(AdventureCorpGlobals.Input.Player.AIM_HORIZONTAL);
+        _inputAim.z = player.GetAxis(AdventureCorpGlobals.Input.Player.AIM_VERTICAL);
         _inputAim = GrabMovementDirRelativeToCam(_inputAim);
 
         Vector3 p = Vector3.zero;

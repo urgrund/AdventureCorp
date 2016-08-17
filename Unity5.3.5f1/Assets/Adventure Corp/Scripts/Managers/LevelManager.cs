@@ -38,7 +38,7 @@ public class LevelManager : MonoBehaviour
     {
         _instance = this;
         Application.targetFrameRate = 60;
-		Random.seed = (int)System.DateTime.Now.Ticks;
+		Random.InitState((int)System.DateTime.Now.Ticks);
 	}
 
     public static void Register(Health h)

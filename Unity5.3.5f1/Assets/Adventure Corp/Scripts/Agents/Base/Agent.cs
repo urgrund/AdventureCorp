@@ -6,8 +6,11 @@ using System.Collections;
 
 [RequireComponent(typeof(CharacterController))]
 [RequireComponent(typeof(Health))]
+[SelectionBase]
 public sealed class Agent : MonoBehaviour
 {
+
+
 #if UNITY_EDITOR
 	[MenuItem("GameObject/Adventure Corp/Agent", false, 10)]
 	static void CreateCustomGameObject(MenuCommand menuCommand)
@@ -352,11 +355,11 @@ public sealed class Agent : MonoBehaviour
     /// <summary>
     /// Set player velocity and rotate the character towards velocity direction. If no rotation is needed set the bool isRotate to false
     /// </summary>
-    public void SetDesiredVelocity(Vector3 velocity, bool isRotate)
+    public void SetDesiredVelocity(Vector3 velocity, bool isRotateTowardVelocity = false)
     {        
         CalculateDesiredVelocity(velocity);
 
-        if (_desiredVelocity != Vector3.zero && isRotate)
+        if (_desiredVelocity != Vector3.zero && isRotateTowardVelocity)
             SetDesiredRotation(velocity.normalized);
     }
 

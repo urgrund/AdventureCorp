@@ -10,214 +10,214 @@ using System.Collections.Generic;
 /// </summary>
 public class AgentAnimationController : MonoBehaviour
 {
-    public bool showDebugGUI = false;
-    public AgentAnimationProperties animationProperties;
+	public bool showDebugGUI = false;
+	public AgentAnimationProperties animationProperties;
 
-    private Agent agent;
-    private bool _isAgentAttached = false;
-
-
-    public string upperBodyTransformBoneName = "Character1_Spine";
-    Transform _upperBodyTransform;
-    
-    /// <summary>
-    /// Locomotion such as walking and idle will be taken care of automatically
-    /// </summary>
-    bool isAutoHandleBasicLocomotion = true;
-        
-    
-    // -----  Animation State -----------------
-
-    public enum State
-    {
-        Dead=0,           //
-        Idle=1,           //
-        Walking=2,        //
-        Running=3,        //
-        StrafeLeft=4,
-        StrafeRight=5,
-        BackPedal=6,            
-        Override=7        // Animation state is overridden 
-    }
-
-    private Dictionary<State, AnimationClipProperties> _locomotionClipDictionary;
-
-    public State _state = State.Idle;
-    public State state
-    {
-        get { return _state; }
-        set { SetAnimationState(value); }
-    }
-
-    // -----  Animation State -----------------
+	private Agent agent;
+	private bool _isAgentAttached = false;
 
 
+	public string upperBodyTransformBoneName = "Character1_Spine";
+	Transform _upperBodyTransform;
 
-    [HideInInspector]
-    public float overrideCountDown = 0;
-
-    private Animation _animatedGameObject;
-    public Animation animatedGameObject { get { return _animatedGameObject; } }
-
-
-    List<Material> _materials;	
+	/// <summary>
+	/// Locomotion such as walking and idle will be taken care of automatically
+	/// </summary>
+	bool isAutoHandleBasicLocomotion = true;
 
 
-    // ----------------------------------------
-    void Awake()
-    {
-        if (animationProperties != null)
-        {
-            if (animationProperties.animatedGameObject != null)
-            {
-                _animatedGameObject = Helpers.InstantiateAndParent(animationProperties.animatedGameObject.gameObject.transform, transform, true).GetComponent<Animation>();
-                _upperBodyTransform = Helpers.SearchHierarchyForTransform(_animatedGameObject.transform, upperBodyTransformBoneName);
+	// -----  Animation State -----------------
 
-                // Setup Dictionary
-                // Map animation states to locomotion animation properties 
-                _locomotionClipDictionary = new Dictionary<State, AnimationClipProperties>();
-                _locomotionClipDictionary.Add(State.Dead, animationProperties.reaction.death);
-                _locomotionClipDictionary.Add(State.Idle, animationProperties.locomotion.idle);
-                _locomotionClipDictionary.Add(State.Walking, animationProperties.locomotion.walk);
-                _locomotionClipDictionary.Add(State.StrafeLeft, animationProperties.locomotion.strafeLeft);
-                _locomotionClipDictionary.Add(State.Running, animationProperties.locomotion.run);
-                _locomotionClipDictionary.Add(State.StrafeRight, animationProperties.locomotion.strafeRight);
-                _locomotionClipDictionary.Add(State.BackPedal, animationProperties.locomotion.backPedal);
+	public enum State
+	{
+		Dead = 0,           //
+		Idle = 1,           //
+		Walking = 2,        //
+		Running = 3,        //
+		StrafeLeft = 4,
+		StrafeRight = 5,
+		BackPedal = 6,
+		Override = 7        // Animation state is overridden 
+	}
 
-                // Collect all materials on this animated model
-                _materials = new List<Material>();
-                foreach (SkinnedMeshRenderer s in _animatedGameObject.GetComponentsInChildren<SkinnedMeshRenderer>())
-                    foreach(Material m in s.materials)
-                        _materials.Add(m);
-            }
-        }
-        else
-            Debug.LogError(name.ToString() + " has no animation properties.");
-    }
+	private Dictionary<State, AnimationClipProperties> _locomotionClipDictionary;
+
+	public State _state = State.Idle;
+	public State state
+	{
+		get { return _state; }
+		set { SetAnimationState(value); }
+	}
+
+	// -----  Animation State -----------------
 
 
-    // ----------------------------------------
-    void Start()
-    {
-        SetControllingAgent(GetComponent<Agent>());
-                
-        if (_isAgentAttached && isAutoHandleBasicLocomotion)
-            StartCoroutine(BasicLocomotionRoutine());
 
-        PrewarmAnimations();
-        _state = State.Dead;
-        SetAnimationState(State.Idle);
-    }
+	[HideInInspector]
+	public float overrideCountDown = 0;
+
+	private Animation _animatedGameObject;
+	public Animation animatedGameObject { get { return _animatedGameObject; } }
 
 
-    // ----------------------------------------
-    public void SetControllingAgent(Agent agent)
-    {
-        this.agent = agent;
-        _isAgentAttached = (this.agent != null);
-        if (agent != null)
-        {
-            agent.health.onHealthLost += OnHealthLost;
-            agent.health.onHealthZero += OnHealthLost;
-        }
-    }
+	List<Material> _materials;
 
 
-    // ----------------------------------------
-    public void PrewarmAnimations()
-    {
-        // Matt - got this code snippet from online
-        // Animation.RebuildInternalState causes massive frame spikes
-        // http://forum.unity3d.com/threads/animation-rebuildinternalstate-ms-spikes.123480/#post-1560774
-        // This iterates through the animations to read them into memory in order to  try avoiding this.
-        int animationCount = 0;        
-        for (int i = 0; i < _animatedGameObject.GetClipCount(); i++)
-            animationCount++;
-    }
+	// ----------------------------------------
+	void Awake()
+	{
+		if (animationProperties != null)
+		{
+			if (animationProperties.animatedGameObject != null)
+			{
+				_animatedGameObject = Helpers.InstantiateAndParent(animationProperties.animatedGameObject.gameObject.transform, transform, true).GetComponent<Animation>();
+				_upperBodyTransform = Helpers.SearchHierarchyForTransform(_animatedGameObject.transform, upperBodyTransformBoneName);
+
+				// Setup Dictionary
+				// Map animation states to locomotion animation properties 
+				_locomotionClipDictionary = new Dictionary<State, AnimationClipProperties>();
+				_locomotionClipDictionary.Add(State.Dead, animationProperties.reaction.death);
+				_locomotionClipDictionary.Add(State.Idle, animationProperties.locomotion.idle);
+				_locomotionClipDictionary.Add(State.Walking, animationProperties.locomotion.walk);
+				_locomotionClipDictionary.Add(State.StrafeLeft, animationProperties.locomotion.strafeLeft);
+				_locomotionClipDictionary.Add(State.Running, animationProperties.locomotion.run);
+				_locomotionClipDictionary.Add(State.StrafeRight, animationProperties.locomotion.strafeRight);
+				_locomotionClipDictionary.Add(State.BackPedal, animationProperties.locomotion.backPedal);
+
+				// Collect all materials on this animated model
+				_materials = new List<Material>();
+				foreach (SkinnedMeshRenderer s in _animatedGameObject.GetComponentsInChildren<SkinnedMeshRenderer>())
+					foreach (Material m in s.materials)
+						_materials.Add(m);
+			}
+		}
+		else
+			Debug.LogError(name.ToString() + " has no animation properties.");
+	}
 
 
-    /// <summary>
-    /// Handles walking, running idle and dying
-    /// Also will manage strafe and backpedalling based on agent 
-    /// </summary>    
-    IEnumerator BasicLocomotionRoutine()
-    {
-        while (true)
-        {
-            if(_state != State.Override && state != State.Dead)
-            {
-                // Determine walk/run speed
-                if (agent.speedRatio < 0.05f)
-                {
-                    state = State.Idle;
-                }
-                else
-                {
-                    switch (agent.moveDirection)
-                    {
-                        case Agent.MoveDirection.Foward:
-                            if (agent.speedRatio < agent.properties.walkToRunSpeedRatio)                            
-                                state = State.Walking;
-                            else                            
-                                state = State.Running;                                
-                            break;
+	// ----------------------------------------
+	void Start()
+	{
+		SetControllingAgent(GetComponent<Agent>());
 
-                        case Agent.MoveDirection.Back:
-                            state = State.BackPedal;
-                            break;
+		if (_isAgentAttached && isAutoHandleBasicLocomotion)
+			StartCoroutine(BasicLocomotionRoutine());
 
-                        case Agent.MoveDirection.Left:
-                            state = State.StrafeLeft;
-                            break;
-
-                        case Agent.MoveDirection.Right:
-                            state = State.StrafeRight;
-                            break;
-                    }
-                }
-
-                float speedRatio = Mathf.Clamp(agent.speedRatio, 0.25f, 1f);
-                if (_state == State.Idle)
-                    speedRatio = 1f;
-                animatedGameObject[_locomotionClipDictionary[state].clip.name].speed = _locomotionClipDictionary[state].playSpeed * speedRatio;             
-            }
-            yield return null;
-        }  
-    }
+		PrewarmAnimations();
+		_state = State.Dead;
+		SetAnimationState(State.Idle);
+	}
 
 
-    void SetAnimationState(State value)
-    {
+	// ----------------------------------------
+	public void SetControllingAgent(Agent agent)
+	{
+		this.agent = agent;
+		_isAgentAttached = (this.agent != null);
+		if (agent != null)
+		{
+			agent.health.onHealthLost += OnHealthLost;
+			agent.health.onHealthZero += OnHealthLost;
+		}
+	}
+
+
+	// ----------------------------------------
+	public void PrewarmAnimations()
+	{
+		// Matt - got this code snippet from online
+		// Animation.RebuildInternalState causes massive frame spikes
+		// http://forum.unity3d.com/threads/animation-rebuildinternalstate-ms-spikes.123480/#post-1560774
+		// This iterates through the animations to read them into memory in order to  try avoiding this.
+		int animationCount = 0;
+		for (int i = 0; i < _animatedGameObject.GetClipCount(); i++)
+			animationCount++;
+	}
+
+
+	/// <summary>
+	/// Handles walking, running idle and dying
+	/// Also will manage strafe and backpedalling based on agent 
+	/// </summary>    
+	IEnumerator BasicLocomotionRoutine()
+	{
+		while (true)
+		{
+			if (_state != State.Override && state != State.Dead)
+			{
+				// Determine walk/run speed
+				if (agent.speedRatio < 0.05f)
+				{
+					state = State.Idle;
+				}
+				else
+				{
+					switch (agent.moveDirection)
+					{
+						case Agent.MoveDirection.Foward:
+							if (agent.speedRatio < agent.properties.walkToRunSpeedRatio)
+								state = State.Walking;
+							else
+								state = State.Running;
+							break;
+
+						case Agent.MoveDirection.Back:
+							state = State.BackPedal;
+							break;
+
+						case Agent.MoveDirection.Left:
+							state = State.StrafeLeft;
+							break;
+
+						case Agent.MoveDirection.Right:
+							state = State.StrafeRight;
+							break;
+					}
+				}
+
+				float speedRatio = Mathf.Clamp(agent.speedRatio, 0.25f, 1f);
+				if (_state == State.Idle)
+					speedRatio = 1f;
+				animatedGameObject[_locomotionClipDictionary[state].clip.name].speed = _locomotionClipDictionary[state].playSpeed * speedRatio;
+			}
+			yield return null;
+		}
+	}
+
+
+	void SetAnimationState(State value)
+	{
 		// if state is the same, just return to avoid
-        // setting Animation component values
-        if (value != _state)
-            _state = value;
-        else
-            return;
+		// setting Animation component values
+		if (value != _state)
+			_state = value;
+		else
+			return;
 
-        if(_state != State.Override)
-            if(_locomotionClipDictionary[state] != null)
-                Play(_locomotionClipDictionary[state]);
-    }
+		if (_state != State.Override)
+			if (_locomotionClipDictionary[state] != null)
+				Play(_locomotionClipDictionary[state]);
+	}
 
 
 
-    void Update()
-    {
-        if (overrideCountDown > 0)
-            overrideCountDown -= Time.deltaTime;
+	void Update()
+	{
+		if (overrideCountDown > 0)
+			overrideCountDown -= Time.deltaTime;
 
-        if (_state == State.Override && overrideCountDown < 0)
-        {
-            overrideCountDown = 0f;
-            if(state != State.Dead)
-                state = State.Idle;
-        }
-		
-        FlashMaterials();
-    }
+		if (_state == State.Override && overrideCountDown < 0)
+		{
+			overrideCountDown = 0f;
+			if (state != State.Dead)
+				state = State.Idle;
+		}
 
-    bool isAlreadyDead = false;
+		UpdateFlashMaterials();
+	}
+
+	bool isAlreadyDead = false;
 
 	public void Play(AnimationClipProperties clipProperties) { Play(clipProperties, 0f, false); }
 	public void Play(AnimationClipProperties clipProperties, bool immediateBlend) { Play(clipProperties, 0f, immediateBlend); }
@@ -282,16 +282,16 @@ public class AgentAnimationController : MonoBehaviour
 		}
 
 		// 
-		if(clipProperties.clip.wrapMode == WrapMode.ClampForever && !clipProperties.isOverriding)
+		if (clipProperties.clip.wrapMode == WrapMode.ClampForever && !clipProperties.isOverriding)
 			Stop(clipProperties, false, clipProperties.clip.length * (1f / clipProperties.playSpeed));
-	}	
+	}
 
 
-	public void Stop(AnimationClipProperties clipProperties, bool useBlendTime=false, float delay =0)
+	public void Stop(AnimationClipProperties clipProperties, bool useBlendTime = false, float delay = 0)
 	{
 		if (useBlendTime || delay > 0)
 		{
-			StartCoroutine(StopAnimationOverTimeRoutine(clipProperties, useBlendTime, delay));		
+			StartCoroutine(StopAnimationOverTimeRoutine(clipProperties, useBlendTime, delay));
 		}
 		else
 		{
@@ -312,37 +312,49 @@ public class AgentAnimationController : MonoBehaviour
 		while (t < clipProperties.blendTime)
 		{
 			t += Time.deltaTime;
-			_animatedGameObject[clipProperties.clip.name].weight = 1f-(t/clipProperties.blendTime);
+			_animatedGameObject[clipProperties.clip.name].weight = 1f - (t / clipProperties.blendTime);
 			yield return null;
 		}
 		Stop(clipProperties, false);
 	}
 
 
+
+	// ----------------------------------------------------------------------------
 	// Flashes materials red
 	// This is a bit sloppy here perhaps.   Will
 	// need a specific character shader anyway that has flash
 	// perameters among other things
-	float flashValue = 0;
-    Color flashColor = Color.red;
-    float flashFadeSpeed = 5;    
-    void FlashMaterials()
-    {
-        flashValue -= Time.deltaTime * flashFadeSpeed;
-        flashValue = Mathf.Clamp01(flashValue);
-        foreach (Material m in _materials)
-            m.SetColor("_EmissionColor", Color.Lerp(Color.black, flashColor, flashValue));
-    }
+	private float _flashValue = 0;
+	private Color _flashColor = Color.red;
+	private float _flashFadeSpeed = 5;
+	private string _emissionProperty = "_EmissionColor";
+	private void UpdateFlashMaterials()
+	{
+		_flashValue -= Time.deltaTime * _flashFadeSpeed;
+		_flashValue = Mathf.Clamp01(_flashValue);
+		foreach (Material m in _materials)
+			m.SetColor(_emissionProperty, Color.Lerp(Color.black, _flashColor, _flashValue));
+	}
+
+	public void FlashMaterials(Color color, float speed = 5f)
+	{
+		_flashValue = 1f;
+		_flashColor = color;
+		_flashFadeSpeed = speed;
+	}
+	// ----------------------------------------------------------------------------
 
 
 
-    public void OnHealthLost(Health.HealthChangedEventInfo info)
+
+	public void OnHealthLost(Health.HealthChangedEventInfo info)
     {
         if (state == State.Dead)
             return;
 
-        // set this always for visual feedback
-        flashValue = 1f;
+		// set this always for visual feedback
+		FlashMaterials(Color.red);
         
 
         // Determine direction the hit came from

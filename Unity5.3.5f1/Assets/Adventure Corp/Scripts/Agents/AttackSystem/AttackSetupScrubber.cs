@@ -6,6 +6,7 @@ using System.Collections;
 /// Helper class only to use during edit time to 
 /// help setup attack descriptors with visual feedback
 /// </summary>
+[SelectionBase]
 public class AttackSetupScrubber : MonoBehaviour
 {
     public bool[] volumeIndices;

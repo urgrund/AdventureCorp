@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-[CreateAssetMenu(fileName = "ep_ExplorerProfile", menuName = "Adventure Corp/Explorer Profile")]
+[CreateAssetMenu(fileName = "ExplorerProfile", menuName = "Adventure Corp/Explorer Profile")]
 public class ExplorerProfile : ScriptableObject
 {    
     [System.Serializable]
@@ -41,7 +41,7 @@ public class ExplorerProfile : ScriptableObject
     /// <summary>
 	/// String representation of the name of the Explorer
 	/// </summary>
-    public string explorerName = "new explorer";
+    public string profileName = "new explorer";
 
 	/// <summary>
 	/// Container for all visuals for this explorer for use in HUD's, menu's... etc

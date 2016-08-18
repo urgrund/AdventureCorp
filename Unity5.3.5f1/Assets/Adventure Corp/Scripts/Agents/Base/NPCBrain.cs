@@ -1,8 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
-//using UnityEditor;
-
 
 /// <summary>
 /// NPC Brain
@@ -15,42 +13,29 @@ using System.Collections.Generic;
 /// </summary>
 public abstract class NPCBrain : Brain
 {
-
-	public enum State
+	/// <summary>
+	/// Ranking of an NPC to determine logic in terms of
+	/// following and attack reactions
+	/// </summary>
+	public enum Rank
 	{
-		Idle,
-		Retreat,
-		Attack
+		Boss = 0,
+		WarLord = 1,
+		Tank = 2,
+		Soldier = 3,
+		Weakling = 4,
+		Nothing = 5
 	}
-    private State _previousState;
-    public State previousState {get {return _previousState; }}
-	private State _state = State.Idle;
-	public State state
-	{
-		get { return _state; }
-		set
-        {
-            if (_state == value)
-                return;
-            else
-            {
-                _previousState = _state;
-                _state = value;
-            }
-        }
-	}
-
-
-    public bool isDebugOn = false;
-	// Callbacks for the Brain arriving at positions of interest
-	public delegate void ArrivedAtDestination();
-	public event ArrivedAtDestination onArrivedAtDestination;
-	public event ArrivedAtDestination onArrivedAtNavMeshPosition;
+	
 
 	public BaseAttackCollection attackCollection;
 	protected AttackController _attackController;
 
 
+	// Callbacks for the Brain arriving at positions of interest
+	public delegate void ArrivedAtDestination();
+	public event ArrivedAtDestination onArrivedAtDestination;
+	public event ArrivedAtDestination onArrivedAtNavMeshPosition;
 
 	// NPC's should modify these properties which this
 	// base class will use to call the Agent
@@ -59,15 +44,12 @@ public abstract class NPCBrain : Brain
 	protected Vector3 _desiredMoveDirection = Vector3.zero;
 	protected float _desiredMoveSpeed;
 
-
-
 	protected virtual void OnArrivedAtDestination()
 	{
 		_navMeshNextPosition = null;
 		_isNavMeshPositionFinal = false;
 		_isArrivedAtDestination = false;
 	}
-
 
 	protected virtual void OnArrivedAtNavMeshPosition()
 	{
@@ -195,6 +177,7 @@ public abstract class NPCBrain : Brain
 
 		agent.isAllowedMovement = true;
 		agent.isAllowedRotation = true;
+		state = initialState;
 	}
 
 	protected override void Start()
@@ -202,45 +185,91 @@ public abstract class NPCBrain : Brain
 		StartCoroutine(Spawn());
 		_desiredMoveSpeed = agent.properties.speed.max;
 		_attackController.SetOwnerHealthToDamageVolumes(agent.health);
-		StartCoroutine(LogicRoutineInternal()); // Coroutine that handles unique behaviours for each AI
-        StartCoroutine(LogicStates());
+		//StartCoroutine(LogicRoutineInternal()); 
+
+		// TODO - Move to NPC profile
         personalSpaceRadius = agent.controller.radius * 3.5f;//Personal space radius is always three times the size of the radius of the controller
         base.Start();
 	}
 
-	protected virtual IEnumerator StatePatrolRoutine() { yield return null; }
-	protected virtual IEnumerator StateRetreatRoutine() { yield return null; }
-	protected virtual IEnumerator StateAttackRoutine() { yield return null; }
-    protected virtual IEnumerator StateSizeUpRoutine() { yield return null; }
-	protected abstract IEnumerator LogicRoutine();
 
-	private IEnumerator LogicRoutineInternal()
+
+
+
+
+	// -----------------------------------------------------------------------------------------------------------------		
+	// -----------------------------------------------------------------------------------------------------------------
+	// State Routines/Management
+
+
+	// Holds pointer to the current state logic to run
+	private IEnumerator _stateLogicRoutine;
+
+	protected virtual IEnumerator UpdatePatrolState() { yield return null; }
+	protected virtual IEnumerator UpdateRetreatState() { yield return null; }
+	protected virtual IEnumerator UpdateAttackState() { yield return null; }
+    protected virtual IEnumerator UpdateIdleState() { yield return null; }
+
+	/// <summary>
+	/// Transitions to the next state by assigning the appropriate update routine.
+	/// Override this method to add transition logic on an NPC
+	/// </summary>	
+	protected virtual void OnTransitionToNextState(State from, State to)
 	{
-		while (isSpawning)
-            yield return null;
-
-		while (!agent.health.isDead)
+		if (_stateLogicRoutine != null)
+			StopCoroutine(_stateLogicRoutine);
+		switch (to)
 		{
-			yield return LogicRoutine();
-			yield return null;
+			case State.Idle: _stateLogicRoutine = UpdateIdleState(); break;
+			case State.Patrol: _stateLogicRoutine = UpdatePatrolState(); break;
+			case State.Attack: _stateLogicRoutine = UpdateAttackState(); break;
+			case State.Retreat: _stateLogicRoutine = UpdateRetreatState(); break;
+		}		
+		StartCoroutine(_stateLogicRoutine);		
+	}
+	
+	/// <summary>
+	/// Logic state of the NPC
+	/// </summary>
+	public enum State
+	{
+		Idle = 0,
+		Patrol = 1,
+		Retreat = 2,
+		Attack = 3
+	}
+
+	private State _previousState;
+	public State previousState { get { return _previousState; } }
+	public State initialState = State.Idle;
+	private State _state = State.Idle;
+	public State state
+	{
+		get { return _state; }
+		set
+		{
+			if (_state == value)
+				return;
+			else
+			{
+				_previousState = _state;
+				_state = value;								
+				OnTransitionToNextState(_previousState, _state);
+			}
 		}
 	}
 
-    private IEnumerator LogicStates()
-    {
-        while (isSpawning)
-            yield return null;
+	// -----------------------------------------------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------------------------------------
 
-        while (!agent.health.isDead)
-        {
-            yield return StatePatrolRoutine();
-            yield return StateRetreatRoutine();
-            yield return StateSizeUpRoutine();
-            yield return null;
-        }
-    }
 
-    protected override void Update()
+
+
+
+
+
+
+	protected override void Update()
     {
         // If staggered don't bother movement update
         if (agent.isStaggered || isSpawning)
@@ -409,7 +438,7 @@ public abstract class NPCBrain : Brain
 
 	void OnDrawGizmos()
 	{
-        if (!isDebugOn)
+        if (!debugDraw.isActive)
             return;
 
 		if (Application.isPlaying)
@@ -442,173 +471,3 @@ public abstract class NPCBrain : Brain
 		}
 	}
 }
-
-
-
-
-
-
-
-
-
-
-
-//if(ShowGizmoz)
-//{
-//    Transform t = this.transform;
-//    Handles.color = new Color(1, 0, 0, 0.1f);
-//    Handles.DrawSolidDisc(t.position, t.up, alertDistanceNear);
-
-
-//    float f = alertDistanceFarCone / 360f;
-//    Vector3 v = Vector3.Slerp(t.forward, -t.forward, f);
-
-//    Handles.DrawSolidArc(t.position,
-//        t.up,
-//        v,
-//        alertDistanceFarCone,
-//        alertDistanceFar);
-
-//    Handles.color = Color.yellow;
-//    Handles.DrawWireArc(t.position,
-//        t.up,
-//        v,
-//        alertDistanceFarCone,
-//        alertDistanceFar);
-
-
-//    //Handles.DrawSolidDisc(t.transform.position + v, Vector3.up, .5f);
-//    v *= alertDistanceFar;
-//    Handles.DrawLine(t.position + v, t.position);
-//    Handles.DrawLine(t.position + Vector3.Reflect(v, t.right), t.position);
-//}
-
-
-
-
-//public enum HostileTargets
-//{
-//    Player,
-//    NPC,
-//    Both
-//}
-
-
-
-//public AIProperties properties;
-
-////---------------------------------------------------------------------------------------------------------------//
-////Hostile targets variables and functions
-//Transform hostileTarget; //Behviour of AI can change if hostileTarget is not null
-//List<Transform> potentialHostileTargets = new List<Transform>(); //AI will look for hostile targets in this array
-
-//public HostileTargets hostileTargets; //Determines which objects count as a hostile target (Player, NPC or both)
-
-//// Alert details that are specific 
-//// to the brain/character
-//// Callbacks for the Brain arriving at positions of interest
-//public delegate void HostileTargetSpotted();
-//public event HostileTargetSpotted onHostileTargetSpotted; //This event fires off when an enemy spots a hostile target
-//public delegate void HostileTargetCleared();
-//public event HostileTargetCleared onHostileTargetCleared; //This event fires off when an enemy does not have a hostile target anymore
-
-//public float alertDistanceFar = 5; // How far ahead can the agent detect hostile targets
-//public float alertDistanceFarCone = 45; // In what angle can the angent spot infront of him
-//public float alertDistanceNear = 1; // How close can the agent detect hostile targets without looking in the cone
-
-////TODO: How to avoid NPC detecting player if he is behind walls or above him in the y direction 
-//// TODO : (Matt)  ...use sqrt distance to optimise instead of Vec3.Distance()
-//// ....already a Helper function for this 
-//bool HostileTargetInFarRange(Transform t) { return (Vector3.Distance(t.position, transform.position) < alertDistanceFar); }
-//bool HostileTargetInNearRange(Transform t) { return (Vector3.Distance(t.position, transform.position) < alertDistanceNear); }
-//bool HostileTargetInFarConeAndDistance(Transform t) { return HostileTargetInFarRange(t) && HostileTargetInFarCone(t); }
-//bool HostileTargetInFarCone(Transform t)
-//{
-//    Vector3 dirToTarget = (t.position - transform.position).normalized;
-//    return (Vector3.Angle(dirToTarget, transform.forward) < alertDistanceFarCone * 0.5f);
-//}
-
-///// <summary>
-///// Finds if a potential hostile target is in any range of the AI and sets it as the hostile target
-///// </summary>
-//public bool HostileTargetInAnyRange()
-//{
-//    if (potentialHostileTargets.Count == 0)
-//        return false;
-
-//    for (int i = 0; i < potentialHostileTargets.Count; i++)
-//    {
-//        if (HostileTargetInNearRange(potentialHostileTargets[i]) || HostileTargetInFarConeAndDistance(potentialHostileTargets[i]))
-//        {
-//            //TODO store all potential hostile targets in an array and then check which one is the closest one and pick that one as a hostile target
-//            SetHostileTarget(potentialHostileTargets[i]);
-//            return true;
-//        }
-//    }
-//    return false;
-//}
-
-
-//public void SetHostileTarget(Transform t)
-//{
-//    hostileTarget = t;
-
-//    if (onHostileTargetSpotted != null)
-//        onHostileTargetSpotted();
-//}
-
-//public void RemoveHostileTarget()
-//{
-//    if (hostileTarget == null)
-//        return;
-
-//    hostileTarget = null;
-
-//    if (onHostileTargetCleared != null)
-//        onHostileTargetCleared();
-//}
-
-
-//public void FindAllPotentialHostileTargets()
-//{
-//    potentialHostileTargets.Clear();
-//    //Add only players to potential hostile targets if my enemy is player only
-//    if (hostileTargets == HostileTargets.Player)
-//    {
-//        AddAllPlayersInSceneToPotentialHostileTargets();
-//    }
-//    //Add only NPC characters to potential hostile targets if my enemy is NPC's
-//    else if (hostileTargets == HostileTargets.NPC)
-//    {
-//        AddAllNPCInSceneToPotentialHostileTargets();
-//    }
-//    //Add Both players and NPC characters to potential hostile targets if my enemy is both
-//    else if (hostileTargets == HostileTargets.Both)
-//    {
-//        AddAllPlayersInSceneToPotentialHostileTargets();
-//        AddAllNPCInSceneToPotentialHostileTargets();
-//    }
-//}
-
-//void AddAllPlayersInSceneToPotentialHostileTargets()
-//{
-//    for (int i = 0; i < LevelManager.players.Count; i++)
-//    {
-//        potentialHostileTargets.Add(LevelManager.players[i].transform);
-//    }
-//}
-
-//void AddAllNPCInSceneToPotentialHostileTargets()
-//{
-//    for (int i = 0; i < LevelManager.players.Count; i++)
-//    {
-//        potentialHostileTargets.Add(LevelManager.players[i].transform);
-//    }
-//}
-
-//public bool ShowGizmoz = true;
-//List<PatrolPoint> myPatrolPoints = new List<PatrolPoint>();
-
-////-------------------------------------------------------------------------------------------------------------------//
-
-

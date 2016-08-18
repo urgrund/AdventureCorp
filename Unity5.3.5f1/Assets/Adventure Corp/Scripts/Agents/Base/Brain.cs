@@ -24,6 +24,7 @@ public abstract class Brain : MonoBehaviour
         _agent.health.onHealthLost += OnHealthLost;
         _agent.health.onHealthZero += OnHealthZero;
         _agent.health.onHealthWasInvincible += OnHealthWasInvincible;
+		_agent.onStaggered += OnAgentStaggered;
     }	
 
     // Common delegates that all Brains will be interested in 
@@ -32,4 +33,20 @@ public abstract class Brain : MonoBehaviour
     protected virtual void OnHealthGained(Health.HealthChangedEventInfo info) { }
     protected virtual void OnHealthWasInvincible(Health.HealthChangedEventInfo info) { }
 	protected virtual void OnAgentStaggered() { }
+
+
+	/// <summary>
+	/// Class to manage types of debug especially for NPC's
+	/// as visualisations may get cluttered in the scene view
+	/// </summary>
+	public class BrainDebug
+	{
+		public bool isActive = false;
+		public bool showAll = false;
+		public bool attack = false;
+		public bool agent = false;
+		public bool retreat = false;
+		public bool awareness = false;
+	}
+	public BrainDebug debugDraw;
 }

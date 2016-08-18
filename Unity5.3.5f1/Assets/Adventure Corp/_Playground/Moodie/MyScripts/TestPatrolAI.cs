@@ -3,22 +3,16 @@ using System.Collections;
 
 public class TestPatrolAI : NPCBrain
 {
-    bool _isPatrol = false;
-    protected override IEnumerator LogicRoutine()
+
+	protected override void Start()
+	{
+		state = State.Patrol;
+		base.Start();
+	}
+
+	protected override IEnumerator UpdatePatrolState()
     {
-        while (_isPatrol)
-            yield return null;
-
-        _isPatrol = true;
-        yield return null;
-    }
-
-    protected override IEnumerator StatePatrolRoutine()
-    {
-        while (!_isPatrol)
-            yield return null;
-
-        while (_isPatrol)
+        while (true)
         {
             if (PatrolManager.instance)
                 patrolProperties = PatrolManager.instance.GrabPatrolProperties(this); // Find the nearest patrol zone and point
@@ -28,11 +22,11 @@ public class TestPatrolAI : NPCBrain
             else
                 destination = patrolProperties.patrolPoint.transform.position; // Move towards patrol point
 
-            while (_navMeshNextPosition != null && _isPatrol) // Until destination is reached and I am still patroling keep moving towards destination
+            while (_navMeshNextPosition != null) // Until destination is reached and I am still patroling keep moving towards destination
                 yield return null;
 
             float t = 0;
-            while (t < 2.5f && _isPatrol) // Once arrive to destination and I am still patroling, wait X time on the patrol point
+            while (t < 2.5f) // Once arrive to destination and I am still patroling, wait X time on the patrol point
             {
                 t += Time.deltaTime;
                 yield return null;
@@ -40,9 +34,5 @@ public class TestPatrolAI : NPCBrain
 
             yield return null;
         }
-
-        patrolProperties.Clear();
-        yield return null;
-
     }
 }

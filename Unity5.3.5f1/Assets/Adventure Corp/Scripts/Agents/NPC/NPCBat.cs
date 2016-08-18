@@ -13,14 +13,14 @@ public class NPCBat : NPCBrain
     }	
 
 
-	protected override IEnumerator LogicRoutine()
-	{
-		yield return new WaitForSeconds(Random.Range(1, 3f));
+	//protected override IEnumerator LogicRoutine()
+	//{
+	//	yield return new WaitForSeconds(Random.Range(1, 3f));
 
-		if (playerToAttack != null)
-			destination = playerToAttack.transform.position;		
+	//	if (playerToAttack != null)
+	//		destination = playerToAttack.transform.position;		
 
-		if (Helpers.InRadius(transform.position, playerToAttack.transform.position, 2f))
-			_attackController.AttackWithDescriptor(attackCollection.melee1);		
-	}
+	//	if (Helpers.InRadius(transform.position, playerToAttack.transform.position, 2f))
+	//		_attackController.AttackWithDescriptor(attackCollection.melee1);		
+	//}
 }

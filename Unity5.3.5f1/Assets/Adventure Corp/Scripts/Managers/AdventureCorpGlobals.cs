@@ -52,3 +52,16 @@ public static class AdventureCorpGlobals
 		}
 	}
 }
+
+
+public static class AdventureCorpExtensions
+{
+	public static bool roll(this Probability e)
+	{
+		if (e == Probability.Always)
+			return true;
+		if (e == Probability.Never)
+			return false;
+		return (Random.value < (float)((float)e / 100f));
+	}
+}

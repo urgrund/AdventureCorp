@@ -7,42 +7,45 @@ public class NPCSkeletonSwordsman : NPCBrain
     public Transform target;
     public bool allowAttack = true;
 	
-	protected override IEnumerator LogicRoutine()
+	protected override IEnumerator UpdateAttackState()
 	{
-		if (Helpers.InRadius(transform.position, target.position, Random.Range(4f, 6f)))
-			_desiredMoveSpeed = agent.properties.speed.max * agent.properties.walkToRunSpeedRatio * 0.9f;
-		else
-			_desiredMoveSpeed = agent.properties.speed.max;
-
-		if (!agent.isStaggered)
+		while (true)
 		{
-			if (target != null)
+			if (Helpers.InRadius(transform.position, target.position, Random.Range(4f, 6f)))
+				_desiredMoveSpeed = agent.properties.speed.max * agent.properties.walkToRunSpeedRatio * 0.9f;
+			else
+				_desiredMoveSpeed = agent.properties.speed.max;
+
+			if (!agent.isStaggered)
 			{
-				if (allowAttack && agent.isGrounded)
+				if (target != null)
 				{
-					if (Helpers.InRadiusGrounded(transform.position, target.position, 3f))
+					if (allowAttack && agent.isGrounded)
 					{
-						if (Random.value > 0.4f)
-							_attackController.AttackWithDescriptor(attackCollection.melee1);
+						if (Helpers.InRadiusGrounded(transform.position, target.position, 3f))
+						{
+							if (Random.value > 0.4f)
+								_attackController.AttackWithDescriptor(attackCollection.melee1);
+							else
+								_attackController.AttackWithDescriptor(attackCollection.melee2);
+						}
 						else
-							_attackController.AttackWithDescriptor(attackCollection.melee2);
+						{
+							destination = target.position;
+							yield return new WaitForSeconds(0.5f);
+						}
 					}
-					else
+
+					if (_attackController.isAttacking)
 					{
-						destination = target.position;
-						yield return new WaitForSeconds(0.5f);
+						agent.SetDesiredRotation(target);
 					}
-				}
 
-				if (_attackController.isAttacking)
-				{					
-					agent.SetDesiredRotation(target);
 				}
-				
 			}
-		}
 
-		yield return null;
+			yield return null;
+		}
 	}
 
 	protected override void OnArrivedAtDestination()

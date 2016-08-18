@@ -48,7 +48,7 @@ public abstract class ExplorerBrain : Brain
 
 	protected override void Awake()
     {
-		Debug.Log(profile.explorerName + " entered the dungeon!");
+		Debug.Log(profile.profileName + " entered the dungeon!");
         _player = Rewired.ReInput.players.GetPlayer(ID);
 		ResetRanged();
 		SetupShield();

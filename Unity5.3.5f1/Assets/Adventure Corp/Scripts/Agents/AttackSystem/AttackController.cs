@@ -190,23 +190,20 @@ public class AttackController : MonoBehaviour
     }
 
 
-	public bool CheckAttackInRangeForTarget(AttackDescriptor attack, Transform target)
+	public bool IsAttackInRangeForTarget(AttackDescriptor attack, Transform target)
 	{
 		return !Helpers.InRadius(transform.position, target.position, attack.suggestedUseRange.x) && Helpers.InRadius(transform.position, target.position, attack.suggestedUseRange.y);
 	}
 
-	public bool CheckAttackInAngleForTarget(AttackDescriptor attack, Transform target)
+	public bool IsAttackInAngleForTarget(AttackDescriptor attack, Transform target)
 	{
-		//print(attack.suggestedUseAngle + "     " + (int)attack.suggestedUseAngle);
-		//print("target is " + target.name);
 		Vector3 dirTo = Helpers.DirectionTo(transform, target);
 		return (Vector3.Angle(dirTo, transform.forward) < (int)attack.suggestedUseAngle * 0.5f);
 	}
 
-	public bool CheckAttackIsValidForTarget(AttackDescriptor attack, Transform target)
+	public bool IsAttackIsValidForTarget(AttackDescriptor attack, Transform target)
 	{
-		//print("\n ------- Checking " + attack.name);
-		return CheckAttackInAngleForTarget(attack, target) && CheckAttackInRangeForTarget(attack, target);
+		return IsAttackInAngleForTarget(attack, target) && IsAttackInRangeForTarget(attack, target);
 	}
 
 
@@ -222,7 +219,7 @@ public class AttackController : MonoBehaviour
 			if (collection.AsArray()[i] == null)
 				continue;
 			
-			if (CheckAttackIsValidForTarget(collection.AsArray()[i], target))
+			if (IsAttackIsValidForTarget(collection.AsArray()[i], target))
 			{
 				if (collection.AsArray()[i] != null)
 				{

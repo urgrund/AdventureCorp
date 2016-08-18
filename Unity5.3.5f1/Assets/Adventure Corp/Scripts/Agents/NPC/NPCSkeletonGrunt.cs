@@ -48,52 +48,55 @@ public class NPCSkeletonGrunt : NPCBrain
 
 
 	bool hasWaited = false;
-	protected override IEnumerator LogicRoutine()
-	{		
-		// TODO
-		// Make this into a lookup/dictionary at start 
-		List<AttackDescriptor> aDescs = _attackController.GetSuggestedAttacksForTarget(attackCollection, target);
-		if (aDescs != null)
+	protected override IEnumerator UpdateAttackState()
+	{
+		while (true)
 		{
-			AttackDescriptor ad = aDescs[Random.Range(0, aDescs.Count)];
-
-			// If the distance of the attack is 'far', then 
-			// chose whether to actually use it or to run
-			// closer for a different attack
-			if (!Helpers.InRadius(transform, target, gruntDistanceToRun))
+			// TODO
+			// Make this into a lookup/dictionary at start 
+			List<AttackDescriptor> aDescs = _attackController.GetSuggestedAttacksForTarget(attackCollection, target);
+			if (aDescs != null)
 			{
-				if (Random.value > 0.5f)
+				AttackDescriptor ad = aDescs[Random.Range(0, aDescs.Count)];
+
+				// If the distance of the attack is 'far', then 
+				// chose whether to actually use it or to run
+				// closer for a different attack
+				if (!Helpers.InRadius(transform, target, gruntDistanceToRun))
 				{
-					_desiredMoveSpeed = agent.properties.speed.max;
-					_desiredLookAtTarget = target;
-					if (!hasWaited)
+					if (Random.value > 0.5f)
 					{
-						yield return new WaitForSeconds(0.25f);
-						hasWaited = true;
+						_desiredMoveSpeed = agent.properties.speed.max;
+						_desiredLookAtTarget = target;
+						if (!hasWaited)
+						{
+							yield return new WaitForSeconds(0.25f);
+							hasWaited = true;
+						}
 					}
+					else
+						yield return Attack(ad);
 				}
 				else
 					yield return Attack(ad);
 			}
 			else
-				yield return Attack(ad);
-		}
-		else
-			destination = target.position;
+				destination = target.position;
 
 
-		// Change speed depending on distance 
-		if (Helpers.InRadius(transform, target, gruntDistanceToRun))
-		{
-			_desiredMoveSpeed = agent.properties.speed.max * 0.33f;
-			_desiredLookAtTarget = target;
-		}
-		else
-		{
-			_desiredLookAt = null;
-			_desiredMoveSpeed = agent.properties.speed.max;
-		}
+			// Change speed depending on distance 
+			if (Helpers.InRadius(transform, target, gruntDistanceToRun))
+			{
+				_desiredMoveSpeed = agent.properties.speed.max * 0.33f;
+				_desiredLookAtTarget = target;
+			}
+			else
+			{
+				_desiredLookAt = null;
+				_desiredMoveSpeed = agent.properties.speed.max;
+			}
 
-		yield return null;
+			yield return null;
+		}
 	}
 }

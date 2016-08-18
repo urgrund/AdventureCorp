@@ -5,7 +5,7 @@ public class TestFleeAI : NPCBrain
 {
     bool _isPatrol = true;
     bool _isRetreat = false;
-    protected override IEnumerator LogicRoutine()
+    protected void CheckPatrolOrRetreat()
     {
         if (!_isRetreat)
         {
@@ -24,17 +24,16 @@ public class TestFleeAI : NPCBrain
                 _isRetreat = false;
             }
         }
-
-        yield return null;
     }
 
-    protected override IEnumerator StateRetreatRoutine()
+    protected override IEnumerator UpdateRetreatState()
     {
         while (!_isRetreat)
             yield return null;
 
         while (_isRetreat)
         {
+			CheckPatrolOrRetreat();
             destination = FindRetreatTarget(); // Find a retreat position to move towards to
 
             float t = 0;
@@ -43,21 +42,20 @@ public class TestFleeAI : NPCBrain
                 t += Time.deltaTime;
                 yield return null;
             }
-
             yield return null;
         }
-
         yield return null;
     }
 
-    protected override IEnumerator StatePatrolRoutine()
+    protected override IEnumerator UpdatePatrolState()
     {
         while (!_isPatrol)
             yield return null;
 
         while (_isPatrol)
         {
-            if (PatrolManager.instance)
+			CheckPatrolOrRetreat();
+			if (PatrolManager.instance)
                 patrolProperties = PatrolManager.instance.GrabPatrolProperties(this); // Find the nearest patrol zone and point
 
             if (!patrolProperties.patrolPoint) // If patrol point does not exist just stand still

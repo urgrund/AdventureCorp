@@ -69,9 +69,8 @@ public class PatrolManager : MonoBehaviour
         if (patrolZone)
         {
             if(patrolZone.connectedPatrolAreas.Count > 0) //If patrol zone is connected to other patrol zones. There is 20% chance of switching patrol zones
-            {
-                float rand = Random.Range(0.0f, 100.0f);
-                if(rand < 20)
+            {                
+                if(Random.value < 0.2f)
                 {
                     int index = Random.Range(0, patrolZone.connectedPatrolAreas.Count);
                     patrolZone = patrolZone.connectedPatrolAreas[index];

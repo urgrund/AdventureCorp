@@ -4,7 +4,6 @@ using System.Collections;
 
 public class NPCSkeletonSwordsman : NPCBrain
 {
-    public Transform target;
     public bool allowAttack = true;
 	
 	protected override IEnumerator UpdateAttackState()
@@ -25,9 +24,9 @@ public class NPCSkeletonSwordsman : NPCBrain
 						if (Helpers.InRadiusGrounded(transform.position, target.position, 3f))
 						{
 							if (Random.value > 0.4f)
-								_attackController.AttackWithDescriptor(attackCollection.melee1);
+								_attackController.AttackWithDescriptor(profile.attackCollection.melee1);
 							else
-								_attackController.AttackWithDescriptor(attackCollection.melee2);
+								_attackController.AttackWithDescriptor(profile.attackCollection.melee2);
 						}
 						else
 						{

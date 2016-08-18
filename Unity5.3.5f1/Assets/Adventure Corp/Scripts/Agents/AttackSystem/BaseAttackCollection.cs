@@ -15,45 +15,25 @@ public class ExplorerAttackCollection
 	float _attackInterval = 1f;
 	public AttackDescriptor GetNextMeleeFromSequence(AttackController controller)
 	{
-		//bool updated = false;
-
 		if (controller.isAttacking)
 		{
 			if (controller.isPastYieldControlTime)
 			{
 				_lastAttackTime = Time.time;
 				_meleeSequenceIndex++;
-				//updated = true;
 			}
 		}
 		else
 		{
-			//Debug.Log("wasnt' attacking");			
-			//updated = true;
 			if ((Time.time - _lastAttackTime) > _attackInterval)
 				_meleeSequenceIndex = 0;
 			else
 				_meleeSequenceIndex++;
 			_lastAttackTime = Time.time;
 		}
-
-
-
-
-		if (_meleeSequenceIndex >= meleeSequence.Count)
-		{
+		
+		if (_meleeSequenceIndex >= meleeSequence.Count)		
 			_meleeSequenceIndex = 0;
-			//updated = true;
-		}
-		/*
-		if (updated)
-		{
-			string s = "";
-			for (int i = 0; i <= _meleeSequenceIndex; i++)
-				s += i.ToString() + "..... ";
-			Debug.Log(s);
-		}
-		*/
 
 		return meleeSequence[_meleeSequenceIndex];
 	}

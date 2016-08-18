@@ -5,8 +5,6 @@ using System.Collections.Generic;
 
 public class NPCSkeletonGrunt : NPCBrain
 {
-	public Transform target;
-
 	protected override void Start()
 	{
 		state = State.Attack;
@@ -54,7 +52,7 @@ public class NPCSkeletonGrunt : NPCBrain
 		{
 			// TODO
 			// Make this into a lookup/dictionary at start 
-			List<AttackDescriptor> aDescs = _attackController.GetSuggestedAttacksForTarget(attackCollection, target);
+			List<AttackDescriptor> aDescs = _attackController.GetSuggestedAttacksForTarget(profile.attackCollection, target);
 			if (aDescs != null)
 			{
 				AttackDescriptor ad = aDescs[Random.Range(0, aDescs.Count)];

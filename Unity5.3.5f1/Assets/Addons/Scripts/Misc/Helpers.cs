@@ -18,6 +18,31 @@ public static class Helpers
 	public static bool InRadius(Transform t1, Transform t2, float radius)	{		return InRadius(t1.position, t2.position, radius);	}
 	public static bool InRadius(Transform t1, Vector3 p2, float radius) { return InRadius(t1.position, p2, radius); }
 	public static bool InRadius(Vector3 p1, Transform t2, float radius) { return InRadius(p1, t2.position, radius); }
+	
+	public static bool InConeAngle(Transform target, Transform from, float fromAngle) { return InConeAngle(target.position, from.position, from.forward, fromAngle); }
+	public static bool InConeAngle(Vector3 targetPosition, Vector3 fromPosition, Vector3 fromFoward, float fromAngle) { return (Vector3.Angle(Helpers.DirectionTo(fromPosition, targetPosition), fromFoward) < fromAngle); }
+
+	public static bool InConeAngleAndRadius(Transform target, Transform from, float angle, float radius) { return InConeAngle(target, from, angle) && InRadius(target, from, radius); }
+	public static bool InConeAngleAndRadius(Vector3 target, Vector3 from, Vector3 fromFoward, float angle, float radius) { return InConeAngle(target, from, fromFoward, angle) && InRadius(target, from, radius); }
+
+
+
+
+	//public bool IsAttackInRangeForTarget(AttackDescriptor attack, Transform target)
+	//{
+	//	return !Helpers.InRadius(transform.position, target.position, attack.suggestedUseRange.x) && Helpers.InRadius(transform.position, target.position, attack.suggestedUseRange.y);
+	//}
+
+	//public bool IsAttackInAngleForTarget(AttackDescriptor attack, Transform target)
+	//{
+	//	Vector3 dirTo = Helpers.DirectionTo(transform, target);
+	//	return (Vector3.Angle(dirTo, transform.forward) < (int)attack.suggestedUseAngle * 0.5f);
+	//}
+
+	//public bool IsObjectInRangeAndAngle(AttackDescriptor attack, Transform target)
+	//{
+	//	return IsAttackInAngleForTarget(attack, target) && IsAttackInRangeForTarget(attack, target);
+	//}
 
 	/// <summary>
 	/// If a point lies within another point given a radius. Assumes height of 0.
@@ -290,8 +315,9 @@ public static class Helpers
 			Debug.DrawLine(line1PosA, line1PosB, color, duration, depthTest);
 			Debug.DrawLine(line2PosA, line2PosB, color, duration, depthTest);
 			Debug.DrawLine(line3PosA, line3PosB, color, duration, depthTest);
-		}
+		}		
 	}
+
 
 
 

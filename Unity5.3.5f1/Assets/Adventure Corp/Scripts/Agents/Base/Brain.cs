@@ -39,14 +39,15 @@ public abstract class Brain : MonoBehaviour
 	/// Class to manage types of debug especially for NPC's
 	/// as visualisations may get cluttered in the scene view
 	/// </summary>
+	[System.Serializable]
 	public class BrainDebug
 	{
 		public bool isActive = false;
-		public bool showAll = false;
-		public bool attack = false;
-		public bool agent = false;
-		public bool retreat = false;
-		public bool awareness = false;
+		public bool DRAW_ATTACK = false;
+		public bool DRAW_IDLE = false;
+		public bool DRAW_RETREAT = false;
+		public bool DRAW_PATROL = false;
+		public bool DRAW_AWARENESS = false;
 	}
 	public BrainDebug debugDraw;
 }

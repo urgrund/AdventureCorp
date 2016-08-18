@@ -4,16 +4,13 @@ using System.Collections.Generic;
 
 public class TestZombieBrain : NPCBrain
 {
-	public Transform target;
-
-	public Vector3 _spawnSpot;
+	Vector3 _spawnSpot;
 
 	protected override void Awake()
 	{
 		_spawnSpot = transform.position;
 		base.Awake();
 	}
-
 
 	protected override void OnTransitionToNextState(State from, State to)
 	{
@@ -23,18 +20,29 @@ public class TestZombieBrain : NPCBrain
 
 	protected override IEnumerator UpdateIdleState()
 	{
-		destination = transform.position;
-		print("In Idle");
-		while (true)
-		{			
-			yield return new WaitForSeconds(0.5f);
-		}		
+		//print("In Idle");
+
+		if (_previousState == State.Attack)
+		{
+			Debug.Log("previous was attack");
+			destination = _attackEnteredPosition;
+			Debug.Log("set destination");
+			//while (_navMeshNextPosition != null)
+				//yield return null;
+			
+			//yield return StartCoroutine(YeldWhileReachingDestination());
+		}
+		else
+			destination = transform.position;
+
+		yield return new WaitForSeconds(2f);
+		//state = State.Patrol;
 	}
 
 
 	protected override IEnumerator UpdateRetreatState()
 	{
-		print("In Retreat");
+		//print("In Retreat");
 		destination = _spawnSpot;
 		while (true)
 		{			
@@ -45,20 +53,37 @@ public class TestZombieBrain : NPCBrain
 
 	protected override IEnumerator UpdatePatrolState()
 	{
-		print("In Patrol");
+		//print("In Patrol");
+		_desiredMoveSpeed = agent.properties.speed.max * profile.patrol.patrolMoveSpeedRatio;
 		while (true)
-		{			
-			yield return new WaitForSeconds(0.5f);
+		{
+			if (PatrolManager.instance)
+				patrolProperties = PatrolManager.instance.GrabPatrolProperties(this); 
+
+			if (!patrolProperties.patrolPoint) 
+				destination = transform.position;
+			else
+				destination = patrolProperties.patrolPoint.transform.position; 
+
+			while (_navMeshNextPosition != null) 
+				yield return null;
+
+			// If probability to hold position
+			// Then wait at this position
+			if(profile.patrol.waitAtDestination.checkProbability())
+				yield return new WaitForSeconds(profile.patrol.waitAtDestinationTime);
+
+			yield return null;
 		}
 	}	
 
 
 	protected override IEnumerator UpdateAttackState()
 	{
-		print("In Attack");
+		//print("In Attack");
 		while (target != null)
 		{
-			List<AttackDescriptor> aDescs = _attackController.GetSuggestedAttacksForTarget(attackCollection, target);
+			List<AttackDescriptor> aDescs = _attackController.GetSuggestedAttacksForTarget(profile.attackCollection, target);
 			if (aDescs != null)
 			{
 				AttackDescriptor ad = aDescs[Random.Range(0, aDescs.Count)];
@@ -69,7 +94,19 @@ public class TestZombieBrain : NPCBrain
 				destination = target.position;
 				_desiredMoveSpeed = agent.properties.speed.max;				
 			}
-			yield return new WaitForSeconds(0.5f);
+
+			if (Helpers.InRadius(transform.position, target, profile.attack.closeRangeDistance))
+				_desiredMoveSpeed = agent.properties.speed.max * profile.attack.closeRangeMoveSpeedRatio;
+			else
+				_desiredMoveSpeed = agent.properties.speed.max;
+				
+			
+			// Check if too far away from the target or too
+			// far away from where we started this attack state
+			if ((!Helpers.InRadius(transform, target, profile.attack.stopAttackFromTargetDistance))
+					|| (!Helpers.InRadius(transform, _attackEnteredPosition, profile.attack.stopAttackFromStartDistance)))
+				state = State.Idle;
+			yield return null;
 		}
 	}
 

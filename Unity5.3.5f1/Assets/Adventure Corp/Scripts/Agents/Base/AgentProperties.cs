@@ -15,7 +15,7 @@ public class AgentProperties : MonoBehaviour
     [Range(0, 1)]
     public float backPedalSpeedFactor = 0.5f;
     [Range(0, 1)]
-    public float walkToRunSpeedRatio = 0.25f;
+    public float walkToRunSpeedRatio = 0.75f;
     public AgentPropertiesMovementContainer speed;
     public AgentPropertiesMovementContainer rotation;
 

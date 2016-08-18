@@ -56,7 +56,7 @@ public static class AdventureCorpGlobals
 
 public static class AdventureCorpExtensions
 {
-	public static bool roll(this Probability e)
+	public static bool checkProbability(this Probability e)
 	{
 		if (e == Probability.Always)
 			return true;

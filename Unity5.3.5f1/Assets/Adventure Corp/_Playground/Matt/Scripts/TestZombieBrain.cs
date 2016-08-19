@@ -20,23 +20,20 @@ public class TestZombieBrain : NPCBrain
 
 	protected override IEnumerator UpdateIdleState()
 	{
-		//print("In Idle");
-
 		if (_previousState == State.Attack)
 		{
-			Debug.Log("previous was attack");
 			destination = _attackEnteredPosition;
-			Debug.Log("set destination");
-			//while (_navMeshNextPosition != null)
-				//yield return null;
+			_desiredMoveSpeed = agent.properties.speed.max * profile.patrol.patrolMoveSpeedRatio;
 			
-			//yield return StartCoroutine(YeldWhileReachingDestination());
+			while (_navMeshNextPosition != null)
+				yield return null;						
 		}
 		else
 			destination = transform.position;
 
-		yield return new WaitForSeconds(2f);
-		//state = State.Patrol;
+		if(profile.patrol.waitAtDestination.checkProbability())
+			yield return new WaitForSeconds(profile.patrol.waitAtDestinationTime);
+		state = State.Patrol;
 	}
 
 
@@ -75,29 +72,31 @@ public class TestZombieBrain : NPCBrain
 
 			yield return null;
 		}
-	}	
+	}
 
-
+	public List<AttackDescriptor> aDescs;
 	protected override IEnumerator UpdateAttackState()
 	{
 		//print("In Attack");
 		while (target != null)
 		{
-			List<AttackDescriptor> aDescs = _attackController.GetSuggestedAttacksForTarget(profile.attackCollection, target);
+			aDescs = _attackController.GetSuggestedAttacksForTarget(profile.attackCollection, target);
 			if (aDescs != null)
 			{
+				print("found");
 				AttackDescriptor ad = aDescs[Random.Range(0, aDescs.Count)];
 				_attackController.AttackWithDescriptor(ad);
 			}
 			else
 			{
 				destination = target.position;
-				_desiredMoveSpeed = agent.properties.speed.max;				
 			}
 
+			// If within close range, move at close range speed
+			// If outside of far range, move at max speed
 			if (Helpers.InRadius(transform.position, target, profile.attack.closeRangeDistance))
 				_desiredMoveSpeed = agent.properties.speed.max * profile.attack.closeRangeMoveSpeedRatio;
-			else
+			if (!Helpers.InRadius(transform.position, target, profile.attack.farRangeDistance))
 				_desiredMoveSpeed = agent.properties.speed.max;
 				
 			

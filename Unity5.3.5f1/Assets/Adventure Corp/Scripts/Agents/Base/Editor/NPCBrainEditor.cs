@@ -106,15 +106,17 @@ public class NPCBrainEditor : Editor
 				Handles.color = c;
 				Handles.Label(OffsetPosition(p.attack.closeRangeDistance), "Close Range");
 				Handles.DrawWireArc(npc.transform.position, Vector3.up, Vector3.forward, 360f, p.attack.closeRangeDistance);
+				Handles.Label(OffsetPosition(p.attack.farRangeDistance), "Far Range");
+				Handles.DrawWireArc(npc.transform.position, Vector3.up, Vector3.forward, 360f, p.attack.farRangeDistance);
 
 				c = new Color(1f, 0.45f, 0f);
 				c.a = 0.4f;
 				Handles.color = c;
-				Handles.Label(OffsetPosition(p.attack.stopAttackFromTargetDistance), "Stop Distance - Target");
+				Handles.Label(OffsetPosition(p.attack.stopAttackFromTargetDistance), "Stop Distance - Too fa from Target");
 				Handles.DrawWireArc(npc.transform.position, Vector3.up, Vector3.forward, 360f, p.attack.stopAttackFromTargetDistance);
 				c.a = 0.6f;
 				Handles.color = c;
-				Handles.Label(OffsetPosition(p.attack.stopAttackFromStartDistance), "Stop Distance - Too Far From Start");
+				Handles.Label(OffsetPosition(p.attack.stopAttackFromStartDistance), "Stop Distance - Too far from Start");
 				Handles.DrawWireArc(npc.transform.position, Vector3.up, Vector3.forward, 360f, p.attack.stopAttackFromStartDistance);
 
 				if (Application.isPlaying)

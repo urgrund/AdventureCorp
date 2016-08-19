@@ -35,38 +35,49 @@ public class PatrolZone : MonoBehaviour
 
     void OnDrawGizmos()
     {
-        Gizmos.color = Color.blue * new Color(1,1,1,0.25f);
-        Helpers.Draw.GizmoRing(transform.position, radius);
-
-        float h = 1f;
-        Vector3 size = new Vector3(h * 0.2f, h, h * 0.2f);
-        Vector3 offset = Vector3.up * h * 0.5f;
-        Gizmos.DrawCube(transform.position + offset, size);
-        Gizmos.DrawSphere(transform.position + Vector3.up * h, 0.3f);
-
-
-		Color c = Color.yellow;
-		c.a = 0.2f;
-        Gizmos.color = c;
-        if(connectedPatrolAreas.Count > 0)
-        {
-            for(int i = 0; i < connectedPatrolAreas.Count; i++)
-            {
-               NavMeshPath path = new NavMeshPath();
-               NavMesh.CalculatePath(transform.position, connectedPatrolAreas[i].transform.position,NavMesh.AllAreas, path);
-               if(path != null)
-               {
-                    for(int j = 0; j <  path.corners.Length - 1; j++)
-                    {
-                        Gizmos.DrawLine(path.corners[j], path.corners[j + 1]);
-                        Helpers.Draw.GizmoRing(path.corners[j], 1.0f);
-                    }
-               }
-            }
-        }
+		DrawGizmos(0.02f);
     }
 
-    GameObject o;
+	void OnDrawGizmosSelected()
+	{
+		DrawGizmos(0.5f);
+	}
+
+	void DrawGizmos(float alpha)
+	{
+		Gizmos.color = Color.blue;// * new Color(1, 1, 1, alpha * 10f);
+		Helpers.Draw.GizmoRing(transform.position, radius);
+
+		float h = 1f;
+		Vector3 size = new Vector3(h * 0.2f, h, h * 0.2f);
+		Vector3 offset = Vector3.up * h * 0.5f;
+		Gizmos.DrawCube(transform.position + offset, size);
+		Gizmos.DrawSphere(transform.position + Vector3.up * h, 0.3f);
+
+		Color c = Color.yellow;
+		c.a = alpha;
+		Gizmos.color = c;
+		if (connectedPatrolAreas.Count > 0)
+		{
+			for (int i = 0; i < connectedPatrolAreas.Count; i++)
+			{
+				NavMeshPath path = new NavMeshPath();
+				NavMesh.CalculatePath(transform.position, connectedPatrolAreas[i].transform.position, NavMesh.AllAreas, path);
+				if (path != null)
+				{
+					for (int j = 0; j < path.corners.Length - 1; j++)
+					{
+						Gizmos.DrawLine(path.corners[j], path.corners[j + 1]);
+						Gizmos.DrawSphere(path.corners[j], 0.25f);
+						//Helpers.Draw.GizmoRing(path.corners[j], 1.0f);
+					}
+				}
+			}
+		}
+	}
+
+
+	GameObject o;
     public void GeneratePatrolPointsInCircle()
     {
         if(patrolPoints.Count > 0)

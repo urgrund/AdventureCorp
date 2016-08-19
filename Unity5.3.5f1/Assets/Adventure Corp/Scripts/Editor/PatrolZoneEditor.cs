@@ -25,14 +25,14 @@ public class PatrolZoneEditor : Editor
         }
     }
 
-	void OnSceneGUI()
-	{
-		PatrolZone p = target as PatrolZone;
-		Color c = new Color(255/255, 165/255, 0);		
-		Handles.color = c;
-		foreach (PatrolZone pz in p.connectedPatrolAreas)
-			Handles.DrawLine(pz.transform.position, p.transform.position);
-	}
+	//void OnSceneGUI()
+	//{
+	//	PatrolZone p = target as PatrolZone;
+	//	Color c = new Color(255/255, 165/255, 0);		
+	//	Handles.color = c;
+	//	foreach (PatrolZone pz in p.connectedPatrolAreas)
+	//		Handles.DrawLine(pz.transform.position, p.transform.position);
+	//}
 
 
 	[MenuItem("CONTEXT/PatrolZone/Link Selected Patrol Zones")]

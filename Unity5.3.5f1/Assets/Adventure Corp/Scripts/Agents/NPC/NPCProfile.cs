@@ -66,7 +66,10 @@ public class NPCProfile : ScriptableObject
 		public float cautiousHealthRatio = 0.5f;
 
 		[Tooltip("What distance to the target is considered as close range?")]
-		public float closeRangeDistance = 5f;
+		public float closeRangeDistance = 4f;
+
+		[Tooltip("What distance to the target to consider far and start running")]
+		public float farRangeDistance = 6f;
 
 		[Range(0,1)]
 		[Tooltip("When in close range to target, scale the speed by this amount")]

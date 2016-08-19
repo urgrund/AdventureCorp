@@ -131,8 +131,7 @@ public abstract class NPCBrain : Brain
 		{
 			// If already there, exit
 			if (CheckAtPosition((Vector3)value, profile.patrol.destinationBias))
-			{
-				print("theree!!!!");
+			{				
 				_destination = null;
 				return;
 			}
@@ -140,7 +139,6 @@ public abstract class NPCBrain : Brain
 			// Otherwise setup path to the new destination             
 			FindPathToPosition((Vector3)value, false);
 		}
-
 		get
 		{
 			return _destination;

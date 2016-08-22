@@ -10,7 +10,7 @@ public class TestSizeUp : NPCBrain
     float D = 0;
     float amplitude = 1.5f;
     float t = 1000;
-	protected override IEnumerator UpdateAttackState()
+	protected override IEnumerator Update_AttackState()
     {        
 
         Vector3 sizeUpPos = transform.position;

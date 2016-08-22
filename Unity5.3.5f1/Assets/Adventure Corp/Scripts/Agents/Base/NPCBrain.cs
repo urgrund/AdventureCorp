@@ -27,15 +27,116 @@ public abstract class NPCBrain : Brain
 		Nothing = 5
 	}
 
-		
+
+	/// <summary>
+	/// If the NPC follows superiors during patrol, this 
+	/// will help guide how they do this 
+	/// </summary>
+	public enum PatrolFormation
+	{
+		Vee,		// A 'V' shaped formation behind a superior
+		Column,		// Follow behind the superior in a straigh column
+		Point,		// Take point, lead ahead of the superior
+		Trail		// A lazy follow that trails behind 
+	}
+
+
+
+
 	[Tooltip("Contextual target that the NPC will use to base certain logic off (retreat, attack.. etc)")]
 	public Transform target;
 	public NPCProfile profile;
 
+	public NPCBrain patrolSuperior = null;
+
+
+
+
+
+
+
+
+	Vector3 _spawnSpot;
+	public bool isSpawning { get { return agent.animationController.animatedGameObject.IsPlaying(agent.animationController.animationProperties.reaction.spawn.clip.name); } }
+
+	protected override void Awake()
+	{
+		onArrivedAtDestination += OnArrivedAtDestination;
+		onArrivedAtNavMeshPosition += OnArrivedAtNavMeshPosition;
+		_attackController = GetComponent<AttackController>();
+		_attackEnteredPosition = transform.position;
+		SetAllAttacksAsArray();
+
+		Debug.Assert(_attackController != null, "No Attack Controller");
+
+		_spawnSpot = transform.position;
+
+		base.Awake();
+	}
+
+
+	protected override void Start()
+	{
+		StartCoroutine(Spawn());
+		_desiredMoveSpeed = agent.properties.speed.max;
+		_attackController.SetOwnerHealthToDamageVolumes(agent.health);
+		agent.health.SetStartingAndMax(profile.statistics.startingHealth, profile.statistics.maxHealth);
+		base.Start();
+	}
+
+	IEnumerator Spawn()
+	{
+		agent.animationController.Play(agent.animationController.animationProperties.reaction.spawn);
+		while (isSpawning)
+		{
+			agent.isAllowedMovement = false;
+			agent.isAllowedRotation = false;
+			yield return null;
+		}
+
+		agent.isAllowedMovement = true;
+		agent.isAllowedRotation = true;
+		OnTransitionToNextState(State.Idle, State.Idle);
+	}
+
+
+
+
+
+
+
+	// -----------------------------------------------------------------------------------------------------------------
+	// Attacks
 	protected AttackController _attackController;
+	private AttackDescriptor[] _attackCollectionArray = null;
+	protected AttackDescriptor[] attackCollectionArray { get { return _attackCollectionArray; } }
+
+	private void SetAllAttacksAsArray()
+	{
+		Debug.Assert(_attackCollectionArray == null, "Collection already full yet trying to fill again", this);
+		_attackCollectionArray = new AttackDescriptor[9];
+		_attackCollectionArray[0] = profile.attackCollection.melee1;
+		_attackCollectionArray[1] = profile.attackCollection.melee2;
+		_attackCollectionArray[2] = profile.attackCollection.melee3;
+		_attackCollectionArray[3] = profile.attackCollection.melee4;
+		_attackCollectionArray[4] = profile.attackCollection.melee5;
+		_attackCollectionArray[5] = profile.attackCollection.melee6;
+		_attackCollectionArray[6] = profile.attackCollection.ranged1;
+		_attackCollectionArray[7] = profile.attackCollection.ranged2;
+		_attackCollectionArray[8] = profile.attackCollection.special;
+	}
+
 
 	protected Vector3 _attackEnteredPosition;
-	public Vector3 attackEnteredPosition { get { return _attackEnteredPosition; } }	
+	/// <summary>
+	/// Position at which the NPC entered attack State
+	/// </summary>
+	public Vector3 attackEnteredPosition { get { return _attackEnteredPosition; } }
+
+
+	// -----------------------------------------------------------------------------------------------------------------
+
+
 
 	// Callbacks for the Brain arriving at positions of interest
 	public delegate void ArrivedAtDestination();
@@ -71,17 +172,19 @@ public abstract class NPCBrain : Brain
 		Debug.Assert(_navMeshNextPositionIndex <= _navMeshPathToDestination.corners.Length);
 	}
 
-	
+
 
 	protected Vector3 _desiredVelocity = Vector3.zero;
 
-	//-------------------------------------------------------//
+	// -----------------------------------------------------------------------------------------------------------------
 	//Patrol stuff here
 	[HideInInspector]
 	public PatrolProperties patrolProperties;
-	//-------------------------------------------------------//
 
-	//-------------------------------------------------------//
+	// -----------------------------------------------------------------------------------------------------------------
+
+
+	// -----------------------------------------------------------------------------------------------------------------
 	//Personal space stuff here
 	List<NPCBrain> NPCsInPersonalSpace = new List<NPCBrain>();
 	List<NPCBrain> NPCsBlockingPath = new List<NPCBrain>();
@@ -92,13 +195,13 @@ public abstract class NPCBrain : Brain
 	const float pathClearFactor = 1.15f; // Until path is clear by 1.5 times than the original angle keep avoiding NPC
 	bool isAvoidingNPC = false;
 	bool disableAvoidance = true;
-	//-------------------------------------------------------//
-
-
-
-
-
 	// -----------------------------------------------------------------------------------------------------------------
+
+
+
+
+
+
 	// -----------------------------------------------------------------------------------------------------------------
 	// Nav Mesh and General Pathfinding 
 
@@ -107,15 +210,7 @@ public abstract class NPCBrain : Brain
 	public bool CheckAtPosition(Vector3 position) { return CheckAtPosition(position, 0.01f); }
 	public bool CheckAtPosition(Vector3 position, float bias) { return Helpers.InRadiusGrounded(transform.position, position, bias); }
 
-	/// <summary>
-	/// Convenience function that yeilds whilst not yet at destination
-	/// </summary>	
-	protected IEnumerator YeldWhileReachingDestination()
-	{
-		while (_navMeshNextPosition != null)
-			yield return null;
-	}
-
+	
 	private NavMeshPath _navMeshPathToDestination;
 
 	protected Vector3? _navMeshNextPosition;
@@ -131,7 +226,7 @@ public abstract class NPCBrain : Brain
 		{
 			// If already there, exit
 			if (CheckAtPosition((Vector3)value, profile.patrol.destinationBias))
-			{				
+			{
 				_destination = null;
 				return;
 			}
@@ -179,59 +274,219 @@ public abstract class NPCBrain : Brain
 
 
 
-	public bool isSpawning { get { return agent.animationController.animatedGameObject.IsPlaying(agent.animationController.animationProperties.reaction.spawn.clip.name); } }
-
-	protected override void Awake()
-	{
-		onArrivedAtDestination += OnArrivedAtDestination;
-		onArrivedAtNavMeshPosition += OnArrivedAtNavMeshPosition;
-		_attackController = GetComponent<AttackController>();
-		_attackEnteredPosition = transform.position;
-
-		Debug.Assert(_attackController != null, "No Attack Controller");
-		base.Awake();
-	}
-
-	IEnumerator Spawn()
-	{
-		agent.animationController.Play(agent.animationController.animationProperties.reaction.spawn);
-		while (isSpawning)
-		{
-			agent.isAllowedMovement = false;
-			agent.isAllowedRotation = false;
-			yield return null;
-		}
-
-		agent.isAllowedMovement = true;
-		agent.isAllowedRotation = true;
-		OnTransitionToNextState(State.Idle, State.Idle);
-	}
-
-	protected override void Start()
-	{
-		StartCoroutine(Spawn());
-		_desiredMoveSpeed = agent.properties.speed.max;
-		_attackController.SetOwnerHealthToDamageVolumes(agent.health);				
-		base.Start();
-	}
 
 
 
+	#region State Updates and Management
 
 
-
-	// -----------------------------------------------------------------------------------------------------------------		
 	// -----------------------------------------------------------------------------------------------------------------
 	// State Routines/Management
 
 
 	// Holds pointer to the current state logic to run
 	private IEnumerator _stateLogicRoutine;
+	private IEnumerator _internalStateLogicRoutine;
 
-	protected virtual IEnumerator UpdatePatrolState() { yield return null; }
-	protected virtual IEnumerator UpdateRetreatState() { yield return null; }
-	protected virtual IEnumerator UpdateAttackState() { yield return null; }
-	protected virtual IEnumerator UpdateIdleState() { yield return null; }
+	protected virtual IEnumerator Update_PatrolState() { yield return null; }
+	protected virtual IEnumerator Update_RetreatState() { yield return null; }
+	protected virtual IEnumerator Update_AttackState() { yield return null; }
+	protected virtual IEnumerator Update_IdleState() { yield return null; }
+
+	protected bool isIgnoreInternalUpdateRoutine = false;
+
+	private IEnumerator InternalUpdate_PatrolState()
+	{
+
+		if (!isIgnoreInternalUpdateRoutine)
+		{
+			_desiredMoveSpeed = agent.properties.speed.max * profile.patrol.patrolMoveSpeedRatio;
+			while (true)
+			{
+				patrolSuperior = null;
+
+				if (PatrolManager.instance)
+					patrolProperties = PatrolManager.instance.GrabPatrolProperties(this);
+
+				if (!patrolProperties.patrolPoint)
+					destination = transform.position;
+				else
+					destination = patrolProperties.patrolPoint.transform.position;
+
+
+				// Follow path until finished
+				while (_navMeshNextPosition != null && patrolSuperior == null)
+				{
+					if (profile.patrol.followSuperiors.checkProbability())
+					{
+						// TODO - optimise with Layer masks
+						Collider[] c = Physics.OverlapSphere(transform.position, 15f);
+						for (int i = 0; i < c.Length; i++)
+						{
+							//print("checking - " + c[i].name);
+							NPCBrain b = c[i].GetComponent<NPCBrain>();
+							if (b != null)
+							{
+								if (b != this && !b.agent.health.isDead)
+								{
+									if ((int)profile.statistics.rank > (int)b.profile.statistics.rank)
+									{
+										patrolSuperior = b;
+										break;
+									}
+								}
+							}
+						}
+					}
+					yield return new WaitForSeconds(2f);
+				}
+
+				while(patrolSuperior != null)
+				{
+					//(patrolSuperior.transform.forward * profile.awareness.personalSpace) + 
+					Vector3 distanceBehind = (patrolSuperior.transform.forward * patrolSuperior.profile.awareness.personalSpace);
+					Vector3 newDest = patrolSuperior.transform.position - distanceBehind;
+					destination = newDest;
+
+					if (Helpers.InRadius(newDest, transform, profile.attack.closeRangeDistance * 0.5f))
+						_desiredMoveSpeed = agent.properties.speed.max * profile.patrol.patrolMoveSpeedRatio;
+					else
+						_desiredMoveSpeed = agent.properties.speed.max;
+
+					yield return new WaitForSeconds(Random.value * 2f);					
+				}
+
+
+				// If probability to hold position
+				// Then wait at this position
+				if (profile.patrol.waitAtDestination.checkProbability())
+					yield return new WaitForSeconds(profile.patrol.waitAtDestinationTime);
+
+				yield return null;
+			}
+		}
+	}
+
+	private IEnumerator InternalUpdate_RetreatState()
+	{
+		if (!isIgnoreInternalUpdateRoutine)
+		{
+			destination = _spawnSpot;
+			yield return null;
+		}
+	}
+
+
+	public bool _isInCloseRangeRoutine = false;	
+	IEnumerator ActivateInCloseRangeForTime(float time)
+	{
+		_isInCloseRangeRoutine = true;
+		yield return new WaitForSeconds(time);
+		_isInCloseRangeRoutine = false;
+	}
+
+	private IEnumerator InternalUpdate_AttackState()
+	{
+		if (!isIgnoreInternalUpdateRoutine)
+		{
+			// Upon entering attack play an 'alert' animation and look at the target
+			//agent.animationController.Play(profile.actions.roar);
+			_desiredMoveSpeed = 0f;
+			while (agent.animationController.animatedGameObject.IsPlaying(profile.actions.roar.clip.name))
+			{
+				agent.SetDesiredRotation(target);
+				yield return null;
+			}
+			_desiredMoveSpeed = agent.properties.speed.max;
+			_desiredLookAtTarget = target;
+
+
+			while (target != null)
+			{
+				ClearQueuedAction();
+
+				if (_attackController.isPastYieldControlTime)
+				{
+					List<AttackDescriptor> aDescs;
+					if (!_isInCloseRangeRoutine)
+					{
+						if (profile.attack.preferCloseCombat.checkProbability())
+						{
+							StartCoroutine(ActivateInCloseRangeForTime(profile.attack.closeCombatDuration));
+							aDescs = _attackController.GetSuggestedAttacksForTarget(attackCollectionArray, target, profile.attack.closeRangeDistance);
+						}
+						else
+							aDescs = _attackController.GetSuggestedAttacksForTarget(attackCollectionArray, target);
+					}
+					else
+						aDescs = _attackController.GetSuggestedAttacksForTarget(attackCollectionArray, target, profile.attack.closeRangeDistance);
+
+					if (aDescs != null)
+					{						
+						AttackDescriptor ad = aDescs[Random.Range(0, aDescs.Count)];										
+						_attackController.AttackWithDescriptor(ad, target);
+					}
+					else					
+						destination = target.position;					
+				}
+
+				// If within close range, move at close range speed
+				// If outside of far range, move at max speed
+				if (Helpers.InRadius(transform.position, target, profile.attack.closeRangeDistance))
+				{
+					_desiredMoveSpeed = agent.properties.speed.max * profile.attack.closeRangeMoveSpeedRatio;
+					_desiredLookAtTarget = target;
+				}
+				if (!Helpers.InRadius(transform.position, target, profile.attack.farRangeDistance))
+				{
+					_desiredMoveSpeed = agent.properties.speed.max;
+					_desiredLookAtTarget = null;
+					_desiredLookAt = null;
+					destination = target.position;
+				}
+
+
+				// Check if too far away from the target or too
+				// far away from where we started this attack state
+				if ((!Helpers.InRadius(transform, target, profile.attack.stopAttackFromTargetDistance))
+						|| (!Helpers.InRadius(transform, _attackEnteredPosition, profile.attack.stopAttackFromStartDistance)))
+					state = State.Idle;
+
+				yield return null;
+			}
+
+			// If we got here then the target is null, so 
+			// there's nothing more to attack 
+			state = State.Idle;
+		}
+	}
+
+	private IEnumerator InternalUpdate_IdleState()
+	{
+		if (!isIgnoreInternalUpdateRoutine)
+		{
+			if (_previousState == State.Attack)
+			{
+				destination = _attackEnteredPosition;
+				_desiredMoveSpeed = agent.properties.speed.max * profile.patrol.patrolMoveSpeedRatio;
+
+				while (_navMeshNextPosition != null)
+					yield return null;
+			}
+			else
+				destination = transform.position;
+
+			if (profile.patrol.waitAtDestination.checkProbability())
+				yield return new WaitForSeconds(profile.patrol.waitAtDestinationTime);
+
+			state = State.Patrol;
+
+			yield return null;
+		}
+	}
+
+
+
 
 	/// <summary>
 	/// Transitions to the next state by assigning the appropriate update routine.
@@ -240,19 +495,53 @@ public abstract class NPCBrain : Brain
 	protected virtual void OnTransitionToNextState(State from, State to)
 	{
 		if (to == State.Attack)
-			_attackEnteredPosition = transform.position;		
+		{
+			if (from == State.Patrol)
+				_attackEnteredPosition = _navMeshNextPosition != null ? (Vector3)_navMeshNextPosition : transform.position;
+			if (from == State.Idle)
+				_attackEnteredPosition = transform.position;
+		}
+			
 
-		// Get the next co-routine going
+		// Cancel the currently running coroutine
 		if (_stateLogicRoutine != null)
+		{
 			StopCoroutine(_stateLogicRoutine);
+			StopCoroutine(_internalStateLogicRoutine);
+		}
+
+		isIgnoreInternalUpdateRoutine = false;
+
+		// Set the next co-routine and perform basic 
+		// logic related to each state transition
 		switch (to)
 		{
-			case State.Idle: _stateLogicRoutine = UpdateIdleState(); break;
-			case State.Patrol: _stateLogicRoutine = UpdatePatrolState(); break;
-			case State.Attack: _stateLogicRoutine = UpdateAttackState(); break;
-			case State.Retreat: _stateLogicRoutine = UpdateRetreatState(); break;
+			//  Idle -----------------------------------------------------
+			case State.Idle:
+				_stateLogicRoutine = Update_IdleState();
+				_internalStateLogicRoutine = InternalUpdate_IdleState();				
+				break;
+
+			//  Patrol -----------------------------------------------------
+			case State.Patrol:
+				_stateLogicRoutine = Update_PatrolState();
+				_internalStateLogicRoutine = InternalUpdate_PatrolState();
+				break;
+
+			//  Attack -----------------------------------------------------
+			case State.Attack:
+				_stateLogicRoutine = Update_AttackState();
+				_internalStateLogicRoutine = InternalUpdate_AttackState();
+				break;
+
+			//  Retreat -----------------------------------------------------
+			case State.Retreat:
+				_stateLogicRoutine = Update_RetreatState();
+				_internalStateLogicRoutine = InternalUpdate_RetreatState();				
+				break;
 		}
 		StartCoroutine(_stateLogicRoutine);
+		StartCoroutine(_internalStateLogicRoutine);
 	}
 
 	/// <summary>
@@ -290,6 +579,11 @@ public abstract class NPCBrain : Brain
 
 
 
+	#endregion
+
+
+
+
 	// -----------------------------------------------------------------------------------------------------------------
 	public bool IsTargetWithinAwareness(Transform targetTransform)
 	{
@@ -300,11 +594,65 @@ public abstract class NPCBrain : Brain
 	// -----------------------------------------------------------------------------------------------------------------	
 
 
+	
+	private bool _isActionQueued = false;
+	private AttackDescriptor _queuedAction = null;	
+	private void ClearQueuedAction()
+	{
+		if (_isActionQueued && _queuedAction != null)
+		{
+			_attackController.YieldControlFromAttack(true);
+			_attackController.AttackWithDescriptor(_queuedAction);
+			_isActionQueued = false;
+		}
+	}
+
+
+
+
+	protected override void OnHealthLost(Health.HealthChangedEventInfo info)
+	{
+		if (info.responsibleAttackController == null)
+			return;
+
+		if (info.responsibleGameObject.transform == target)			
+		{
+			state = State.Attack;
+			if (profile.attack.jumpAwayIfHit.checkProbability())
+			{
+				if (_attackController.YieldControlFromAttack())
+				{
+					agent.SetDesiredRotation(Helpers.DirectionTo(transform, target), true);
+					_attackController.AttackWithDescriptor(profile.actions.jumpAway);
+				}
+				else
+				{
+					_isActionQueued = true;
+					_queuedAction = profile.actions.jumpAway;
+				}
+			}
+			return;
+		}
+
+		if (info.responsibleAttackController.GetComponent<ExplorerBrain>())
+		{
+			state = State.Attack;
+			target = info.responsibleAttackController.transform;
+		}
+
+
+
+
+		base.OnHealthLost(info);
+	}
+
+
 
 
 
 	protected override void Update()
 	{
+
 		// If staggered don't bother movement update
 		if (agent.isStaggered || isSpawning)
 			return;
@@ -330,17 +678,12 @@ public abstract class NPCBrain : Brain
 
 		// Check if this NPC wants to move to a preferred state on aware
 		if (profile.awareness.isUsePreferredStateOnAware && state != profile.awareness.preferredStateOnAware)
-		{
 			if (IsTargetWithinAwareness(target))
-			{
 				state = profile.awareness.preferredStateOnAware;
-				print("set to preferred state");
-			}
-		}
 
-
+		// Continue to pathfind
 		if (_destination != null && _navMeshNextPosition != null)
-		{			
+		{
 			Vector3 nextPosition = (Vector3)_navMeshNextPosition;
 
 			// Check if at this position and fire off appropriate delegate
@@ -388,11 +731,9 @@ public abstract class NPCBrain : Brain
 
 
 
-
+	#region blocking
 	// -----------------------------------------------------------------------------------------------------------------
-	// Blocking 
-
-
+	// NPC Path Blocking 
 	void UpdateNPCsInPersonalSpace()
 	{
 		NPCsInPersonalSpace.Clear(); // Clear all NPCs in the personal space
@@ -492,7 +833,7 @@ public abstract class NPCBrain : Brain
 		return dest;
 	}
 	// -----------------------------------------------------------------------------------------------------------------
-
+	#endregion
 
 
 
@@ -527,16 +868,7 @@ public abstract class NPCBrain : Brain
 						Helpers.Draw.GizmoRing(p.corners[i], profile.patrol.destinationBias);
 					}
 				}
-			}
-
-			//if (debugDraw.DRAW_PATROL || debugDraw.DRAW_IDLE)
-			{
-				Gizmos.color = Color.red;
-				Gizmos.DrawWireSphere(_attackEnteredPosition, 1f);
-				Gizmos.DrawLine(transform.position, _attackEnteredPosition);
-				Gizmos.color = Color.yellow;
-				Gizmos.DrawLine(transform.position, target.position);
-			}
+			}			
 		}
 	}
 

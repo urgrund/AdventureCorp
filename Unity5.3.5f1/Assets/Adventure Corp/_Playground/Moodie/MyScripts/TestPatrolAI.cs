@@ -10,7 +10,7 @@ public class TestPatrolAI : NPCBrain
 		base.Start();
 	}
 
-	protected override IEnumerator UpdatePatrolState()
+	protected override IEnumerator Update_PatrolState()
     {
         while (true)
         {

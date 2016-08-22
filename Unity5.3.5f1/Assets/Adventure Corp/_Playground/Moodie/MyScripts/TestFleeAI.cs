@@ -26,7 +26,7 @@ public class TestFleeAI : NPCBrain
         }
     }
 
-    protected override IEnumerator UpdateRetreatState()
+    protected override IEnumerator Update_RetreatState()
     {
         while (!_isRetreat)
             yield return null;
@@ -47,7 +47,7 @@ public class TestFleeAI : NPCBrain
         yield return null;
     }
 
-    protected override IEnumerator UpdatePatrolState()
+    protected override IEnumerator Update_PatrolState()
     {
         while (!_isPatrol)
             yield return null;

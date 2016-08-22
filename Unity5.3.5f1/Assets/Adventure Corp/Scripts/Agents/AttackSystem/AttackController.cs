@@ -13,7 +13,7 @@ public class AttackController : MonoBehaviour
 	public LayerMask damageColliderLayer;// = LayerMask.NameToLayer("Everything");  
 
 	// Agent owning this attack controller
-	Agent _agent;
+	Agent _agent;	
 
 	// Target to turn towards whilst attacking
 	Transform _turnToTarget = null;
@@ -80,12 +80,24 @@ public class AttackController : MonoBehaviour
 	public bool isPastYieldControlTime
     {
         get
-        {
-            if (_isAttacking)
-                return _agent.animationController.animatedGameObject[_currentAttack.clipProperties.clip.name].normalizedTime > _currentAttack.yieldControlRatio;
-            else
-                return true;
-        }
+		{
+			if (_isAttacking && _currentAttack != null)
+			{
+				float localYieldTime = (_currentAttack.clipProperties.scaledLength * _currentAttack.yieldControlRatio);
+				float startOffset = _currentAttack.clipProperties.scaledLength * _currentAttack.attackStartOffsetRatio;
+				float trueTimeYield = _currentAttackStartTime + (localYieldTime - startOffset);
+
+				return Time.time > (_currentAttackStartTime + trueTimeYield);
+			}
+			else
+				return true;
+
+
+			//if (_isAttacking)
+			//    return _agent.animationController.animatedGameObject[_currentAttack.clipProperties.clip.name].normalizedTime > _currentAttack.yieldControlRatio;
+			//else
+			//    return true;
+		}
     }
 
 	public bool isPastTurnToTime
@@ -139,9 +151,8 @@ public class AttackController : MonoBehaviour
 	/// <summary>
 	/// Ask for the attack to stop playback and return control of the agent
 	/// This can be forced, or on condition of the attacks yeild time
-	/// </summary>
-    public bool YieldControlFromAttack() { return YieldControlFromAttack(false); }
-    public bool YieldControlFromAttack(bool force)
+	/// </summary>    
+    public bool YieldControlFromAttack(bool force=false)
     {
 		if (_isAttacking)
 		{
@@ -152,7 +163,6 @@ public class AttackController : MonoBehaviour
 			}
 			else
 			{
-
 				if (isPastYieldControlTime)
 				{
 					ReleaseAttack(_currentAttack);
@@ -171,17 +181,19 @@ public class AttackController : MonoBehaviour
 
     void ReleaseAttack(AttackDescriptor attack)
     {
-		Debug.Assert(attack != null, "AttackDescriptor was null whilst trying to release");
+		if (attack != null)
+		{	
+			ActivateDamageVolumes(false, attack.volumeIndices);
+			_agent.animationController.Stop(attack.clipProperties);
+		}
 
-        // Deactivate
-        ActivateDamageVolumes(false, attack.volumeIndices);
 		_currentAttack = null;
         _agent.isAllowedMovement = true;
         _agent.isApplyGravity = true;
         _isAttacking = false;
         _isControllingAgentVelocity = false;
-		_turnToTarget = null;
-
+		_turnToTarget = null;		
+		
 		StopAllCoroutines();
 
 		// Set override cooldown below zero so that
@@ -207,25 +219,29 @@ public class AttackController : MonoBehaviour
 	}
 
 
-	// TODO - 
-	// Optimisation, call this for general scenarios (in front, behind... etc) 
-	// then could use a lookup based on direction/distance 
-	public List<AttackDescriptor> GetSuggestedAttacksForTarget(BaseAttackCollection collection, Transform target)
+
+	public List<AttackDescriptor> GetSuggestedAttacksForTarget(BaseAttackCollection collection, Transform target) { return GetSuggestedAttacksForTarget(collection.AsArray(), target); }
+	public List<AttackDescriptor> GetSuggestedAttacksForTarget(AttackDescriptor[] attackCollectionArray, Transform target, float maxDistanceToTarget=Mathf.Infinity)
 	{
 		List<AttackDescriptor> attacks = null;
 
-		for (int i = 0; i < collection.AsArray().Length; i++)
+		for (int i = 0; i < attackCollectionArray.Length; i++)
 		{
-			if (collection.AsArray()[i] == null)
+			if (attackCollectionArray[i] == null)
+				continue;
+
+			// If the farthest distance for this attack is greater than
+			// the max distance to target then ignore this attack
+			if (attackCollectionArray[i].suggestedUseRange.y > maxDistanceToTarget)
 				continue;
 			
-			if (IsAttackIsValidForTarget(collection.AsArray()[i], target))
+			if (IsAttackIsValidForTarget(attackCollectionArray[i], target))
 			{
-				if (collection.AsArray()[i] != null)
+				if (attackCollectionArray[i] != null)
 				{
 					if (attacks == null)
 						attacks = new List<AttackDescriptor>();
-					attacks.Add(collection.AsArray()[i]);
+					attacks.Add(attackCollectionArray[i]);
 				}
 			}
 		}
@@ -244,15 +260,15 @@ public class AttackController : MonoBehaviour
 
 		if (d == null)
 			return;
-
+		
 		if (isPastYieldControlTime)
 		{
-			StopAllCoroutines();
+			ReleaseAttack(_currentAttack);
 			_turnToTarget = target;
 			_currentAttack = d;
 			_currentAttackStartTime = Time.time;
-			_isAttacking = true;
-			_agent.animationController.Play(_currentAttack.clipProperties, _currentAttack.attackStartOffset);
+			_isAttacking = true;		
+			_agent.animationController.Play(_currentAttack.clipProperties, _currentAttack.attackStartOffsetRatio);
 			StartCoroutine(RunJobRoutine(d));
 			if (d.eventor != null)
 				EventorSchedule.RunAtTransformAsChild(d.eventor, this.transform);
@@ -260,6 +276,7 @@ public class AttackController : MonoBehaviour
 	}
 
 	private float t;
+	public float _currentAttackTotalPlayTime;
 	IEnumerator RunJobRoutine(AttackDescriptor attack)
     {
         // Setup volumes
@@ -269,12 +286,22 @@ public class AttackController : MonoBehaviour
 		if (attack.controllerLock == AttackDescriptor.Lock.Curves)
             curveLastPosition = GetPositionOnCurve(_currentAttack, 0f);
 
-		t = _currentAttack.attackStartOffset;        
+		//t = _currentAttack.attackStartOffsetRatio;
+		//_currentAttackTotalPlayTime = attack.clipProperties.scaledLength;
+		
         // Play animation and activate volumes during damage range
         if (_agent.animationController.animatedGameObject != null && _currentAttack != null)
-        {            
-            while (_agent.animationController.animatedGameObject.IsPlaying(_currentAttack.clipProperties.clip.name))
+        {
+			float totalPlayTime = 0f;
+			totalPlayTime += attack.clipProperties.scaledLength * attack.yieldControlRatio;
+			totalPlayTime -= attack.clipProperties.scaledLength * attack.attackStartOffsetRatio;			
+
+			float runTime = 0f;
+			//while (_agent.animationController.animatedGameObject.IsPlaying(_currentAttack.clipProperties.clip.name))
+			//while (Time.time < _currentAttackStartTime + totalPlayTime)
+			while(runTime < totalPlayTime)
             {
+				runTime += Time.deltaTime;
 				_isAttacking = true;
 				
 				// Activate volumes during the attack				
@@ -304,9 +331,7 @@ public class AttackController : MonoBehaviour
                 yield return null;
             }         
         }
-        else
-            Debug.LogWarning("Attack had no animated object or attack descriptor");
-
+        
         ReleaseAttack(_currentAttack);
     }
 

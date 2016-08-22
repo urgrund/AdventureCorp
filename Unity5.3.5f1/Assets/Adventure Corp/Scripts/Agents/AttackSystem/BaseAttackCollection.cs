@@ -53,7 +53,7 @@ public class BaseAttackCollection
 	public AttackDescriptor ranged1;
     public AttackDescriptor ranged2;
     public AttackDescriptor special;
-
+	
 	// This is generated once at runtime
 	private AttackDescriptor[] allAsArray = null;
 

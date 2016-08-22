@@ -77,7 +77,7 @@ public class Damager : MonoBehaviour
 
             SphereCollider c = GetComponent<SphereCollider>();
             Gizmos.color = enabled ? Color.red : Color.grey;
-            Gizmos.DrawWireSphere(transform.TransformPoint(c.center), c.radius);            
+            Gizmos.DrawWireSphere(transform.TransformPoint(c.center), c.radius );            
         }
     }    
 }

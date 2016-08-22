@@ -3,6 +3,7 @@ using System.Collections;
 using UnityEditor;
 
 [CustomEditor(typeof(NPCBrain), true)]
+[CanEditMultipleObjects]
 public class NPCBrainEditor : Editor
 {
 	NPCBrain npc;
@@ -34,6 +35,8 @@ public class NPCBrainEditor : Editor
 	public override void OnInspectorGUI()
 	{
 		DrawDefaultInspector();
+
+		EditorGUILayout.LabelField("Current State -  " + npc.state.ToString());
 
 		if (p != null)
 		{
@@ -119,7 +122,7 @@ public class NPCBrainEditor : Editor
 				Handles.Label(OffsetPosition(p.attack.stopAttackFromStartDistance), "Stop Distance - Too far from Start");
 				Handles.DrawWireArc(npc.transform.position, Vector3.up, Vector3.forward, 360f, p.attack.stopAttackFromStartDistance);
 
-				if (Application.isPlaying)
+				if (Application.isPlaying && npc.target != null)
 				{
 					if (npc.state == NPCBrain.State.Attack)
 					{
@@ -127,7 +130,17 @@ public class NPCBrainEditor : Editor
 						Handles.DrawLine(npc.transform.position + Vector3.up, npc.target.position + Vector3.up);
 						Handles.color = Color.yellow;
 						Handles.DrawLine(npc.transform.position + Vector3.up, npc.attackEnteredPosition + Vector3.up);
+						Handles.DrawWireCube(npc.attackEnteredPosition, Vector3.one * 0.25f);
 					}
+				}
+			}
+
+			if (npc.debugDraw.DRAW_PATROL)
+			{
+				if (npc.patrolSuperior != null)
+				{
+					Handles.color = Color.magenta;
+					Handles.DrawLine(npc.transform.position, npc.patrolSuperior.transform.position);
 				}
 			}
 		}

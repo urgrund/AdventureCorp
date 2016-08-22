@@ -18,7 +18,7 @@ public class AttackDescriptor : ScriptableObject
 
 	// Start playing this animation this far in already
 	[Range(0, 1)]
-	public float attackStartOffset = 0f;
+	public float attackStartOffsetRatio = 0f;
 
 	// The attack can yield control back to another animation after this
 	[Range(0, 1)]
@@ -70,8 +70,7 @@ public class AttackDescriptor : ScriptableObject
 	// property, so need to create an array below that maps index to angle :(
 	private static int[] angles = new int[4] { 15, 90, 180, 360 };
 	public static int AngleFromIndex(int i) { return angles[i]; }
-
-
+	
     /// <summary>
     /// Lock properties for how an attack effects the underlaying Agent
     /// </summary>

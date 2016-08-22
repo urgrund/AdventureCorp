@@ -24,4 +24,10 @@ public class AnimationClipProperties : ScriptableObject
     // These references assist with editor side configuration
     public Agent agent;
     public AgentAnimationProperties agentAnimationProperties; 
+
+	/// <summary>
+	/// Length, in seconds, of the clip scaled by playspeed
+	/// </summary>
+	public float scaledLength { get { return clip.length * (1 / playSpeed); } }
+
 }

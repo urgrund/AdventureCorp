@@ -60,11 +60,9 @@ public sealed class Agent : MonoBehaviour
 
     private bool _isBrainSetVelocityThisFrame = false;
 
-    [HideInInspector]
-    public bool isAllowedMovement = true;
-    [HideInInspector]
+    
+    public bool isAllowedMovement = true;    
     public bool isAllowedRotation = true;
-    [HideInInspector]
     public bool isApplyGravity = true;
 
     public enum MoveDirection
@@ -140,6 +138,9 @@ public sealed class Agent : MonoBehaviour
 	// ---------------------------------------------------------------------    
 	// Overriding movement allows for ways to override the agents control 
 
+	public float timedMoveDuration;
+	public float timedMoveOriginalDuration;
+
 	bool _isOverrideMoveThisFrame = false;
 	bool _isOverrideTimedMoveThisFrame = false;
 	public bool isOverrideMoveThisFrame { get { return _isOverrideMoveThisFrame || _isOverrideTimedMoveThisFrame; } }
@@ -155,11 +156,20 @@ public sealed class Agent : MonoBehaviour
 	{
 		if (_overrideMoveRoutine != null)
 		{
-			StopCoroutine(_overrideMoveRoutine);
+			StopOverrideMoveRoutine();
 			_isOverrideTimedMoveThisFrame = false;
 		}
 		_overrideMoveRoutine = OverrideMoveRoutine(velocity, time);
 		StartCoroutine(_overrideMoveRoutine);
+	}
+
+	private void StopOverrideMoveRoutine()
+	{
+		StopCoroutine(_overrideMoveRoutine);
+		_overrideMoveRoutine = null;
+		_isOverrideMoveThisFrame = false;
+		_isOverrideTimedMoveThisFrame = false;
+		_isBrainSetVelocityThisFrame = false;
 	}
 
 	private IEnumerator OverrideMoveRoutine(Vector3 velocity, float time)
@@ -217,7 +227,7 @@ public sealed class Agent : MonoBehaviour
             animationController.Play(animationController.animationProperties.reaction.stagger);
             StartCoroutine(StaggerRoutine());
 			if (_overrideMoveRoutine != null)
-				StopCoroutine(_overrideMoveRoutine);
+				StopOverrideMoveRoutine();
         }
     }
 

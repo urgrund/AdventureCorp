@@ -33,7 +33,8 @@ public class Health : MonoBehaviour
 
     // Matt - Just an idea for resistances here so its contained within a Health
     // Can leave here for now to consider later as this will be important for 
-    // shields and 'partial' damages like this 
+    // shields and 'partial' damages like this.  FOr example, the Shield works 
+	// by setting Health to invincible which isn't really the best approach
     [System.Serializable]
     public class Resistance
     {
@@ -75,6 +76,13 @@ public class Health : MonoBehaviour
 		public AttackController responsibleAttackController;
     }
 
+
+	public void SetStartingAndMax(int starting, int max)
+	{	
+		maxHealth = max;
+		startingHealth = starting;
+		_currentHealth = startingHealth;
+	}
 
 	/// <summary>
 	/// Call this to pass damage to the Health component. Optional to pass in
@@ -152,7 +160,7 @@ public class Health : MonoBehaviour
         }
     }
 
-    void Start()
+    void Awake()
     {
         if (startingHealth > maxHealth)
             startingHealth = maxHealth;

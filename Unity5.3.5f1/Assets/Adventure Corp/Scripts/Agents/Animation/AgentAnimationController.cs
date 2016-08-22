@@ -53,7 +53,7 @@ public class AgentAnimationController : MonoBehaviour
 
 
 
-	[HideInInspector]
+	//[HideInInspector]
 	public float overrideCountDown = 0;
 
 	private Animation _animatedGameObject;
@@ -224,6 +224,7 @@ public class AgentAnimationController : MonoBehaviour
 	public void Play(AnimationClipProperties clipProperties, float offsetRatio) { Play(clipProperties, offsetRatio, false); }
 	public void Play(AnimationClipProperties clipProperties, float offsetRatio, bool immediateBlend)
 	{
+		
 		if (clipProperties == null)
 		{
 			Debug.LogError("Clip Properties NULL!!");
@@ -233,6 +234,12 @@ public class AgentAnimationController : MonoBehaviour
 		if (clipProperties.clip == null)
 		{
 			Debug.LogError("No clip on animation property on {0}  " + this.name, clipProperties);
+			return;
+		}
+
+		if (_animatedGameObject[clipProperties.clip.name] == null)
+		{
+			Debug.LogError("This clip doesn't exist on the animated object! (" + clipProperties.clip.name + ")");
 			return;
 		}
 
@@ -259,11 +266,14 @@ public class AgentAnimationController : MonoBehaviour
 		if (clipProperties.isOverriding)
 		{
 			_animatedGameObject.Rewind(clipProperties.clip.name);
-			_animatedGameObject.clip = clipProperties.clip;
+			//_animatedGameObject.clip = clipProperties.clip;
+			if(_stopAnimRoutine != null)
+				StopCoroutine(_stopAnimRoutine);
+			_animatedGameObject[clipProperties.clip.name].weight = clipProperties.weight;
 			_animatedGameObject[clipProperties.clip.name].normalizedTime = offsetRatio;
 			_animatedGameObject.CrossFade(clipProperties.clip.name, clipProperties.blendTime);
 
-			overrideCountDown = clipProperties.clip.length * (1f / clipProperties.playSpeed);
+			overrideCountDown = clipProperties.scaledLength;
 			state = State.Override;
 		}
 		else
@@ -283,7 +293,7 @@ public class AgentAnimationController : MonoBehaviour
 
 		// 
 		if (clipProperties.clip.wrapMode == WrapMode.ClampForever && !clipProperties.isOverriding)
-			Stop(clipProperties, false, clipProperties.clip.length * (1f / clipProperties.playSpeed));
+			Stop(clipProperties, false, clipProperties.scaledLength);
 	}
 
 
@@ -291,7 +301,9 @@ public class AgentAnimationController : MonoBehaviour
 	{
 		if (useBlendTime || delay > 0)
 		{
-			StartCoroutine(StopAnimationOverTimeRoutine(clipProperties, useBlendTime, delay));
+			//StartCoroutine(StopAnimationOverTimeRoutine(clipProperties, useBlendTime, delay));
+			_stopAnimRoutine = StopAnimationOverTimeRoutine(clipProperties, useBlendTime, delay);
+			StartCoroutine(_stopAnimRoutine);
 		}
 		else
 		{
@@ -300,6 +312,7 @@ public class AgentAnimationController : MonoBehaviour
 		}
 	}
 
+	IEnumerator _stopAnimRoutine = null;
 	IEnumerator StopAnimationOverTimeRoutine(AnimationClipProperties clipProperties, bool useBlendTime, float delay)
 	{
 		if (delay > 0)

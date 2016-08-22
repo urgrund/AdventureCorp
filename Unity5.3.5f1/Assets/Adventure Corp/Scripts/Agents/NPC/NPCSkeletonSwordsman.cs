@@ -6,7 +6,7 @@ public class NPCSkeletonSwordsman : NPCBrain
 {
     public bool allowAttack = true;
 	
-	protected override IEnumerator UpdateAttackState()
+	protected override IEnumerator Update_AttackState()
 	{
 		while (true)
 		{

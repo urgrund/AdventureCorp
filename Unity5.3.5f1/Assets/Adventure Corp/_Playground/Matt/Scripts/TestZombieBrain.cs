@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 public class TestZombieBrain : NPCBrain
 {
-	Vector3 _spawnSpot;
+	/*Vector3 _spawnSpot;
 
 	protected override void Awake()
 	{
@@ -127,5 +127,5 @@ public class TestZombieBrain : NPCBrain
 			state = State.Retreat;
 		if (GUILayout.Button("Patrol"))
 			state = State.Patrol;
-	}
+	}*/
 }

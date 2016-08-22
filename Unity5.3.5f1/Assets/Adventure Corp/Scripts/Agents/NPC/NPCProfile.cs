@@ -7,21 +7,23 @@ using System.Collections;
 public class NPCProfile : ScriptableObject
 {
 	public string profileName = "New NPC";
-
-	//[Header("In Game Beaviour")]
-
+	
 	public Statistics statistics;
 	public Patrol patrol;	
 	public Awareness awareness;
 	public Attack attack;
 	public BaseAttackCollection attackCollection;
+	public Actions actions;
+
+
+
 
 	[System.Serializable]
 	public class Statistics
 	{
 		public NPCBrain.Rank rank = NPCBrain.Rank.Soldier;
-		public int healthStarting = 100;
-		public int healthMax = 100;
+		public int startingHealth = 100;
+		public int maxHealth = 100;
 	}
 
 
@@ -35,7 +37,8 @@ public class NPCProfile : ScriptableObject
 		public float patrolMoveSpeedRatio = 0.33f;
 		public float waitAtDestinationTime = 2f;		
 		public Probability waitAtDestination = Probability.EqualChance;		
-		public Probability followSuperiors = Probability.Never;		
+		public Probability followSuperiors = Probability.Never;
+		public NPCBrain.PatrolFormation followingFormation = NPCBrain.PatrolFormation.Column;
 		public Probability avoidOtherAgents = Probability.Always;
 	}
 
@@ -88,5 +91,28 @@ public class NPCProfile : ScriptableObject
 		[Range(3, 50)]
 		[Tooltip("Stop attacking if this far from the target")]
 		public float stopAttackFromTargetDistance = 15f;
+
+		[Tooltip("If hit, jump away from the attacker to create distance")]
+		public Probability jumpAwayIfHit = Probability.Low;
+
+		[Tooltip("Should the NPC try to avoid a projectile?")]
+		public Probability attemptProjectileAvoidance = Probability.Low;
+
+		[Tooltip("Prefer to move into close range distance before attacking")]
+		public Probability preferCloseCombat = Probability.EqualChance;
+
+		[Range(5, 45)]
+		[Tooltip("If in close combat mode, how long to require being in close range distance")]
+		public float closeCombatDuration = 5;
+	}
+
+
+	[System.Serializable]
+	public class Actions
+	{
+		public AttackDescriptor jumpAway;
+		public AnimationClipProperties roar;
+		public AnimationClipProperties shuffleLeft;
+		public AnimationClipProperties shuffleRight;
 	}
 }

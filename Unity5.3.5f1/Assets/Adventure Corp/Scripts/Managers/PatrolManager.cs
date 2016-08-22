@@ -68,13 +68,14 @@ public class PatrolManager : MonoBehaviour
 
         if (patrolZone)
         {
-            if(patrolZone.connectedPatrolAreas.Count > 0) //If patrol zone is connected to other patrol zones. There is 20% chance of switching patrol zones
+            if(patrolZone.connectedPatrolAreas.Count > 0) 
             {                
-                if(Random.value < 0.2f)
+                //if(Random.value < 0.9f)
                 {
-                    int index = Random.Range(0, patrolZone.connectedPatrolAreas.Count);
-                    patrolZone = patrolZone.connectedPatrolAreas[index];
-                }
+					//int index = Random.Range(0, patrolZone.connectedPatrolAreas.Count);
+					//patrolZone = patrolZone.connectedPatrolAreas[index];			
+					patrolZone = patrolZone.connectedPatrolAreas[0];
+				}
             }
 
             patrolPoint = patrolZone.GrabRandomFreePatrolPoint(); //Grab a random patrol point in patrol zone
@@ -122,3 +123,4 @@ public class PatrolManager : MonoBehaviour
         return null;
     }
 }
+

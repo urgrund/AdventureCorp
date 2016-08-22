@@ -19,7 +19,7 @@ public class AttackSetupScrubberEditor : Editor
     SerializedProperty validDamageRange;
 	SerializedProperty yieldControlRatio;
 	SerializedProperty turnToTargetRatio;
-	SerializedProperty attackStartOffset;
+	SerializedProperty attackStartOffsetRatio;
 	SerializedProperty volumeIndices;
     SerializedProperty clipProperties;
     SerializedProperty eventor;
@@ -31,7 +31,7 @@ public class AttackSetupScrubberEditor : Editor
 
 
 
-    AttackDescriptor.Angle range = AttackDescriptor.Angle.Narrow;
+    //AttackDescriptor.Angle range = AttackDescriptor.Angle.Narrow;
 
     
 
@@ -56,7 +56,7 @@ public class AttackSetupScrubberEditor : Editor
         suggestedUseAngle = attDesc.FindProperty("suggestedUseAngle");
 		yieldControlRatio = attDesc.FindProperty("yieldControlRatio");
 		turnToTargetRatio = attDesc.FindProperty("turnToTargetRatio");
-		attackStartOffset = attDesc.FindProperty("attackStartOffset");
+		attackStartOffsetRatio = attDesc.FindProperty("attackStartOffsetRatio");
 		validDamageRange = attDesc.FindProperty("validDamageRange");
         volumeIndices = attDesc.FindProperty("volumeIndices");
         clipProperties = attDesc.FindProperty("clipProperties");
@@ -146,7 +146,7 @@ public class AttackSetupScrubberEditor : Editor
 
 		
 		EditorGUILayout.LabelField("Attack Start Offset", EditorStyles.miniLabel);
-		attackStartOffset.floatValue = GUILayout.HorizontalSlider(attackStartOffset.floatValue, 0, 1);
+		attackStartOffsetRatio.floatValue = GUILayout.HorizontalSlider(attackStartOffsetRatio.floatValue, 0, 1);
 
 
 		EditorGUILayout.LabelField("Animation Clip Scrubbing", EditorStyles.miniLabel);

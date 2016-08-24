@@ -393,7 +393,7 @@ public abstract class ExplorerBrain : Brain
 	/// We can look at other approach such as "closest & in front"
 	/// though hopefully the OVerlapSphere is enough for distance
 	/// </summary>
-	protected void LookAtNearestHealthComponent(float range = 2.5f)
+	protected void LookAtNearestHealthComponent(float range = 3f)
     {            
         float biggestDotProduct = -0.707f; // cos(-45deg)
         Health mostInFrontHealth = null;
@@ -415,8 +415,10 @@ public abstract class ExplorerBrain : Brain
             }
         }
 
-        if (mostInFrontHealth != null)
-            agent.SetDesiredRotation(mostInFrontHealth.transform);
+		if (mostInFrontHealth != null)
+		{
+			agent.SetDesiredRotation(mostInFrontHealth.transform, true);
+		}
     }
 
 

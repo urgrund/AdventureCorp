@@ -5,24 +5,25 @@ using System.Collections.Generic;
 
 public class Trigger : MonoBehaviour
 {
+	[Header("Register Collider Hits")]
     public bool onEnter;
     public bool onStay;
     public bool onExit;
 
-    public LayerMask mask;
+    public LayerMask mask;	
 
-    /*
-     * var collisionLayers : LayerMask;
-function OnTriggerEnter (object : Collider)
-{
-        var bitRepresentation : int = 1 << object.gameObject.layer; // Make a bit representation of the incoming layer
-    if ( (bitRepresentation  collisionLayers.value) != 0 )
-    {
-                  // collision detected
-    }
-}*/
-    
-    public List<EventorSchedule> onEnterSchedules;
+	void Reset()
+	{
+		if (GetComponent<Collider>() == null)
+		{
+			this.gameObject.AddComponent<BoxCollider>();
+			GetComponent<BoxCollider>().isTrigger = true;
+		}
+	}
+
+
+	[Header("Eventors To Fire")]
+	public List<EventorSchedule> onEnterSchedules;
     public List<EventorSchedule> onStaySchedules;
     public List<EventorSchedule> onExitSchedules;
 
@@ -61,10 +62,10 @@ function OnTriggerEnter (object : Collider)
     bool IsSameLayerAsMask(Collider other) { return ((mask.value & 1 << other.gameObject.layer) == 1 << other.gameObject.layer); }
 
     void OnTriggerEnter(Collider other)
-    {       
+    {	
         if (onEnter && IsSameLayerAsMask(other))
         {
-            FireEvents(onEnterSchedules);
+			FireEvents(onEnterSchedules);
 
             if (onTriggerEntered != null)
                 onTriggerEntered();

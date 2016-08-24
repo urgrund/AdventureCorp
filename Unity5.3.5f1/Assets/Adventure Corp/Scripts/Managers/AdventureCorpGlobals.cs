@@ -9,6 +9,12 @@ public static class AdventureCorpGlobals
 {
     public static class Editor
     {
+		public static class Measurements
+		{
+			public static readonly float patrolPointSpacing = 3f;
+			public static readonly float coverPointSpacing = 4.5f;
+		}
+
         public static class Prefixes
         {
             public static readonly string AttackDescriptor = "atk_";

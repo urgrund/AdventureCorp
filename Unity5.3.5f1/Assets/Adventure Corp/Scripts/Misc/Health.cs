@@ -180,12 +180,12 @@ public class Health : MonoBehaviour
     void OnEnable()
     {
         if(LevelManager.instance)
-            LevelManager.Register(this);
+            LevelManager.RegisterHealth(this);
     }
 
     void OnDestroy()
     {
         if(LevelManager.instance)
-            LevelManager.DeRegister(this);
+            LevelManager.DeRegisterHealth(this);
     }
 }

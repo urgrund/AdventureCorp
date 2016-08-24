@@ -43,11 +43,7 @@ public class PlatformMover : MonoBehaviour
             return;
         }
 
-        // Cahce the pos/rot of the mover and target
-        //details.start.positon = transform.position;
-        //details.start.rotation = transform.rotation;
-        //details.target.positon = targetTransform.position;
-        //details.target.rotation = targetTransform.rotation;
+        // Cahce the pos/rot of the mover and target        
         details.start.Init(transform, this);
         details.target.Init(targetTransform, this);
 
@@ -119,6 +115,7 @@ public class PlatformMover : MonoBehaviour
     private bool _toggledThisFrame = false;
     public void Toggle()
     {
+		print("sometinglaskjdskld");
         _toggledThisFrame = true;
     }
 
@@ -198,14 +195,14 @@ public class PlatformMover : MonoBehaviour
 
     
 
-    void Reset()
-    {
-        if (GetComponent<Rigidbody>())
-        {
-            GetComponent<Rigidbody>().isKinematic = true;
-            GetComponent<Rigidbody>().mass = 100;
-        }
-    }
+    //void Reset()
+    //{
+    //    if (GetComponent<Rigidbody>())
+    //    {
+    //        GetComponent<Rigidbody>().isKinematic = true;
+    //        GetComponent<Rigidbody>().mass = 100;
+    //    }
+    //}
 
 
 

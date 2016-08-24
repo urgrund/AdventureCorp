@@ -36,7 +36,8 @@ public class NPCProfile : ScriptableObject
 		[Range(0, 1)]
 		public float patrolMoveSpeedRatio = 0.33f;
 		public float waitAtDestinationTime = 2f;		
-		public Probability waitAtDestination = Probability.EqualChance;		
+		public Probability waitAtDestination = Probability.EqualChance;
+		public Probability stayWithinAssignedZone = Probability.EqualChance;				
 		public Probability followSuperiors = Probability.Never;
 		public NPCBrain.PatrolFormation followingFormation = NPCBrain.PatrolFormation.Column;
 		public Probability avoidOtherAgents = Probability.Always;

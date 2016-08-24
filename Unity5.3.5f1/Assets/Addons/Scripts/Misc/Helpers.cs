@@ -250,17 +250,14 @@ public static class Helpers
     public static Transform FindClosestTransform(Transform[] transforms, Vector3 testAgainst)
     {
         Transform bestTarget = null;
-        float closestDistanceSqr = Mathf.Infinity;
-        Vector3 currentPosition = testAgainst;
+        float closestDistanceSqr = Mathf.Infinity;        
         foreach (Transform potentialTarget in transforms)
         {
-            Vector3 directionToTarget = potentialTarget.position - currentPosition;
-            float dSqrToTarget = directionToTarget.sqrMagnitude;
-            if (dSqrToTarget < closestDistanceSqr)
-            {
-                closestDistanceSqr = dSqrToTarget;
-                bestTarget = potentialTarget;
-            }
+			if (Helpers.InRadius(potentialTarget, testAgainst, closestDistanceSqr))
+			{
+				closestDistanceSqr = Vector3.Distance(potentialTarget.position, testAgainst);
+				bestTarget = potentialTarget;
+			}
         }
         return bestTarget;
     }

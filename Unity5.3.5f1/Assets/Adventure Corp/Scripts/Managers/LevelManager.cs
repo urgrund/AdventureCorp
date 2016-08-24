@@ -13,14 +13,12 @@ public class LevelManager : MonoBehaviour
         {
             if (_instance == null)
             {
-                // Self create test
-                //Debug.LogWarning("No Level Manager was found in scene, creating at runtime");
-                //GameObject go = new GameObject("p_LevelManager");
-                //_instance = go.AddComponent<LevelManager>();                
+				// Does this need to be a monobehaviour?           
             }
             return _instance;
         }
     }
+	
 
     private List<Health> _healthObjects = new List<Health>(); // All objects with a health script are found here
     public static List<Health> healthObjects{ get { return _instance._healthObjects; } }
@@ -34,14 +32,29 @@ public class LevelManager : MonoBehaviour
     private List<Health> _other = new List<Health>(); // All other objects with a health script are found here
     public static List<Health> other { get { return _instance._other; } }
 
-    void Awake()
+    void OnEnable()
     {
         _instance = this;
         Application.targetFrameRate = 60;
 		Random.InitState((int)System.DateTime.Now.Ticks);
+
+		UnityEngine.SceneManagement.SceneManager.sceneUnloaded += OnSceneWasUnLoaded;
+		UnityEngine.SceneManagement.SceneManager.sceneLoaded += OnSceneWasLoaded;
 	}
 
-    public static void Register(Health h)
+
+	void OnSceneWasLoaded(UnityEngine.SceneManagement.Scene scene, UnityEngine.SceneManagement.LoadSceneMode mode)
+	{
+
+	}
+
+	void OnSceneWasUnLoaded(UnityEngine.SceneManagement.Scene scene)
+	{	
+	
+	}
+
+
+    public static void RegisterHealth(Health h)
     {
         if (_instance == null)
         {
@@ -65,7 +78,7 @@ public class LevelManager : MonoBehaviour
         }
     }
 
-    public static void DeRegister(Health h)
+    public static void DeRegisterHealth(Health h)
     {
         if (_instance == null)
         {

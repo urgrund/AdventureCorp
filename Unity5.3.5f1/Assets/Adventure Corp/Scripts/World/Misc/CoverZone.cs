@@ -10,13 +10,11 @@ public class CoverZone : MonoBehaviour
 		Circle
 	}
 
-
 	public float size = 1f;
 	public Shape shape = Shape.Square;
 
 	float rayUp = 3;
-
-	float _pointSpacing = 4.5f;
+	
 	private List<Vector3> _points = new List<Vector3>();
 	public List<Vector3> points { get { return _points; } }
 
@@ -32,16 +30,14 @@ public class CoverZone : MonoBehaviour
 	{
 		_points.Clear();
 		float circleSegment = Mathf.Deg2Rad * 360f;
-		float segments = (circleSegment * size) / _pointSpacing;
+		float segments = (circleSegment * size) / AdventureCorpGlobals.Editor.Measurements.coverPointSpacing;
 		int pointCount = Mathf.FloorToInt(segments) + 1;
 		float circleFraction = (1 / (float)pointCount) * circleSegment;
 
 		for (int i = 0; i < pointCount; i++)
 		{
 			Vector3 newPoint = GetPointOnRing(circleFraction * i);
-
-			//NavMeshHit hit;
-			//if (NavMesh.SamplePosition(newPoint, out hit, 10, NavMesh.AllAreas))			
+			
 			NavMeshHit hit;
 			if (!NavMesh.Raycast(newPoint + Vector3.up * rayUp, newPoint - Vector3.down * rayUp, out hit, NavMesh.AllAreas))
 			{

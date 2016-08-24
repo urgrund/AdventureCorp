@@ -32,7 +32,7 @@ public class PlatformMoverLocationDetails
     // or platforms where you expect something to be there to operate
     public bool toggleOnlyWithTrigger = false;
     public Trigger trigger;
-    public int triggerColliderCount = 0;
+    public int triggerColliderCount = 1;
 
     // Time based values to wait at this position 
     // and how to transition to the next
@@ -65,19 +65,20 @@ public class PlatformMoverLocationDetails
 
         if (toggleOnlyWithTrigger)
             if (trigger != null)
-                trigger.colliderCountChanged += OnColliderCountChanged;
+                trigger.colliderCountChanged += this.OnColliderCountChanged;
 
         mover.onArrived += OnArrived;
     }
-                
 
-    // This will subscribe to the triggers count delegate
-    public void OnColliderCountChanged(int count)
-    {
-        if (trigger != null)
-            if (trigger.collidersInsideVolume == triggerColliderCount)
-                mover.Toggle();
-    }
+
+	// This will subscribe to the triggers count delegate
+	public void OnColliderCountChanged(int count)
+	{
+		if (toggleOnly && toggleOnlyWithTrigger)
+			if (trigger != null)
+				if (trigger.collidersInsideVolume == triggerColliderCount)
+					mover.Toggle();
+	}
 
     public void OnArrived(PlatformMover m, bool isMovingTo, PlatformMoverLocationDetails details)
     {

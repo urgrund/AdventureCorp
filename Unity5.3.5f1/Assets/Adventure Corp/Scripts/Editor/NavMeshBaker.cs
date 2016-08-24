@@ -29,7 +29,7 @@ public class NavMeshBaker : EditorWindow
     private bool isSetup = true;
 
     private static List<GameObject> navMeshPrefabs;
-    private static bool isBuildLightProbes = true;
+    private static bool isBuildLightProbes = false;
     private static string LIGHT_PROBE_TAG = "LightProbeContainer";
 
 
@@ -109,6 +109,9 @@ public class NavMeshBaker : EditorWindow
 
     void GenerateLightProbes()
     {
+		if (!isBuildLightProbes)
+			return;
+
         NavMeshTriangulation t = NavMesh.CalculateTriangulation();
 
         GameObject go;
@@ -148,9 +151,10 @@ public class NavMeshBaker : EditorWindow
 
         GameObject tempNavMeshCube;
         foreach (BoxCollider c in allColliders)
-        {
-            if (COLLIDER_LAYER < 0 || c.gameObject.layer == COLLIDER_LAYER)
-            {
+        {						
+            //if (COLLIDER_LAYER < 0 || c.gameObject.layer == COLLIDER_LAYER)
+			if(GameObjectUtility.AreStaticEditorFlagsSet(c.gameObject, StaticEditorFlags.NavigationStatic))
+			{
                 PrepareTempNavMeshObject(out tempNavMeshCube, tempGO, c.transform, c.center);
                 tempNavMeshCube.transform.localScale = c.size;
             }
@@ -168,8 +172,9 @@ public class NavMeshBaker : EditorWindow
         GameObject tempNavMeshCube;
         foreach (CapsuleCollider c in allColliders)
         {
-            if (COLLIDER_LAYER < 0 || c.gameObject.layer == COLLIDER_LAYER)
-            {
+			//if (COLLIDER_LAYER < 0 || c.gameObject.layer == COLLIDER_LAYER)
+			if (GameObjectUtility.AreStaticEditorFlagsSet(c.gameObject, StaticEditorFlags.NavigationStatic))
+			{
                 PrepareTempNavMeshObject(out tempNavMeshCube, tempGO, c.transform, c.center);
                 tempNavMeshCube.transform.localScale = new Vector3(c.radius * 2f, c.height / 2f, c.radius * 2f);
             }
@@ -187,8 +192,9 @@ public class NavMeshBaker : EditorWindow
         GameObject tempNavMeshCube;
         foreach (SphereCollider c in allColliders)
         {
-            if (COLLIDER_LAYER < 0 || c.gameObject.layer == COLLIDER_LAYER)
-            {
+			//if (COLLIDER_LAYER < 0 || c.gameObject.layer == COLLIDER_LAYER)
+			if (GameObjectUtility.AreStaticEditorFlagsSet(c.gameObject, StaticEditorFlags.NavigationStatic))
+			{
                 PrepareTempNavMeshObject(out tempNavMeshCube, tempGO, c.transform, c.center);
                 tempNavMeshCube.transform.localScale = Vector3.one * c.radius * 2f;
             }
@@ -207,8 +213,9 @@ public class NavMeshBaker : EditorWindow
         GameObject tempNavMeshCube;
         foreach (MeshCollider c in allColliders)
         {
-            if (COLLIDER_LAYER < 0 || c.gameObject.layer == COLLIDER_LAYER)
-            {
+			//if (COLLIDER_LAYER < 0 || c.gameObject.layer == COLLIDER_LAYER)
+			if (GameObjectUtility.AreStaticEditorFlagsSet(c.gameObject, StaticEditorFlags.NavigationStatic))
+			{
                 PrepareTempNavMeshObject(out tempNavMeshCube, tempGO, c.transform, Vector3.zero);
                 tempNavMeshCube.GetComponent<MeshFilter>().mesh = c.sharedMesh;
                 tempNavMeshCube.transform.localScale = Vector3.one;

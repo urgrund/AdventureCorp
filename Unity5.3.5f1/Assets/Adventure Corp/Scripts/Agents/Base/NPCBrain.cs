@@ -81,6 +81,7 @@ public abstract class NPCBrain : Brain
 		_desiredMoveSpeed = agent.properties.speed.max;
 		_attackController.SetOwnerHealthToDamageVolumes(agent.health);
 		agent.health.SetStartingAndMax(profile.statistics.startingHealth, profile.statistics.maxHealth);
+		_assignedPatrolZone = PatrolManager.GetNearestPatrolZone(this.transform);
 		base.Start();
 	}
 
@@ -156,6 +157,8 @@ public abstract class NPCBrain : Brain
 		_navMeshNextPosition = null;
 		_isNavMeshPositionFinal = false;
 		_isArrivedAtDestination = false;
+//		if (_patrolPoint != null)
+	//		_patrolPoint.Release();
 	}
 
 	protected virtual void OnArrivedAtNavMeshPosition()
@@ -177,9 +180,40 @@ public abstract class NPCBrain : Brain
 	protected Vector3 _desiredVelocity = Vector3.zero;
 
 	// -----------------------------------------------------------------------------------------------------------------
-	//Patrol stuff here
-	[HideInInspector]
-	public PatrolProperties patrolProperties;
+	// Patrol 
+
+	// Current patrol point the NPC is trying to reach
+	public PatrolPoint _patrolPoint = null;
+
+	// The zone this NPC gets assigned to upon spawning, it will be the nearest
+	// on for now.  This is to limit 'wandering' of the NPC 
+	public PatrolZone _assignedPatrolZone = null;
+
+
+	private void PrepareNextPatrol()
+	{
+		if (_patrolPoint != null)
+			_patrolPoint.Release();
+
+		_patrolPoint = null;
+		if (_assignedPatrolZone != null)
+		{
+			if (profile.patrol.stayWithinAssignedZone.checkProbability() || !_assignedPatrolZone.hasConnectedZones)
+				_patrolPoint = _assignedPatrolZone.GetAvailablePatrolPoint();
+			else
+				_patrolPoint = _assignedPatrolZone.GetRandomConnectedZone().GetAvailablePatrolPoint();
+		}
+
+		if (_patrolPoint != null)
+		{
+			_patrolPoint.Occupy(this);
+			destination = _patrolPoint.position;
+		}
+		else
+			destination = transform.position;
+	}
+
+
 
 	// -----------------------------------------------------------------------------------------------------------------
 
@@ -297,7 +331,6 @@ public abstract class NPCBrain : Brain
 
 	private IEnumerator InternalUpdate_PatrolState()
 	{
-
 		if (!isIgnoreInternalUpdateRoutine)
 		{
 			_desiredMoveSpeed = agent.properties.speed.max * profile.patrol.patrolMoveSpeedRatio;
@@ -305,13 +338,7 @@ public abstract class NPCBrain : Brain
 			{
 				patrolSuperior = null;
 
-				if (PatrolManager.instance)
-					patrolProperties = PatrolManager.instance.GrabPatrolProperties(this);
-
-				if (!patrolProperties.patrolPoint)
-					destination = transform.position;
-				else
-					destination = patrolProperties.patrolPoint.transform.position;
+				PrepareNextPatrol();
 
 
 				// Follow path until finished
@@ -323,7 +350,6 @@ public abstract class NPCBrain : Brain
 						Collider[] c = Physics.OverlapSphere(transform.position, 15f);
 						for (int i = 0; i < c.Length; i++)
 						{
-							//print("checking - " + c[i].name);
 							NPCBrain b = c[i].GetComponent<NPCBrain>();
 							if (b != null)
 							{
@@ -341,6 +367,10 @@ public abstract class NPCBrain : Brain
 					yield return new WaitForSeconds(2f);
 				}
 
+				if (_patrolPoint != null)
+					_patrolPoint.Release();
+
+				// No path, then maybe superior to follow?
 				while(patrolSuperior != null)
 				{
 					//(patrolSuperior.transform.forward * profile.awareness.personalSpace) + 
@@ -377,12 +407,18 @@ public abstract class NPCBrain : Brain
 	}
 
 
-	public bool _isInCloseRangeRoutine = false;	
+	public bool _isInCloseRangeRoutine = false;
+	public bool _isAllowedCloseRangeRoutine = true;
 	IEnumerator ActivateInCloseRangeForTime(float time)
 	{
 		_isInCloseRangeRoutine = true;
+		_isAllowedCloseRangeRoutine = false;
 		yield return new WaitForSeconds(time);
+		print("finished routine...  now wait before allowed again");
 		_isInCloseRangeRoutine = false;
+		yield return new WaitForSeconds(time);
+		print("allowed again!");
+		_isAllowedCloseRangeRoutine = true;
 	}
 
 	private IEnumerator InternalUpdate_AttackState()
@@ -390,7 +426,7 @@ public abstract class NPCBrain : Brain
 		if (!isIgnoreInternalUpdateRoutine)
 		{
 			// Upon entering attack play an 'alert' animation and look at the target
-			//agent.animationController.Play(profile.actions.roar);
+			agent.animationController.Play(profile.actions.roar);
 			_desiredMoveSpeed = 0f;
 			while (agent.animationController.animatedGameObject.IsPlaying(profile.actions.roar.clip.name))
 			{
@@ -410,7 +446,7 @@ public abstract class NPCBrain : Brain
 					List<AttackDescriptor> aDescs;
 					if (!_isInCloseRangeRoutine)
 					{
-						if (profile.attack.preferCloseCombat.checkProbability())
+						if (profile.attack.preferCloseCombat.checkProbability() && _isAllowedCloseRangeRoutine)
 						{
 							StartCoroutine(ActivateInCloseRangeForTime(profile.attack.closeCombatDuration));
 							aDescs = _attackController.GetSuggestedAttacksForTarget(attackCollectionArray, target, profile.attack.closeRangeDistance);
@@ -511,6 +547,8 @@ public abstract class NPCBrain : Brain
 		}
 
 		isIgnoreInternalUpdateRoutine = false;
+		if (_patrolPoint != null)
+			_patrolPoint.Release();
 
 		// Set the next co-routine and perform basic 
 		// logic related to each state transition
@@ -639,9 +677,6 @@ public abstract class NPCBrain : Brain
 			state = State.Attack;
 			target = info.responsibleAttackController.transform;
 		}
-
-
-
 
 		base.OnHealthLost(info);
 	}

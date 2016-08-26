@@ -9,8 +9,7 @@ public class ModelImportProcessing : AssetPostprocessor
 {
 
     static readonly string MAX_FILE_STRING = "_MAX_";
-
-
+		
     void OnPreprocessModel()
     {
         ModelImporter i = (assetImporter as ModelImporter);

@@ -62,7 +62,7 @@ public static class AdventureCorpGlobals
 
 public static class AdventureCorpExtensions
 {
-	public static bool checkProbability(this Probability e)
+	public static bool Evaluate(this Probability e)
 	{
 		if (e == Probability.Always)
 			return true;

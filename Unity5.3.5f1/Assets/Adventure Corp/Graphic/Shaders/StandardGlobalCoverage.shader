@@ -1,6 +1,6 @@
 ﻿// Upgrade NOTE: replaced '_World2Object' with 'unity_WorldToObject'
 
-Shader "Custom/TestSnowCoverage" {
+Shader "Custom/Standard Global Coverage" {
 	Properties {
 		_Color("Color", Color) = (1,1,1,1)
 		_MainTex("Albedo", 2D) = "white" {}
@@ -9,7 +9,7 @@ Shader "Custom/TestSnowCoverage" {
 
 
 		[Enum(World,0,Model,1)] _CovereageUVSource("Covereage UV Source", Float) = 0
-		_cA("Coverage (RGB) ", 2D) = "white" {}
+		_cA("Coverage Albedo (RGB) ", 2D) = "white" {}
 		_cN("Covereage Normal", 2D) = "bump"{}
 		_CoveragePower("Coverage Power", Range(0.1, 8)) = 0.15
 		_CoverageBias("Coverage Bias", Range(-1,1)) = -0.2
@@ -67,7 +67,7 @@ Shader "Custom/TestSnowCoverage" {
 			o.Normal = normalize(lerp(n, cN, d));
 
 			o.Metallic = lerp(m.r,0, d);
-			o.Smoothness = lerp(m.a,0,d);
+			o.Smoothness = lerp(m.a,pow(cA.g*2,2),d);
 			o.Alpha = albedo.a;
 		}
 		ENDCG

@@ -32,18 +32,33 @@ public class NPCBrainEditor : Editor
 	}
 
 
+	bool showAgentProperties = false;
+	bool showProfile = true;
 	public override void OnInspectorGUI()
 	{
 		DrawDefaultInspector();
 
-		EditorGUILayout.LabelField("Current State -  " + npc.state.ToString());
+		if (Application.isPlaying)
+		{
+			EditorGUILayout.Space();
+
+			EditorGUILayout.LabelField("Current State -  " + npc.state.ToString());
+
+
+			EditorGUILayout.Space();
+		}
 
 		if (p != null)
-		{
-			EditorGUILayout.LabelField("__________________________________________");
-			BoldLabel("NPC Profile (" + p.name + ")");
-			Editor profileEditor = Editor.CreateEditor(p);
-			profileEditor.OnInspectorGUI();
+		{			
+			EditorGUILayout.Space();
+			EditorGUILayout.Space();
+
+			showProfile = GUILayout.Toggle(showProfile, ("NPC Profile (" + p.name + ")"), EditorStyles.helpBox);
+			if (showProfile)
+			{
+				Editor profileEditor = Editor.CreateEditor(p);
+				profileEditor.OnInspectorGUI();
+			}
 		}
 		else
 			BoldLabel("No profile for NPC");
@@ -54,6 +69,15 @@ public class NPCBrainEditor : Editor
 
 
 
+
+	Vector3 NormalForArc(float angle)
+	{
+		float t = angle / 180f;
+		Vector3 f = Vector3.forward;
+		Vector3 normal = Vector3.Slerp(f, -f, t);
+		normal = npc.transform.TransformVector(normal);
+		return normal;
+	}
 
 	void OnSceneGUI()
 	{
@@ -69,31 +93,30 @@ public class NPCBrainEditor : Editor
 			Vector3 aboveHeadPos = npc.transform.position + Vector3.up * 2f;
 			Handles.Label(aboveHeadPos, p.profileName + "\n" + p.statistics.rank);
 
-
 			Color c;
 			if (npc.debugDraw.DRAW_AWARENESS)
 			{
-				// Awareness				
+				// Awareness			
+				float coneAngle = p.awareness.coneAngle * 2f;				
+				Vector3 frontArcNormal = NormalForArc(p.awareness.coneAngle);
+				
+
 				c = Color.magenta;
 				Handles.color = c;
 				Handles.Label(OffsetPosition(p.awareness.radial), "Radius");
-				Handles.DrawWireArc(npc.transform.position, Vector3.up, Vector3.forward, 360f, p.awareness.radial);
+				Handles.DrawWireArc(npc.transform.position, Vector3.up, frontArcNormal, 360, p.awareness.radial);
 				c.a = cAlpha;
 				Handles.color = c;
-				Handles.DrawSolidArc(npc.transform.position, Vector3.up, Vector3.forward, 360f, p.awareness.radial);
+				Handles.DrawSolidArc(npc.transform.position, Vector3.up, frontArcNormal, 360, p.awareness.radial);
 
 				c.a = 1f;
-				float t = p.awareness.coneAngle / 180f;
-				Vector3 f = Vector3.forward;
-				Vector3 normal = Vector3.Slerp(f, -f, t);
-				normal = npc.transform.TransformVector(normal);
 				Vector3 position = npc.transform.position;
 				Handles.color = c;
 				Handles.Label(OffsetPosition(p.awareness.coneRadius), "Cone Angle & Radius");
-				Handles.DrawWireArc(position, npc.transform.up, normal, p.awareness.coneAngle * 2f, p.awareness.coneRadius);
+				Handles.DrawWireArc(position, npc.transform.up, frontArcNormal, coneAngle, p.awareness.coneRadius);
 				c.a = cAlpha;
 				Handles.color = c;
-				Handles.DrawSolidArc(position, npc.transform.up, normal, p.awareness.coneAngle * 2f, p.awareness.coneRadius);
+				Handles.DrawSolidArc(position, npc.transform.up, frontArcNormal, coneAngle, p.awareness.coneRadius);
 
 
 				// Personal space

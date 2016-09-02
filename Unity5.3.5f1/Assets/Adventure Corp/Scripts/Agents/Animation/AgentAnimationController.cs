@@ -259,6 +259,7 @@ public class AgentAnimationController : MonoBehaviour
 		_animatedGameObject[clipProperties.clip.name].blendMode = clipProperties.blendMode;
 		_animatedGameObject[clipProperties.clip.name].layer = (int)clipProperties.layer;
 		_animatedGameObject[clipProperties.clip.name].enabled = true;
+		float clipBlendTime = immediateBlend ? 0f : clipProperties.blendTime;
 
 		if (clipProperties.isMixingTransform)
 			_animatedGameObject[clipProperties.clip.name].AddMixingTransform(_upperBodyTransform);
@@ -271,7 +272,7 @@ public class AgentAnimationController : MonoBehaviour
 				StopCoroutine(_stopAnimRoutine);
 			_animatedGameObject[clipProperties.clip.name].weight = clipProperties.weight;
 			_animatedGameObject[clipProperties.clip.name].normalizedTime = offsetRatio;
-			_animatedGameObject.CrossFade(clipProperties.clip.name, clipProperties.blendTime);
+			_animatedGameObject.CrossFade(clipProperties.clip.name, clipBlendTime);
 
 			overrideCountDown = clipProperties.scaledLength;
 			state = State.Override;
@@ -282,12 +283,12 @@ public class AgentAnimationController : MonoBehaviour
 			{
 				_animatedGameObject.Rewind(clipProperties.clip.name);
 				_animatedGameObject[clipProperties.clip.name].normalizedTime = offsetRatio;
-				_animatedGameObject.Blend(clipProperties.clip.name, clipProperties.weight, clipProperties.blendTime);
+				_animatedGameObject.Blend(clipProperties.clip.name, clipProperties.weight, clipBlendTime);
 			}
 			else
 			{
 				_animatedGameObject[clipProperties.clip.name].normalizedTime = offsetRatio;
-				_animatedGameObject.CrossFade(clipProperties.clip.name, clipProperties.blendTime);
+				_animatedGameObject.CrossFade(clipProperties.clip.name, clipBlendTime);
 			}
 		}
 

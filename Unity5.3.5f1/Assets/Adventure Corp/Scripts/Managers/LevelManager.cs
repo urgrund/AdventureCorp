@@ -101,4 +101,18 @@ public class LevelManager : MonoBehaviour
             _instance._other.Remove(h);
         }
     }
+
+
+	//void OnGUI()
+	//{
+	//	if (GUILayout.Button("1x"))
+	//	{
+	//		Time.timeScale = 1;
+	//	}
+
+	//	if (GUILayout.Button("5x"))
+	//	{
+	//		Time.timeScale = 5f;
+	//	}
+	//}
 }

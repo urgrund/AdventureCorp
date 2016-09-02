@@ -33,13 +33,25 @@ public class NPCProfile : ScriptableObject
 		[Range(1, 5)]
 		[Tooltip("Bias to the exact position to consider as arrived")]
 		public float destinationBias = 1f;
+
 		[Range(0, 1)]
 		public float patrolMoveSpeedRatio = 0.33f;
 		public float waitAtDestinationTime = 2f;		
 		public Probability waitAtDestination = Probability.EqualChance;
-		public Probability stayWithinAssignedZone = Probability.EqualChance;				
+
+		[Tooltip("Whether to venture to other, linked, patrol zones or stay only within the starting assigned zone")]
+		public Probability stayWithinAssignedZone = Probability.EqualChance;
+
+		[Tooltip("If near an NPC with a higher rank, should we follow them?")]
 		public Probability followSuperiors = Probability.Never;
+
+		[Tooltip("(NOT IMPLEMENTED)  The formation to use whilst following")]
 		public NPCBrain.PatrolFormation followingFormation = NPCBrain.PatrolFormation.Column;
+
+		[Tooltip("If subordinates follow this NPC, what is the max it wants to manage?")]
+		public int maxPatrolSubordinates = 5;
+
+
 		public Probability avoidOtherAgents = Probability.Always;
 	}
 
@@ -65,6 +77,10 @@ public class NPCProfile : ScriptableObject
 	[System.Serializable]
 	public class Attack
 	{
+
+
+		[Header("Offense")]
+
 		[Range(0,1)]
 		[Tooltip("At what ratio of health should the NPC be more cautios with attacks")]
 		public float cautiousHealthRatio = 0.5f;
@@ -79,9 +95,6 @@ public class NPCProfile : ScriptableObject
 		[Tooltip("When in close range to target, scale the speed by this amount")]
 		public float closeRangeMoveSpeedRatio = 0.5f;
 
-		[Range(0,1)]
-		[Tooltip("When health is below this ratio the NPC will retreat")]
-		public float retreatHealthRatio = 0.1f;
 
 		[Tooltip("If hit by an NPC, should this NPC hit it back?")]
 		public Probability attackNPCsIfHit = Probability.Never;
@@ -89,15 +102,10 @@ public class NPCProfile : ScriptableObject
 		[Range(3,50)]
 		[Tooltip("Stop attacking if this far from the place we started attacking")]
 		public float stopAttackFromStartDistance = 25;
+
 		[Range(3, 50)]
 		[Tooltip("Stop attacking if this far from the target")]
 		public float stopAttackFromTargetDistance = 15f;
-
-		[Tooltip("If hit, jump away from the attacker to create distance")]
-		public Probability jumpAwayIfHit = Probability.Low;
-
-		[Tooltip("Should the NPC try to avoid a projectile?")]
-		public Probability attemptProjectileAvoidance = Probability.Low;
 
 		[Tooltip("Prefer to move into close range distance before attacking")]
 		public Probability preferCloseCombat = Probability.EqualChance;
@@ -105,15 +113,43 @@ public class NPCProfile : ScriptableObject
 		[Range(5, 45)]
 		[Tooltip("If in close combat mode, how long to require being in close range distance")]
 		public float closeCombatDuration = 5;
+
+
+		public Probability parryAccuracy = Probability.Low;
+
+
+		[Header("Defense")]
+
+
+		[Range(0, 1)]
+		[Tooltip("When health is below this ratio the NPC will retreat")]
+		public float retreatHealthRatio = 0.1f;
+
+		[Tooltip("If hit, jump away from the attacker to create distance")]
+		public Probability jumpAwayIfHit = Probability.Low;
+
+		[Tooltip("Anticiapte the attacker and jump away before they attack")]
+		public Probability jumpAwayToAvoid = Probability.Low;
+
+		[Tooltip("Should the NPC try to avoid a projectile?")]
+		public Probability attemptProjectileAvoidance = Probability.Low;
+
+		public Probability useShieldWhenAttacked = Probability.EqualChance;
+		public Probability preferShieldOverAvoid = Probability.EqualChance;
+		
+
 	}
 
 
 	[System.Serializable]
 	public class Actions
 	{
-		public AttackDescriptor jumpAway;
+		
 		public AnimationClipProperties roar;
-		public AnimationClipProperties shuffleLeft;
-		public AnimationClipProperties shuffleRight;
+		public AttackDescriptor jumpAway;
+		public AttackDescriptor jumpLeft;
+		public AttackDescriptor jumpRight;
+		
+		public AnimationClipProperties shieldBlock;
 	}
 }

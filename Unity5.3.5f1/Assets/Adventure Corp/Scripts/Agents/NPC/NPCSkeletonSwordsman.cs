@@ -4,53 +4,85 @@ using System.Collections;
 
 public class NPCSkeletonSwordsman : NPCBrain
 {
-    public bool allowAttack = true;
-	
-	protected override IEnumerator Update_AttackState()
+	//void OnGUI()
+	//{
+	//	if (GUILayout.Button("Shield UP"))
+	//	{
+	//		agent.animationController.Play(profile.actions.shieldBlock, true);
+	//	}
+
+	//	if (GUILayout.Button("Shield DOWN"))
+	//	{
+	//		agent.animationController.Stop(profile.actions.shieldBlock, true);
+	//	}
+	//}
+
+
+	bool targetAttacked = false;
+	void OnTargetAttackStarted(AttackDescriptor d, AttackController c)
 	{
-		while (true)
+		targetAttacked = true;
+
+		bool useShield;
+		if (profile.attack.useShieldWhenAttacked.Evaluate())
+			useShield = profile.attack.preferShieldOverAvoid.Evaluate();
+		else
+			useShield = false;
+
+		if (useShield)
 		{
-			if (Helpers.InRadius(transform.position, target.position, Random.Range(4f, 6f)))
-				_desiredMoveSpeed = agent.properties.speed.max * agent.properties.walkToRunSpeedRatio * 0.9f;
-			else
-				_desiredMoveSpeed = agent.properties.speed.max;
 
-			if (!agent.isStaggered)
+		}
+		else
+		{
+			if (profile.attack.jumpAwayToAvoid.Evaluate())
 			{
-				if (target != null)
+				if (isInsideFarRangeDistance)
 				{
-					if (allowAttack && agent.isGrounded)
+					AttackDescriptor ad = null;
+					switch (Helpers.RelativeQuadrant(transform, target))
 					{
-						if (Helpers.InRadiusGrounded(transform.position, target.position, 3f))
-						{
-							if (Random.value > 0.4f)
-								_attackController.AttackWithDescriptor(profile.attackCollection.melee1);
-							else
-								_attackController.AttackWithDescriptor(profile.attackCollection.melee2);
-						}
-						else
-						{
-							destination = target.position;
-							yield return new WaitForSeconds(0.5f);
-						}
+						case Helpers.Quadrant.Back: ad = profile.actions.jumpAway; break;
+						case Helpers.Quadrant.Forward: ad = profile.actions.jumpAway; break;
+						case Helpers.Quadrant.Left: ad = profile.actions.jumpRight; break;
+						case Helpers.Quadrant.Right: ad = profile.actions.jumpLeft; break;
 					}
 
-					if (_attackController.isAttacking)
-					{
-						agent.SetDesiredRotation(target);
-					}
-
+					if (ad != null)
+						_attackController.AttackWithDescriptor(ad);
 				}
 			}
-
-			yield return null;
 		}
 	}
 
-	protected override void OnArrivedAtDestination()
-    {
-        if (target != null)
-            destination = target.position;
-        base.OnArrivedAtDestination();
-    }
+
+	protected override void Awake()
+	{
+		if (target != null)
+		{
+			// Listen to attacks from the player
+			if (target.GetComponent<ExplorerBrain>())
+				target.GetComponent<AttackController>().onAttackStarted += OnTargetAttackStarted;
+		}
+		base.Awake();
+	}
+
+	protected override IEnumerator Update_AttackState()
+	{
+		isIgnoreInternalUpdateRoutine = true;
+
+		while (true)
+		{
+			if (isInsideFarRangeDistance)
+			{
+				_desiredLookAtTarget = target;
+				Vector3 dir = -Helpers.DirectionTo(transform, target) * profile.attack.farRangeDistance;
+				destination = transform.position + dir;
+				Debug.DrawLine(transform.position, (target.position + dir), Color.cyan, 1f);
+			}			
+
+			yield return new WaitForSeconds(1f);
+			yield return null;
+		}
+	}
 }

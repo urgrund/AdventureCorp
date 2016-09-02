@@ -115,7 +115,6 @@ public class PlatformMover : MonoBehaviour
     private bool _toggledThisFrame = false;
     public void Toggle()
     {
-		print("sometinglaskjdskld");
         _toggledThisFrame = true;
     }
 

@@ -11,6 +11,34 @@ using System.Linq;
 /// </summary>
 public static class Helpers
 {
+	public enum Quadrant { Forward, Back, Left, Right }
+
+	/// <summary>
+	/// Returns a qaudrant relative to a normal and a direction to a target
+	/// </summary>
+	static public Quadrant RelativeQuadrant(Transform from, Transform to, bool zeroY = true) { return RelativeQuadrant(from.position, from.forward, from.right, to.position, zeroY); }
+	static public Quadrant RelativeQuadrant(Transform from, Vector3 to, bool zeroY = true) { return RelativeQuadrant(from.position, from.forward, from.right, to, zeroY); }
+	static public Quadrant RelativeQuadrant(Vector3 from, Vector3 normal, Vector3 right, Vector3 target, bool zeroY = true)
+	{
+		Quadrant q;
+		Vector3 dirToTarget = Helpers.DirectionTo(from, target);
+
+		if (zeroY)
+			dirToTarget.y = normal.y = right.y = 0;
+
+		float frontOrBack = Vector3.Dot(normal, dirToTarget);
+		float rightOrLeft = Vector3.Dot(right, dirToTarget);
+		
+		if (Mathf.Abs(frontOrBack) > 0.707f)		
+			q = (frontOrBack > 0) ? Quadrant.Forward : Quadrant.Back;		
+		else		
+			q = (rightOrLeft > 0) ? Quadrant.Right : Quadrant.Left;
+
+		return q;
+	}
+
+
+
     /// <summary>
     /// If a point lies within another point given a radius using fast sqr magnitude
     /// </summary>        
@@ -25,24 +53,6 @@ public static class Helpers
 	public static bool InConeAngleAndRadius(Transform target, Transform from, float angle, float radius) { return InConeAngle(target, from, angle) && InRadius(target, from, radius); }
 	public static bool InConeAngleAndRadius(Vector3 target, Vector3 from, Vector3 fromFoward, float angle, float radius) { return InConeAngle(target, from, fromFoward, angle) && InRadius(target, from, radius); }
 
-
-
-
-	//public bool IsAttackInRangeForTarget(AttackDescriptor attack, Transform target)
-	//{
-	//	return !Helpers.InRadius(transform.position, target.position, attack.suggestedUseRange.x) && Helpers.InRadius(transform.position, target.position, attack.suggestedUseRange.y);
-	//}
-
-	//public bool IsAttackInAngleForTarget(AttackDescriptor attack, Transform target)
-	//{
-	//	Vector3 dirTo = Helpers.DirectionTo(transform, target);
-	//	return (Vector3.Angle(dirTo, transform.forward) < (int)attack.suggestedUseAngle * 0.5f);
-	//}
-
-	//public bool IsObjectInRangeAndAngle(AttackDescriptor attack, Transform target)
-	//{
-	//	return IsAttackInAngleForTarget(attack, target) && IsAttackInRangeForTarget(attack, target);
-	//}
 
 	/// <summary>
 	/// If a point lies within another point given a radius. Assumes height of 0.
@@ -267,12 +277,17 @@ public static class Helpers
         NavMeshHit hit;
         return !NavMesh.Raycast(p + Vector3.up, p - Vector3.down * 3, out hit, NavMesh.AllAreas);
     }
+	// ----------------------------------------------------------------------------------------------
 
 
 
-	
 
 
+
+
+
+
+	// ----------------------------------------------------------------------------------------------
 
 
 
@@ -316,7 +331,7 @@ public static class Helpers
 	}
 
 
-
+	// ----------------------------------------------------------------------------------------------
 
 
 }

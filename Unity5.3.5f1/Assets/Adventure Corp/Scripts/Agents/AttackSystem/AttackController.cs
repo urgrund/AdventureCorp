@@ -8,7 +8,6 @@ using System.Collections.Generic;
 /// </summary>
 public class AttackController : MonoBehaviour
 {
-
     public bool showDebugGUI = false;
 	public LayerMask damageColliderLayer;// = LayerMask.NameToLayer("Everything");  
 
@@ -27,6 +26,9 @@ public class AttackController : MonoBehaviour
     private bool _isControllingAgentVelocity = false;
     public bool isControllingAgentVelocity { get { return _isControllingAgentVelocity; } }
 
+	public delegate void AttackEvent(AttackDescriptor attack, AttackController controller);
+	public AttackEvent onAttackStarted;
+	public AttackEvent onAttackReleased;
 
 
 	AttackDescriptor _currentAttack;
@@ -68,8 +70,7 @@ public class AttackController : MonoBehaviour
 
 	void Start()
     {
-        damagers = AttackVolumeCollection.CreateDamageCollidersForAgent(this, _agent, _agent.animationController.animatedGameObject.transform, _agent.properties.GetComponent<AttackVolumeCollection>());
-		//SetLayerToDamageVolumes(damageColliderLayer);
+        damagers = AttackVolumeCollection.CreateDamageCollidersForAgent(this, _agent, _agent.animationController.animatedGameObject.transform, _agent.properties.GetComponent<AttackVolumeCollection>());		
 		Debug.LogWarning("TODO - Fix layer masking so enemies don't hit themselves");
     }
 
@@ -199,6 +200,10 @@ public class AttackController : MonoBehaviour
 		// Set override cooldown below zero so that
 		// the animation controller can take over
         _agent.animationController.overrideCountDown = -1;
+
+		// Fire delegate
+		if (onAttackReleased != null)
+			onAttackReleased(attack, this);
     }
 
 
@@ -263,6 +268,7 @@ public class AttackController : MonoBehaviour
 		
 		if (isPastYieldControlTime)
 		{
+			// Prepare and fire attack!
 			ReleaseAttack(_currentAttack);
 			_turnToTarget = target;
 			_currentAttack = d;
@@ -270,8 +276,14 @@ public class AttackController : MonoBehaviour
 			_isAttacking = true;		
 			_agent.animationController.Play(_currentAttack.clipProperties, _currentAttack.attackStartOffsetRatio);
 			StartCoroutine(RunJobRoutine(d));
+
+			// Eventor for this attack
 			if (d.eventor != null)
 				EventorSchedule.RunAtTransformAsChild(d.eventor, this.transform);
+
+			// Delegate for this attack
+			if (onAttackStarted != null)
+				onAttackStarted(d, this);
 		}
 	}
 

@@ -51,7 +51,7 @@ public class NPCSkeletonGrunt : NPCBrain
 
 
 
-	bool hasWaited = false;
+	//bool hasWaited = false;
 	//protected override IEnumerator Update_AttackState()
 	//{
 	//	while (true)

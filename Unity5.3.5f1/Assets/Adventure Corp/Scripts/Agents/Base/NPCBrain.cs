@@ -43,12 +43,63 @@ public abstract class NPCBrain : Brain
 
 
 
+
+	// --------------------------------------------------------------------
+	// PUBLIC MEMBERS 
+
+	/// <summary>
+	/// Contextual target for the NPC
+	/// </summary>
 	[Tooltip("Contextual target that the NPC will use to base certain logic off (retreat, attack.. etc)")]
 	public Transform target;
+
+	/// <summary>
+	/// The main profile (project asset) for this NPC that defines much of its behaviour
+	/// </summary>
+	[Tooltip("The profile defines much of the behavior of the NPC")]
 	public NPCProfile profile;
 
-	public NPCBrain patrolSuperior = null;
 
+	// --------------------------------------------------------------------
+
+
+
+
+
+	private NPCBrain _patrolSuperior = null;
+	public NPCBrain patrolSuperior { get { return _patrolSuperior; } }
+	private List<NPCBrain> patrolSubordinates = new List<NPCBrain>();
+
+	protected AttackController _attackController;
+	private AttackDescriptor[] _attackCollectionArray = null;
+	protected AttackDescriptor[] attackCollectionArray { get { return _attackCollectionArray; } }
+
+
+
+
+	public bool isInsideFarRangeDistance { get { return Helpers.InRadius(transform, target, profile.attack.farRangeDistance); } }
+	public bool isInsideCloseRangeDistance { get { return Helpers.InRadius(transform, target, profile.attack.closeRangeDistance); } }
+
+
+	/// <summary>
+	/// Add an NPC as a follower and return this NPC 
+	/// </summary>
+	public NPCBrain AddNPCSubordinate(NPCBrain npc)
+	{
+		if (patrolSubordinates.Count < profile.patrol.maxPatrolSubordinates)
+		{
+			npc._patrolSuperior = this;
+			patrolSubordinates.Add(npc);
+			return this;
+		}
+		return null;
+	}
+
+	public void RemoveNPCSubordinate(NPCBrain npc)
+	{
+		npc._patrolSuperior = null;
+		patrolSubordinates.Remove(npc);
+	}
 
 
 
@@ -108,10 +159,6 @@ public abstract class NPCBrain : Brain
 
 	// -----------------------------------------------------------------------------------------------------------------
 	// Attacks
-	protected AttackController _attackController;
-	private AttackDescriptor[] _attackCollectionArray = null;
-	protected AttackDescriptor[] attackCollectionArray { get { return _attackCollectionArray; } }
-
 	private void SetAllAttacksAsArray()
 	{
 		Debug.Assert(_attackCollectionArray == null, "Collection already full yet trying to fill again", this);
@@ -183,11 +230,11 @@ public abstract class NPCBrain : Brain
 	// Patrol 
 
 	// Current patrol point the NPC is trying to reach
-	public PatrolPoint _patrolPoint = null;
+	PatrolPoint _patrolPoint = null;
 
 	// The zone this NPC gets assigned to upon spawning, it will be the nearest
 	// on for now.  This is to limit 'wandering' of the NPC 
-	public PatrolZone _assignedPatrolZone = null;
+	PatrolZone _assignedPatrolZone = null;
 
 
 	private void PrepareNextPatrol()
@@ -198,7 +245,7 @@ public abstract class NPCBrain : Brain
 		_patrolPoint = null;
 		if (_assignedPatrolZone != null)
 		{
-			if (profile.patrol.stayWithinAssignedZone.checkProbability() || !_assignedPatrolZone.hasConnectedZones)
+			if (profile.patrol.stayWithinAssignedZone.Evaluate() || !_assignedPatrolZone.hasConnectedZones)
 				_patrolPoint = _assignedPatrolZone.GetAvailablePatrolPoint();
 			else
 				_patrolPoint = _assignedPatrolZone.GetRandomConnectedZone().GetAvailablePatrolPoint();
@@ -333,18 +380,19 @@ public abstract class NPCBrain : Brain
 	{
 		if (!isIgnoreInternalUpdateRoutine)
 		{
-			_desiredMoveSpeed = agent.properties.speed.max * profile.patrol.patrolMoveSpeedRatio;
+			
 			while (true)
 			{
-				patrolSuperior = null;
+				if (_patrolSuperior != null)
+					_patrolSuperior.RemoveNPCSubordinate(this);				
 
 				PrepareNextPatrol();
-
+				_desiredMoveSpeed = agent.properties.speed.max * profile.patrol.patrolMoveSpeedRatio;
 
 				// Follow path until finished
-				while (_navMeshNextPosition != null && patrolSuperior == null)
+				while (_navMeshNextPosition != null && _patrolSuperior == null)
 				{
-					if (profile.patrol.followSuperiors.checkProbability())
+					if (profile.patrol.followSuperiors.Evaluate())
 					{
 						// TODO - optimise with Layer masks
 						Collider[] c = Physics.OverlapSphere(transform.position, 15f);
@@ -357,7 +405,7 @@ public abstract class NPCBrain : Brain
 								{
 									if ((int)profile.statistics.rank > (int)b.profile.statistics.rank)
 									{
-										patrolSuperior = b;
+										_patrolSuperior = b.AddNPCSubordinate(this);
 										break;
 									}
 								}
@@ -371,11 +419,11 @@ public abstract class NPCBrain : Brain
 					_patrolPoint.Release();
 
 				// No path, then maybe superior to follow?
-				while(patrolSuperior != null)
+				while(_patrolSuperior != null)
 				{
 					//(patrolSuperior.transform.forward * profile.awareness.personalSpace) + 
-					Vector3 distanceBehind = (patrolSuperior.transform.forward * patrolSuperior.profile.awareness.personalSpace);
-					Vector3 newDest = patrolSuperior.transform.position - distanceBehind;
+					Vector3 distanceBehind = (_patrolSuperior.transform.forward * _patrolSuperior.profile.awareness.personalSpace);
+					Vector3 newDest = _patrolSuperior.transform.position - distanceBehind;
 					destination = newDest;
 
 					if (Helpers.InRadius(newDest, transform, profile.attack.closeRangeDistance * 0.5f))
@@ -389,7 +437,7 @@ public abstract class NPCBrain : Brain
 
 				// If probability to hold position
 				// Then wait at this position
-				if (profile.patrol.waitAtDestination.checkProbability())
+				if (profile.patrol.waitAtDestination.Evaluate())
 					yield return new WaitForSeconds(profile.patrol.waitAtDestinationTime);
 
 				yield return null;
@@ -407,17 +455,15 @@ public abstract class NPCBrain : Brain
 	}
 
 
-	public bool _isInCloseRangeRoutine = false;
-	public bool _isAllowedCloseRangeRoutine = true;
+	bool _isInCloseRangeRoutine = false;
+	bool _isAllowedCloseRangeRoutine = true;
 	IEnumerator ActivateInCloseRangeForTime(float time)
 	{
 		_isInCloseRangeRoutine = true;
 		_isAllowedCloseRangeRoutine = false;
 		yield return new WaitForSeconds(time);
-		print("finished routine...  now wait before allowed again");
 		_isInCloseRangeRoutine = false;
-		yield return new WaitForSeconds(time);
-		print("allowed again!");
+		yield return new WaitForSeconds(time);		
 		_isAllowedCloseRangeRoutine = true;
 	}
 
@@ -446,7 +492,7 @@ public abstract class NPCBrain : Brain
 					List<AttackDescriptor> aDescs;
 					if (!_isInCloseRangeRoutine)
 					{
-						if (profile.attack.preferCloseCombat.checkProbability() && _isAllowedCloseRangeRoutine)
+						if (profile.attack.preferCloseCombat.Evaluate() && _isAllowedCloseRangeRoutine)
 						{
 							StartCoroutine(ActivateInCloseRangeForTime(profile.attack.closeCombatDuration));
 							aDescs = _attackController.GetSuggestedAttacksForTarget(attackCollectionArray, target, profile.attack.closeRangeDistance);
@@ -512,7 +558,7 @@ public abstract class NPCBrain : Brain
 			else
 				destination = transform.position;
 
-			if (profile.patrol.waitAtDestination.checkProbability())
+			if (profile.patrol.waitAtDestination.Evaluate())
 				yield return new WaitForSeconds(profile.patrol.waitAtDestinationTime);
 
 			state = State.Patrol;
@@ -656,7 +702,7 @@ public abstract class NPCBrain : Brain
 		if (info.responsibleGameObject.transform == target)			
 		{
 			state = State.Attack;
-			if (profile.attack.jumpAwayIfHit.checkProbability())
+			if (profile.attack.jumpAwayIfHit.Evaluate())
 			{
 				if (_attackController.YieldControlFromAttack())
 				{

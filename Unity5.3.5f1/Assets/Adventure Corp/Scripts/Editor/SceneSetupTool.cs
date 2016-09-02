@@ -59,9 +59,8 @@ public class SceneSetupTool : EditorWindow
 			DestroyImmediate(s.gameObject);
 		}
 
-		GameObject go = new GameObject("TEMP_VIS_OBJECT");
-		//go.hideFlags = HideFlags.hi;
-		tempVizObj = go.AddComponent<SceneSetupToolVisualisation>();
+		//GameObject go = new GameObject("TEMP_VIS_OBJECT");		
+		//tempVizObj = go.AddComponent<SceneSetupToolVisualisation>();
 		GetAllCollisionShapes();
 	}
 

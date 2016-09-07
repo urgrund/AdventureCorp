@@ -1,10 +1,32 @@
 using UnityEngine;
 using System.Collections;
 
+public enum PlatformMoverState
+{
+	WaitingAtStart,
+	WaitingAtDestination,
+	MovingTo,
+	MovingFrom
+}
+
+public enum MoverDetailsEasingType
+{
+	Linear,
+	EaseIn,
+	EaseOut,
+	EaseInOut,
+	ElasticIn,
+	ElasticOut,
+	BounceIn,
+	BounceOut
+}
+
+
+
 [System.Serializable]
 public class MoverDetails
 {
-    public bool isWaitFirstTime = false;
+    public bool delayStartByWaitTime = false;
     public bool isRandomStartPosition = false;
 
     public PlatformMoverLocationDetails start;
@@ -25,12 +47,15 @@ public class MoverDetailsSpin
 [System.Serializable]
 public class PlatformMoverLocationDetails
 {
+	public string name;
+
     public bool toggleOnly = false;
     
     // Option to hook up a trigger to this mover
     // and listen for collider counts.  Useful for doors
     // or platforms where you expect something to be there to operate
     public bool toggleOnlyWithTrigger = false;
+	public bool toggleCanInterupt = false;
     public Trigger trigger;
     public int triggerColliderCount = 1;
 
@@ -63,18 +88,34 @@ public class PlatformMoverLocationDetails
         positon = target.position;
         rotation = target.rotation;
 
-        if (toggleOnlyWithTrigger)
-            if (trigger != null)
-                trigger.colliderCountChanged += this.OnColliderCountChanged;
+		if (toggleOnly && toggleOnlyWithTrigger)
+		{
+			//Debug.Log(this.ToString() + "  added delegate.");
+			if (trigger != null)
+				trigger.colliderCountChanged += this.OnColliderCountChanged;
+		}
 
         mover.onArrived += OnArrived;
     }
 
 
+	
 	// This will subscribe to the triggers count delegate
 	public void OnColliderCountChanged(int count)
 	{
-		if (toggleOnly && toggleOnlyWithTrigger)
+		// Not our message
+		Debug.Log(name + " collider count trigger.");
+		if (mover.currentDetails != this)
+		{
+			//Debug.Log("Wasn't us " + name);
+			return;
+		}
+		
+
+		if (mover.isCurrentlyMoving && !toggleCanInterupt)
+			return;
+
+		if (toggleOnly && toggleOnlyWithTrigger)			
 			if (trigger != null)
 				if (trigger.collidersInsideVolume == triggerColliderCount)
 					mover.Toggle();
@@ -86,7 +127,10 @@ public class PlatformMoverLocationDetails
         if (details != this)
             return;
 
-        if (toggleOnly && toggleOnlyWithTrigger)
+		if (mover.isCurrentlyMoving && !toggleCanInterupt)
+			return;
+
+		if (toggleOnly && toggleOnlyWithTrigger)
             if (trigger != null)
                 if (trigger.collidersInsideVolume == triggerColliderCount)
                     m.Toggle();
@@ -94,22 +138,3 @@ public class PlatformMoverLocationDetails
 }
 
 
-public enum PlatformMoverState
-{
-    WaitingAtStart,
-    WaitingAtDestination,
-    MovingTo,
-    MovingFrom    
-}
-
-public enum MoverDetailsEasingType
-{
-    Linear,
-    EaseIn,
-    EaseOut,
-    EaseInOut,
-    ElasticIn,
-    ElasticOut,
-    BounceIn,
-    BounceOut
-}

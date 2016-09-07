@@ -21,6 +21,16 @@ public class Trigger : MonoBehaviour
 		}
 	}
 
+	public enum CollideEvent
+	{
+		Enter,
+		Exit,
+		Stay
+	}
+
+	[Header("Colliders to Ignore")]
+	public List<Transform> collidersToIgnore;
+
 
 	[Header("Eventors To Fire")]
 	public List<EventorSchedule> onEnterSchedules;
@@ -29,19 +39,31 @@ public class Trigger : MonoBehaviour
 
     public delegate void OnTriggerEvent();
     public event OnTriggerEvent onTriggerEntered;
-    //public event OnTriggerEvent onTriggerStay;
     public event OnTriggerEvent onTriggerExit;
 
     public delegate void OnColliderCountChanged(int currentCount);
     public event OnColliderCountChanged colliderCountChanged;
 
-    int _collidersInsideVolume = 0;
+	public int _collidersInsideVolume = 0;
+	public List<Collider> _colliderComponentInsideVolume = new List<Collider>();
     public int collidersInsideVolume { get { return _collidersInsideVolume; } }
+
+
+	void Awake()
+	{
+		foreach (Transform t in collidersToIgnore)
+		{
+			if(t.GetComponent<Collider>() != null && GetComponent<Collider>() !=null)
+				Physics.IgnoreCollision(this.GetComponent<Collider>(), t.GetComponent<Collider>());
+			foreach(Collider c in t.GetComponentsInChildren<Collider>())
+				Physics.IgnoreCollision(this.GetComponent<Collider>(), c);
+		}
+	}
 
     private void AddCollidersInsideVolume(int count)
     {
-        _collidersInsideVolume += count;
-        if (colliderCountChanged != null)
+		_collidersInsideVolume += count;
+		if (colliderCountChanged != null)
             colliderCountChanged(_collidersInsideVolume);
     }
 
@@ -62,7 +84,10 @@ public class Trigger : MonoBehaviour
     bool IsSameLayerAsMask(Collider other) { return ((mask.value & 1 << other.gameObject.layer) == 1 << other.gameObject.layer); }
 
     void OnTriggerEnter(Collider other)
-    {	
+    {
+		if (other.transform == this)
+			return;	
+
         if (onEnter && IsSameLayerAsMask(other))
         {
 			FireEvents(onEnterSchedules);
@@ -70,13 +95,21 @@ public class Trigger : MonoBehaviour
             if (onTriggerEntered != null)
                 onTriggerEntered();
 
-            AddCollidersInsideVolume(1);
+			_colliderComponentInsideVolume.Add(other);
+
+			AddCollidersInsideVolume(1);
         }
     }
 
     void OnTriggerStay(Collider other)
     {
-        if (onStay && IsSameLayerAsMask(other))
+		if (other.transform == this)
+			return;
+
+		if (other.transform.parent == this)
+			return;
+
+		if (onStay && IsSameLayerAsMask(other))
         {
             FireEvents(onStaySchedules);
         }
@@ -84,14 +117,22 @@ public class Trigger : MonoBehaviour
 
     void OnTriggerExit(Collider other)
     {
-        if (onExit && IsSameLayerAsMask(other))
+		if (other.transform == this)
+			return;
+
+		if (other.transform.parent == this)
+			return;
+
+		if (onExit && IsSameLayerAsMask(other))
         {
             FireEvents(onExitSchedules);
 
             if (onTriggerExit != null)
                 onTriggerExit();
 
-            AddCollidersInsideVolume(-1);
+			_colliderComponentInsideVolume.Remove(other);
+
+			AddCollidersInsideVolume(-1);
         }
     }
 

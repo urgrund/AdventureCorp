@@ -72,12 +72,12 @@
 		{
 			Tags{ "RenderType" = "Opaque" "Queue" = "Geometry+2" }
 
-				Blend SrcAlpha OneMinusSrcAlpha
+				//Blend SrcAlpha OneMinusSrcAlpha
 
 				ColorMask RGB
-				Cull Front
+				//Cull Front				
 				ZTest Always
-				Lighting Off
+				//Lighting Off
 				Stencil
 				{
 					Ref 1
@@ -117,6 +117,8 @@
 			}
 
 			half4 frag2(v2f2 i) : SV_Target{
+
+				return fixed4(1,1,1,1);
 
 				fixed4 projUV = UNITY_PROJ_COORD(i.projPos);
 				float4 dfse = tex2Dproj(_CameraGBufferTexture0, projUV);

@@ -4,21 +4,27 @@ using System.Linq;
 
 public class PlatformMover : MonoBehaviour
 {
+	public Transform mainTransform;
 	public Transform targetTransform;		
     public MoverDetails details;
 
     public bool drawTargetMesh = true;
     public Color targetColor = Color.yellow;
-    
+
+
+	public bool isCurrentlyMoving = false;
 
     //private bool isFirstRun;
 
     // TODO - this can easily be an array in oder to 
     // have 'trains' of target loctaions
-    private PlatformMoverLocationDetails _previousDetails;
+    private PlatformMoverLocationDetails _currentDetails;
     private PlatformMoverLocationDetails _nextDetails;
+	public PlatformMoverLocationDetails currentDetails { get { return _currentDetails; } }
+	public PlatformMoverLocationDetails nextDetails { get { return _nextDetails; } }
 
-    public delegate void OnArrived(PlatformMover mover, bool isMovingTo, PlatformMoverLocationDetails details);
+
+	public delegate void OnArrived(PlatformMover mover, bool isMovingTo, PlatformMoverLocationDetails details);
     public event OnArrived onArrived;
 
     void Arrived(PlatformMoverLocationDetails details, bool setSpin)
@@ -35,7 +41,8 @@ public class PlatformMover : MonoBehaviour
     }
 
 
-	void OnEnable()
+	//void OnEnable()
+	void Start()
 	{
         if (targetTransform == null)
         {
@@ -44,19 +51,19 @@ public class PlatformMover : MonoBehaviour
         }
 
         // Cahce the pos/rot of the mover and target        
-        details.start.Init(transform, this);
+        details.start.Init(mainTransform, this);
         details.target.Init(targetTransform, this);
 
-        _previousDetails = details.start;
+        _currentDetails = details.start;
         _nextDetails = details.target;
 
-        //isFirstRun = true;
+        //isFirstRun = true;		
 		StartCoroutine(MoveRoutine());
 	}
 
 	void OnDisable()
 	{
-		transform.position = details.start.positon;
+		mainTransform.position = details.start.positon;
 		StopAllCoroutines();
 	}
 
@@ -98,23 +105,24 @@ public class PlatformMover : MonoBehaviour
 
 
     /// <summary>
-    /// Based on a set of mover details, lock the transform here.  This
+    /// Based on a set of mover details, lock the mainTransform here.  This
     /// is good to garuntee a positoin instead of ending at a lerp of 0.001f etc
     /// </summary>    
     void LockTransformAtDetails(PlatformMoverLocationDetails detail, bool setSpin)
     {
-        transform.position = detail.positon;
-        transform.rotation = detail.rotation;
+        mainTransform.position = detail.positon;
+        mainTransform.rotation = detail.rotation;
 
         if (setSpin)
             if (details.spin.isSpinToTarget)
-                transform.Rotate(details.spin.spinAxis, details.spin.spinRevolutions * 360f);
+                mainTransform.Rotate(details.spin.spinAxis, details.spin.spinRevolutions * 360f);
     }
 
 
     private bool _toggledThisFrame = false;
     public void Toggle()
     {
+		print(_nextDetails.ToString());
         _toggledThisFrame = true;
     }
 
@@ -132,31 +140,31 @@ public class PlatformMover : MonoBehaviour
     {
         isMovingTo = true;
 
-        if (_previousDetails.toggleOnly)
+        if (_currentDetails.toggleOnly)
         {
             while (!_toggledThisFrame)
                 yield return null;
             ResetToggle();
         }
         else
-            if(details.isWaitFirstTime)
-                yield return new WaitForSeconds(_previousDetails.waitTime);
+            if(details.delayStartByWaitTime)
+                yield return new WaitForSeconds(_currentDetails.waitTime);
 
 
         while (true)
         {
             while (t < 1f)
             {
-                t += Time.deltaTime * (1f / _previousDetails.timeToNextTarget);
+                t += Time.deltaTime * (1f / _currentDetails.timeToNextTarget);
 
-                transform.position = Vector3.LerpUnclamped(_previousDetails.positon, _nextDetails.positon, GetEasingFloat(_previousDetails.easingToNextTarget, t));
-                transform.rotation = Quaternion.LerpUnclamped(_previousDetails.rotation, _nextDetails.rotation, GetEasingFloat(_previousDetails.easingToNextTarget, t));
+                mainTransform.position = Vector3.LerpUnclamped(_currentDetails.positon, _nextDetails.positon, GetEasingFloat(_currentDetails.easingToNextTarget, t));
+                mainTransform.rotation = Quaternion.LerpUnclamped(_currentDetails.rotation, _nextDetails.rotation, GetEasingFloat(_currentDetails.easingToNextTarget, t));
 
                 // if spin, then add additional rotation each frame
                 if (details.spin.isSpinToTarget)
                 {
-                    r = Mathf.Lerp(0, (details.spin.spinRevolutions * 360f), GetEasingFloat(_previousDetails.easingToNextTarget, t));
-                    transform.Rotate(details.spin.spinAxis, r);
+                    r = Mathf.Lerp(0, (details.spin.spinRevolutions * 360f), GetEasingFloat(_currentDetails.easingToNextTarget, t));
+                    mainTransform.Rotate(details.spin.spinAxis, r);
                 }
 
                 yield return null;
@@ -164,31 +172,31 @@ public class PlatformMover : MonoBehaviour
 
 
             // Arrived, so fire off any events
-            Arrived(_nextDetails, isMovingTo);
+            Arrived(_currentDetails, isMovingTo);
+			
+			// Switch the previous/next details
+			if (isMovingTo)
+			{
+				_nextDetails = details.start;
+				_currentDetails = details.target;
+			}
+			else
+			{
+				_nextDetails = details.target;
+				_currentDetails = details.start;
+			}
+			isMovingTo = !isMovingTo;
 
-            // If this target needs to wait for a toggle
-            // then loop here otherwise wait for time
-            if (_nextDetails.toggleOnly)
+			yield return new WaitForSeconds(_currentDetails.waitTime);
+
+			// If this target needs to wait for a toggle
+			// then loop here otherwise wait for time
+			if (_currentDetails.toggleOnly)
             {
                 while(!_toggledThisFrame)
                     yield return null;
                 ResetToggle();
-            }
-            else
-                yield return new WaitForSeconds(_nextDetails.waitTime);
-
-            // Switch the previous/next details
-            if(isMovingTo)
-            {                
-                _nextDetails = details.start;
-                _previousDetails = details.target;
-            }
-            else            
-            {
-                _nextDetails = details.target;
-                _previousDetails = details.start;
-            }
-            isMovingTo = !isMovingTo;           
+            }                        
         }
     }
 
@@ -210,15 +218,15 @@ public class PlatformMover : MonoBehaviour
     // GIZMOS 
     void GizmoDrawing(Color c, float alpha, bool drawMesh)
     {
-        if (targetTransform == null)
+        if (targetTransform == null || mainTransform == null)
             return;
 
         c.a = alpha;
         Gizmos.color = c;
 
-        Vector3 t = transform.position;
+        Vector3 t = mainTransform.position;
         Vector3 tar = targetTransform.position;
-        Quaternion tR = transform.rotation;
+        Quaternion tR = mainTransform.rotation;
         Quaternion tarR = targetTransform.rotation;
 
         if (Application.isPlaying)
@@ -239,9 +247,9 @@ public class PlatformMover : MonoBehaviour
                 return;
 
             Gizmos.DrawWireMesh(GetComponent<MeshFilter>().sharedMesh,
-                tar, tarR, transform.localScale);
+                tar, tarR, mainTransform.localScale);
             Gizmos.DrawWireMesh(GetComponent<MeshFilter>().sharedMesh,
-                t, tR, transform.localScale);            
+                t, tR, mainTransform.localScale);            
         }
         else
         {

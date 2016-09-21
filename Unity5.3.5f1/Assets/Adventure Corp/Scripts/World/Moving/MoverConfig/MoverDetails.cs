@@ -47,7 +47,7 @@ public class MoverDetailsSpin
 [System.Serializable]
 public class PlatformMoverLocationDetails
 {
-	public string name;
+	[HideInInspector] public string name;
 
     public bool toggleOnly = false;
     
@@ -55,7 +55,7 @@ public class PlatformMoverLocationDetails
     // and listen for collider counts.  Useful for doors
     // or platforms where you expect something to be there to operate
     public bool toggleOnlyWithTrigger = false;
-	public bool toggleCanInterupt = false;
+	[HideInInspector] public bool toggleCanInterupt = false;
     public Trigger trigger;
     public int triggerColliderCount = 1;
 
@@ -95,7 +95,7 @@ public class PlatformMoverLocationDetails
 				trigger.colliderCountChanged += this.OnColliderCountChanged;
 		}
 
-        mover.onArrived += OnArrived;
+        //mover.onArrived += OnArrived;
     }
 
 
@@ -104,7 +104,7 @@ public class PlatformMoverLocationDetails
 	public void OnColliderCountChanged(int count)
 	{
 		// Not our message
-		Debug.Log(name + " collider count trigger.");
+		//Debug.Log(Time.time + "  - " + name + " collider count trigger.");
 		if (mover.currentDetails != this)
 		{
 			//Debug.Log("Wasn't us " + name);
@@ -112,29 +112,15 @@ public class PlatformMoverLocationDetails
 		}
 		
 
-		if (mover.isCurrentlyMoving && !toggleCanInterupt)
-			return;
+		//if (mover.isCurrentlyMoving && !toggleCanInterupt)
+		//	return;
 
 		if (toggleOnly && toggleOnlyWithTrigger)			
 			if (trigger != null)
-				if (trigger.collidersInsideVolume == triggerColliderCount)
+				if (count == triggerColliderCount)
 					mover.Toggle();
 	}
-
-    public void OnArrived(PlatformMover m, bool isMovingTo, PlatformMoverLocationDetails details)
-    {
-        // Not our message
-        if (details != this)
-            return;
-
-		if (mover.isCurrentlyMoving && !toggleCanInterupt)
-			return;
-
-		if (toggleOnly && toggleOnlyWithTrigger)
-            if (trigger != null)
-                if (trigger.collidersInsideVolume == triggerColliderCount)
-                    m.Toggle();
-    }
+	
 }
 
 

@@ -26,22 +26,7 @@ public class PlatformMover : MonoBehaviour
 
 	public delegate void OnArrived(PlatformMover mover, bool isMovingTo, PlatformMoverLocationDetails details);
     public event OnArrived onArrived;
-
-    void Arrived(PlatformMoverLocationDetails details, bool setSpin)
-    {
-        t = 0f;
-
-        if (onArrived != null)
-            onArrived(this, isMovingTo, details);
-
-        if (details.onArriveEvent != null)
-            details.onArriveEvent.Run();
-
-        LockTransformAtDetails(details, setSpin);
-    }
-
-
-	//void OnEnable()
+	
 	void Start()
 	{
         if (targetTransform == null)
@@ -122,15 +107,24 @@ public class PlatformMover : MonoBehaviour
     private bool _toggledThisFrame = false;
     public void Toggle()
     {
-		print(_nextDetails.ToString());
         _toggledThisFrame = true;
-    }
+    }	
+
+	void ResetToggle()
+	{
+		_toggledThisFrame = false;
+	}
 
 
-    void ResetToggle()
-    {
-        _toggledThisFrame = false;
-    }
+	private void SwitchDetails()
+	{
+		// Switch the previous/next details
+		_nextDetails = isMovingTo ? details.start : details.target;
+		_currentDetails = isMovingTo ? details.target : details.start;
+		isMovingTo = !isMovingTo;
+	}
+
+
 
 
     float t = 0;        // interpolater
@@ -153,7 +147,8 @@ public class PlatformMover : MonoBehaviour
 
         while (true)
         {
-            while (t < 1f)
+			t = 0f;
+			while (t < 1f)
             {
                 t += Time.deltaTime * (1f / _currentDetails.timeToNextTarget);
 
@@ -167,50 +162,70 @@ public class PlatformMover : MonoBehaviour
                     mainTransform.Rotate(details.spin.spinAxis, r);
                 }
 
+
+				// This works, but needs a smarter way to switch 
+				// because of the literal position that the easing 
+				// functions create in worldspace
+				//if (_toggledThisFrame)
+				//{
+				//	if (_nextDetails.toggleOnly && _nextDetails.toggleCanInterupt)
+				//	{
+				//		t = 1 - t;
+				//		r = 1 - t;
+				//		SwitchDetails();
+				//	}
+				//	ResetToggle();
+				//}
+
                 yield return null;
             }
 
 
-            // Arrived, so fire off any events
-            Arrived(_currentDetails, isMovingTo);
+			// Arrived, so fire off any events
+			//Arrived(_currentDetails, isMovingTo);
+			if (onArrived != null)
+				onArrived(this, isMovingTo, _currentDetails);
+
+			if (_currentDetails.onArriveEvent != null)
+				_currentDetails.onArriveEvent.Run();
+
+			// Snap the transform to the next details as there 
+			// may have been a little difference based on delta time
+			LockTransformAtDetails(_nextDetails, isMovingTo);
+
+			SwitchDetails();
 			
-			// Switch the previous/next details
-			if (isMovingTo)
-			{
-				_nextDetails = details.start;
-				_currentDetails = details.target;
-			}
-			else
-			{
-				_nextDetails = details.target;
-				_currentDetails = details.start;
-			}
-			isMovingTo = !isMovingTo;
 
-			yield return new WaitForSeconds(_currentDetails.waitTime);
+			// Wait for this details delay time
+			yield return new WaitForSeconds(_currentDetails.waitTime);			
 
-			// If this target needs to wait for a toggle
-			// then loop here otherwise wait for time
+			// Check for toggling
 			if (_currentDetails.toggleOnly)
             {
-                while(!_toggledThisFrame)
-                    yield return null;
+				if (_currentDetails.toggleOnlyWithTrigger)
+				{
+					if (_currentDetails.trigger != null)
+						if (_currentDetails.trigger.collidersInsideVolume == _currentDetails.triggerColliderCount)
+							Toggle();
+				}				
+				
+				while (!_toggledThisFrame)
+					yield return null;
+				
                 ResetToggle();
             }                        
         }
     }
 
+
+
+	void OnGUI()
+	{
+		if (GUILayout.Button("Toggle"))
+			Toggle();
+	}
+
     
-
-    //void Reset()
-    //{
-    //    if (GetComponent<Rigidbody>())
-    //    {
-    //        GetComponent<Rigidbody>().isKinematic = true;
-    //        GetComponent<Rigidbody>().mass = 100;
-    //    }
-    //}
-
 
 
 
@@ -243,12 +258,12 @@ public class PlatformMover : MonoBehaviour
 
         if (drawMesh)
         {
-            if (!GetComponent<MeshFilter>())
+            if (!mainTransform.GetComponent<MeshFilter>())
                 return;
 
-            Gizmos.DrawWireMesh(GetComponent<MeshFilter>().sharedMesh,
+            Gizmos.DrawWireMesh(mainTransform.GetComponent<MeshFilter>().sharedMesh,
                 tar, tarR, mainTransform.localScale);
-            Gizmos.DrawWireMesh(GetComponent<MeshFilter>().sharedMesh,
+            Gizmos.DrawWireMesh(mainTransform.GetComponent<MeshFilter>().sharedMesh,
                 t, tR, mainTransform.localScale);            
         }
         else

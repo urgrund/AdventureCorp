@@ -51,7 +51,7 @@ Shader "Custom/Standard Global Coverage" {
 			fixed4 m = tex2D (_MetallicGlossMap, IN.uv_MainTex);
 			fixed3 n = UnpackNormal(tex2D(_BumpMap, IN.uv_MainTex));
 
-			fixed2 coverageUV = IN.worldPos.xz*0.1;
+			fixed2 coverageUV = IN.worldPos.xz*0.2;
 			fixed4 cA = tex2D(_cA, coverageUV);
 			fixed3 cN = UnpackNormal(tex2D(_cN, coverageUV));
 

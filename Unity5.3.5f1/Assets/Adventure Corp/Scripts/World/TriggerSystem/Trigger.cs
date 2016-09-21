@@ -44,8 +44,8 @@ public class Trigger : MonoBehaviour
     public delegate void OnColliderCountChanged(int currentCount);
     public event OnColliderCountChanged colliderCountChanged;
 
-	public int _collidersInsideVolume = 0;
-	public List<Collider> _colliderComponentInsideVolume = new List<Collider>();
+	int _collidersInsideVolume = 0;
+	List<Collider> _colliderComponentInsideVolume = new List<Collider>();
     public int collidersInsideVolume { get { return _collidersInsideVolume; } }
 
 

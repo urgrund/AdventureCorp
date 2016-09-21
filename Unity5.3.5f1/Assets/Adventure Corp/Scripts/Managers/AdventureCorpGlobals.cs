@@ -30,6 +30,14 @@ public static class AdventureCorpGlobals
             public static readonly float dropHeight = 3f;
             public static readonly float jumpDistance = 2f;
         }
+
+		public static class SceneFolderNames
+		{
+			public static readonly string MANAGERS = "__MANAGERS";
+			public static readonly string PREFAB_FOLDER = "_SCENE PREFABS";
+			public static readonly string LIGHTS_FOLDER = "_SCENE LIGHTS";
+			public static readonly string NPC_SPAWN = "_NPC_SPAWN";
+		}
     }
 
     public static class Agent
@@ -69,5 +77,12 @@ public static class AdventureCorpExtensions
 		if (e == Probability.Never)
 			return false;
 		return (Random.value < (float)((float)e / 100f));
+	}
+
+
+	public static void Reset(this Transform t)
+	{
+		t.position = Vector3.zero;
+		t.rotation = Quaternion.identity;
 	}
 }

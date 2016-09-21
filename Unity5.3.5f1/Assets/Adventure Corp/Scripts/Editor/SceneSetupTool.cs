@@ -1,23 +1,4 @@
-﻿// NavigationHelper - Allows you to create Unity Nav Meshes using Box Colliders - 2014-01-09
-// released under MIT License
-// http://www.opensource.org/licenses/mit-license.php
-//
-//@author		Devin Reimer - Owlchemy Labs
-//@website 		http://blog.almostlogical.com
-/*
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
-
-/*
- * Usage: To use set COLLIDER_LAYER const (below) to whatever layer you wish for the Box Colliders to be used from. This allows you to use some box colliders and
- *        not others. If you don't change it (-1) it will use all layers.
- *        You will also need to create a new Tag (Edit->Project Settings->Tags) name this tag: TempNavMeshItemDestroyable
- */
-
-
-
+﻿
 
 
 
@@ -31,11 +12,10 @@ public class SceneSetupTool : EditorWindow
 	private const string TEMP_NAV_MESH_OBJECT_TAG = "TempNavMeshItemDestroyable"; //you can change to what ever tag you would like as long as it isn't used by anything else
 	private bool isSetup = true;
 
-	private static List<GameObject> navMeshPrefabs;
 	private static string LIGHT_PROBE_TAG = "LightProbeContainer";
 
 	
-	SceneSetupToolVisualisation tempVizObj = null;
+	//SceneSetupToolVisualisation tempVizObj = null;
 
 	[MenuItem("Window/Adventure Corp/Scene Tools %W")]
 	static void Init()
@@ -44,67 +24,25 @@ public class SceneSetupTool : EditorWindow
 	}
 
 
-	void OnFocus()
-	{		
-		SceneView.onSceneGUIDelegate -= this.OnSceneGUI;		
-		SceneView.onSceneGUIDelegate += this.OnSceneGUI;		
-	}
+	//void OnFocus()
+	//{		
+	//	SceneView.onSceneGUIDelegate -= this.OnSceneGUI;		
+	//	SceneView.onSceneGUIDelegate += this.OnSceneGUI;		
+	//}
 
 	void OnEnable()
-	{
-		SceneSetupToolVisualisation[] sst = GameObject.FindObjectsOfType<SceneSetupToolVisualisation>();
-		foreach (SceneSetupToolVisualisation s in sst) //FindObjectsOfType<SceneSetupToolVisualisation>())
-		{
-			Debug.Log(s.name);
-			DestroyImmediate(s.gameObject);
-		}
-
-		//GameObject go = new GameObject("TEMP_VIS_OBJECT");		
-		//tempVizObj = go.AddComponent<SceneSetupToolVisualisation>();
-		GetAllCollisionShapes();
+	{	
+		levelManagerInScene = GameObject.FindObjectOfType<LevelManager>();
+		if (levelManagerInScene != null)		
+			GetAllCollisionShapes();		
 	}
-
-
-
-
+	
 	void GetAllCollisionShapes()
 	{
-		if (tempVizObj != null)
-		{
-			tempVizObj.allBoxes = GameObject.FindObjectsOfType<BoxCollider>();
-			tempVizObj.allSpheres = GameObject.FindObjectsOfType<SphereCollider>();
-		}
+		if (levelManagerInScene != null)		
+			levelManagerInScene.EditorCollectionAllColliders();		
 	}
-
-
-	void OnDestroy()
-	{
-		SceneSetupToolVisualisation[] sst = GameObject.FindObjectsOfType<SceneSetupToolVisualisation>();
-		foreach (SceneSetupToolVisualisation s in sst) //FindObjectsOfType<SceneSetupToolVisualisation>())
-		{
-			Debug.Log("Destroying " + s.name);
-			DestroyImmediate(s.gameObject);
-		}
-
-		SceneView.onSceneGUIDelegate -= this.OnSceneGUI;
-	}
-
-	void OnSceneGUI(SceneView sceneView)
-	{		
-		// Do your drawing here using Handles.		
-		Handles.BeginGUI();
-
-		// Weird bug where a label is needed otherwize the draw matrix is screwed
-		Handles.Label(Vector3.up * 5, "Scene Tools Window Active");
-
-		Handles.EndGUI();
-
-		//HandleUtility.Repaint();
-		//SceneView.RepaintAll();
-		//sceneView.Repaint();
-		//SceneView.lastActiveSceneView.Repaint();
-
-	}
+	
 
 
 	void OnHierarchyChange()
@@ -112,33 +50,88 @@ public class SceneSetupTool : EditorWindow
 		GetAllCollisionShapes();
 	}
 
-
+	LevelManager levelManagerInScene = null;
 
 	float btnHeight = 50;
 	bool _lastIsDraw = true;
 	void OnGUI()
 	{
-		if (tempVizObj != null)
-		{
-			EditorGUI.BeginChangeCheck();
-
-			tempVizObj.isDrawColliders = EditorGUILayout.Toggle("Draw Solid Colliders", tempVizObj.isDrawColliders);
-			tempVizObj.colliderColorAlpha = EditorGUILayout.Slider(tempVizObj.colliderColorAlpha, 0, 1);
-
-			if (EditorGUI.EndChangeCheck())
-			{
-				SceneView.RepaintAll();
-			}			
-		}
+		
 
 		EditorGUILayout.Space();
 		EditorGUILayout.Space();
 
 		if (GUILayout.Button("Build Nav Mesh!", GUILayout.Height(btnHeight)))
 			BakeNavMeshUsingVisualMesh();
+		
 		EditorGUILayout.Space();
 		if (GUILayout.Button("Create Light Probes On NavMesh", GUILayout.Height(btnHeight)))
 			GenerateLightProbes();
+
+		if (FindObjectOfType<LevelManager>() == null)
+		{
+			EditorGUILayout.Space();
+			if (GUILayout.Button("Create Scene Directories", GUILayout.Height(btnHeight)))
+				NewSceneSetup();
+		}
+
+
+		EditorGUI.BeginChangeCheck();
+		if (levelManagerInScene != null)
+		{
+			levelManagerInScene.isDrawEditorColliders = EditorGUILayout.Toggle("Draw Colliders", levelManagerInScene.isDrawEditorColliders);
+			levelManagerInScene.editorColliderColorAlpha = EditorGUILayout.Slider("Collider Alpha", levelManagerInScene.editorColliderColorAlpha, 0, 1);
+
+
+			// Draw normals
+			EditorGUILayout.Space();
+			levelManagerInScene.isDrawSelectedNormals = EditorGUILayout.Toggle("Render Normals", levelManagerInScene.isDrawSelectedNormals);
+			levelManagerInScene.selectedNormalsLength = EditorGUILayout.Slider("Length", levelManagerInScene.selectedNormalsLength, 0, 1);
+			if (Selection.activeGameObject != null)
+			{
+				levelManagerInScene.selectedGameObject = Selection.activeGameObject;
+				EditorGUILayout.LabelField("Selected Properties", EditorStyles.boldLabel);
+
+				int verts = 0;
+				int tris = 0;
+				foreach (GameObject go in Selection.gameObjects)
+				{
+					foreach (MeshFilter m in go.GetComponentsInChildren<MeshFilter>())
+					{
+						if (m == null)
+							continue;
+						if (m.sharedMesh == null)
+							continue;
+						verts += m.sharedMesh.vertexCount;
+						tris += m.sharedMesh.triangles.Length;
+					}
+				}
+				EditorGUILayout.LabelField("Vertices  : " + verts);
+				EditorGUILayout.LabelField("Tris      : " + tris);
+				//EditorGUILayout.LabelField("UV's      : " + 
+
+			}
+			else
+				levelManagerInScene.selectedGameObject = null;
+		}
+
+
+		// If changes, refresh scene
+		if (EditorGUI.EndChangeCheck())
+			SceneView.RepaintAll();		
+	}
+
+
+
+
+
+
+	void NewSceneSetup()
+	{
+		new GameObject(AdventureCorpGlobals.Editor.SceneFolderNames.MANAGERS);
+		new GameObject(AdventureCorpGlobals.Editor.SceneFolderNames.PREFAB_FOLDER);
+		new GameObject(AdventureCorpGlobals.Editor.SceneFolderNames.LIGHTS_FOLDER);
+		new GameObject(AdventureCorpGlobals.Editor.SceneFolderNames.NPC_SPAWN);
 	}
 
 
@@ -149,6 +142,8 @@ public class SceneSetupTool : EditorWindow
 
 
 
+
+	// -------------------------------------------------------------------------------------------------------
 	// -------------------------------------------------------------------------------------------------------
 	// Build Light Probes
 	void GenerateLightProbes()
@@ -181,6 +176,14 @@ public class SceneSetupTool : EditorWindow
         lpg.probePositions = points.ToArray(); 
     }
 	// -------------------------------------------------------------------------------------------------------
+	// -------------------------------------------------------------------------------------------------------
+
+
+
+
+
+
+
 
 
 
@@ -193,17 +196,79 @@ public class SceneSetupTool : EditorWindow
 
 
 	// -------------------------------------------------------------------------------------------------------
+	// -------------------------------------------------------------------------------------------------------
 	// Build Nav Mesh
+	// NavigationHelper - Allows you to create Unity Nav Meshes using Box Colliders - 2014-01-09
+	// released under MIT License
+	// http://www.opensource.org/licenses/mit-license.php
+	//
+	//@author		Devin Reimer - Owlchemy Labs
+	//@website 		http://blog.almostlogical.com
+	/*
+	Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+	The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+	*/
+
+	/*
+	 * Usage: To use set COLLIDER_LAYER const (below) to whatever layer you wish for the Box Colliders to be used from. This allows you to use some box colliders and
+	 *        not others. If you don't change it (-1) it will use all layers.
+	 *        You will also need to create a new Tag (Edit->Project Settings->Tags) name this tag: TempNavMeshItemDestroyable
+	 */
+
+
+
+	private static List<GameObject> tempNavMeshPrefabs;
+	private static List<GameObject> navMeshPrefabs;
+
+	private struct SourceObjectNavBake
+	{
+		public GameObject source;
+		public bool wasActive;
+	}
+	private static List<SourceObjectNavBake> navMeshPrefabSources;
+
+
 	private void BakeNavMeshUsingVisualMesh()
 	{
 		CleanUpOldNavMeshItems();
 		navMeshPrefabs = new List<GameObject>();
+		tempNavMeshPrefabs = new List<GameObject>();
+		navMeshPrefabSources = new List<SourceObjectNavBake>();
+		Debug.Log("Baking NavMesh");
+		//Debug.Log("-- Following Objects were used --");
+
 		SetupBoxes();
 		SetupCapsules();
 		SetupSpheres();
 		SetupMeshColliders();
+		PrepareDeactivation();
 		NavMeshBuilder.BuildNavMeshAsync();
 		CleanUpOldNavMeshItems();
+	}
+
+
+	void PrepareDeactivation()
+	{
+		// For each collider we create a nav mesh object 
+		// from, we need to de-activate the original 
+		// otherwise it is included in the bake
+		foreach (GameObject go in UnityEngine.SceneManagement.SceneManager.GetActiveScene().GetRootGameObjects())
+		{
+			foreach (Transform t in go.GetComponentsInChildren<Transform>())
+			{
+				SourceObjectNavBake s = new SourceObjectNavBake();
+				s.source = t.gameObject;
+				s.wasActive = t.gameObject.activeInHierarchy || t.gameObject.activeSelf;
+				s.source.SetActive(false);
+				navMeshPrefabSources.Add(s);
+			}
+		}
+		//Debug.Log("Set all to inactive (" + UnityEngine.SceneManagement.SceneManager.GetActiveScene().GetRootGameObjects().Length + ")");
+
+		foreach (GameObject t in navMeshPrefabs)
+			t.SetActive(true);
+		//Debug.Log("Set colliders to active (" + navMeshPrefabs.Count + ")");
 	}
 
 
@@ -216,12 +281,14 @@ public class SceneSetupTool : EditorWindow
 
         GameObject tempNavMeshCube;
         foreach (BoxCollider c in allColliders)
-        {						
-            //if (COLLIDER_LAYER < 0 || c.gameObject.layer == COLLIDER_LAYER)
+        {
+			if (c.isTrigger)
+				continue;
+							
 			if(GameObjectUtility.AreStaticEditorFlagsSet(c.gameObject, StaticEditorFlags.NavigationStatic))
 			{
-                PrepareTempNavMeshObject(out tempNavMeshCube, tempGO, c.transform, c.center);
-                tempNavMeshCube.transform.localScale = c.size;
+                PrepareTempNavMeshObject(out tempNavMeshCube, tempGO, c.transform, c.center, c.name);
+				tempNavMeshCube.transform.localScale = Vector3.Scale(c.transform.localScale, c.size); 
             }
         }
         DestroyImmediate(tempGO);
@@ -237,10 +304,12 @@ public class SceneSetupTool : EditorWindow
         GameObject tempNavMeshCube;
         foreach (CapsuleCollider c in allColliders)
         {
-			//if (COLLIDER_LAYER < 0 || c.gameObject.layer == COLLIDER_LAYER)
+			if (c.isTrigger)
+				continue;
+			
 			if (GameObjectUtility.AreStaticEditorFlagsSet(c.gameObject, StaticEditorFlags.NavigationStatic))
 			{
-                PrepareTempNavMeshObject(out tempNavMeshCube, tempGO, c.transform, c.center);
+                PrepareTempNavMeshObject(out tempNavMeshCube, tempGO, c.transform, c.center, c.name);
                 tempNavMeshCube.transform.localScale = new Vector3(c.radius * 2f, c.height / 2f, c.radius * 2f);
             }
         }
@@ -257,11 +326,13 @@ public class SceneSetupTool : EditorWindow
         GameObject tempNavMeshCube;
         foreach (SphereCollider c in allColliders)
         {
-			//if (COLLIDER_LAYER < 0 || c.gameObject.layer == COLLIDER_LAYER)
+			if (c.isTrigger)
+				continue;
+			
 			if (GameObjectUtility.AreStaticEditorFlagsSet(c.gameObject, StaticEditorFlags.NavigationStatic))
 			{
-                PrepareTempNavMeshObject(out tempNavMeshCube, tempGO, c.transform, c.center);
-                tempNavMeshCube.transform.localScale = Vector3.one * c.radius * 2f;
+                PrepareTempNavMeshObject(out tempNavMeshCube, tempGO, c.transform, c.center, c.name);
+                tempNavMeshCube.transform.localScale = c.transform.localScale * c.radius * 2f;
             }
         }
         DestroyImmediate(tempGO);
@@ -278,12 +349,15 @@ public class SceneSetupTool : EditorWindow
         GameObject tempNavMeshCube;
         foreach (MeshCollider c in allColliders)
         {
-			//if (COLLIDER_LAYER < 0 || c.gameObject.layer == COLLIDER_LAYER)
+			if (c.isTrigger)
+				continue;
+			
 			if (GameObjectUtility.AreStaticEditorFlagsSet(c.gameObject, StaticEditorFlags.NavigationStatic))
 			{
-                PrepareTempNavMeshObject(out tempNavMeshCube, tempGO, c.transform, Vector3.zero);
+                PrepareTempNavMeshObject(out tempNavMeshCube, tempGO, c.transform, Vector3.zero, c.name);
+				//Debug.Log(c.sharedMesh.name);
                 tempNavMeshCube.GetComponent<MeshFilter>().mesh = c.sharedMesh;
-                tempNavMeshCube.transform.localScale = Vector3.one;
+				tempNavMeshCube.transform.localScale = c.gameObject.transform.localScale; // Vector3.one;
             }
         }
         DestroyImmediate(tempGO);
@@ -297,26 +371,42 @@ public class SceneSetupTool : EditorWindow
         g.tag = TEMP_NAV_MESH_OBJECT_TAG;
     }
 
-    void PrepareTempNavMeshObject(out GameObject g, GameObject tempGO, Transform colliderTransform, Vector3 colliderCenter)
+    void PrepareTempNavMeshObject(out GameObject g, GameObject tempGO, Transform colliderTransform, Vector3 colliderCenter, string goName="")
     {
         g = Instantiate(tempGO) as GameObject;
         g.name = tempGO.name;
-        g.transform.parent = colliderTransform;
-        g.transform.localPosition = colliderCenter;
-        g.transform.localRotation = Quaternion.identity;
-        g.hideFlags = HideFlags.DontSave;
-        navMeshPrefabs.Add(g);
-    }
+
+		g.transform.parent = colliderTransform;
+		g.transform.localPosition = colliderCenter;
+		g.transform.localRotation = Quaternion.identity;
+		g.transform.parent = null;
+
+		//g.transform.localPosition = colliderTransform.position + colliderCenter;
+		//g.transform.rotation = colliderTransform.rotation;
+		//g.transform.localScale = colliderTransform.localScale;
+
+
+        //g.hideFlags = HideFlags.DontSave;
+
+		//Debug.Log("  - " + goName);
+		navMeshPrefabs.Add(g);
+		tempNavMeshPrefabs.Add(colliderTransform.gameObject);
+
+	}
 	
     private void CleanUpOldNavMeshItems()
     {
-        if (navMeshPrefabs != null)
-        {
-            foreach (GameObject go in navMeshPrefabs)
-                DestroyImmediate(go);
-        }
+		if (navMeshPrefabSources != null)
+			foreach (SourceObjectNavBake n in navMeshPrefabSources)
+				n.source.SetActive(n.wasActive);
+
+		if (navMeshPrefabs != null)
+			foreach (GameObject go in navMeshPrefabs)
+				DestroyImmediate(go);
+
+		navMeshPrefabSources = null;
         navMeshPrefabs = null;
-    }
+	}
 
 
 

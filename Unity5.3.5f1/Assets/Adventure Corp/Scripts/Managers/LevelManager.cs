@@ -103,16 +103,119 @@ public class LevelManager : MonoBehaviour
     }
 
 
-	//void OnGUI()
-	//{
-	//	if (GUILayout.Button("1x"))
-	//	{
-	//		Time.timeScale = 1;
-	//	}
 
-	//	if (GUILayout.Button("5x"))
-	//	{
-	//		Time.timeScale = 5f;
-	//	}
-	//}
+
+
+
+
+
+
+	// -----------------------------------------------------------------------------------------------------------
+	// 
+	//	Editor Only 
+	//
+
+
+
+	public bool isDrawSelectedNormals = false;
+	public GameObject selectedGameObject = null;
+	public float selectedNormalsLength = 1f;
+
+	private MeshFilter[] _selectedMeshFilters = null;
+
+	void EditorDrawSelectedNormals()
+	{
+		if (isDrawSelectedNormals && selectedGameObject != null)
+		{
+			Gizmos.color = Color.magenta;
+
+			if (_selectedMeshFilters == null)
+				_selectedMeshFilters = selectedGameObject.GetComponentsInChildren<MeshFilter>();
+
+			foreach (MeshFilter mf in _selectedMeshFilters)
+			{
+				for (int i = 0; i < mf.sharedMesh.vertexCount; i++)
+				{
+					Vector3 p = selectedGameObject.transform.TransformPoint(mf.sharedMesh.vertices[i]);
+					Vector3 n = selectedGameObject.transform.TransformDirection(mf.sharedMesh.normals[i]);
+					Gizmos.DrawRay(p, n * selectedNormalsLength);
+				}
+			}
+		}
+		else
+			_selectedMeshFilters = null;
+	}
+
+
+
+
+
+	public bool isDrawEditorColliders;
+	public float editorColliderColorAlpha = 0.25f;
+
+	Color colliderWireColor = Color.red;
+	Color colliderTriggerColor = Color.yellow;
+	BoxCollider[] allBoxColliders;
+	SphereCollider[] allSphereColliders;
+	MeshCollider[] allMeshColliders;
+
+	public void EditorCollectionAllColliders()
+	{
+		allBoxColliders = FindObjectsOfType<BoxCollider>();
+		allSphereColliders= FindObjectsOfType<SphereCollider>();
+		allMeshColliders = FindObjectsOfType<MeshCollider>();
+	}
+
+		
+
+	void EditorDrawColliderGizmos()
+	{
+		if (isDrawEditorColliders)
+		{
+			Color cA = colliderWireColor * new Color(1, 1, 1, editorColliderColorAlpha);
+			Color cAT = colliderTriggerColor * new Color(1, 1, 1, editorColliderColorAlpha);
+			if (allBoxColliders != null)
+			{
+				foreach (BoxCollider c in allBoxColliders)
+				{
+					Gizmos.matrix = c.transform.localToWorldMatrix;
+					Gizmos.color = c.isTrigger ? colliderTriggerColor : colliderWireColor;
+					Gizmos.DrawWireCube(c.center, c.size);
+					Gizmos.color = c.isTrigger ? cAT: cA;
+					Gizmos.DrawCube(c.center, c.size);
+				}
+			}
+			if (allSphereColliders != null)
+			{
+				foreach (SphereCollider c in allSphereColliders)
+				{
+					Gizmos.matrix = c.transform.localToWorldMatrix;
+					Gizmos.color = c.isTrigger ? colliderTriggerColor : colliderWireColor;
+					Gizmos.DrawWireSphere(c.center, c.radius);
+					Gizmos.color = c.isTrigger ? cAT : cA;
+					Gizmos.DrawSphere(c.center, c.radius);					
+				}
+			}
+			if (allMeshColliders != null)
+			{
+				foreach (MeshCollider c in allMeshColliders)
+				{
+					Gizmos.matrix = c.transform.localToWorldMatrix;
+					Gizmos.color = c.isTrigger ? colliderTriggerColor : colliderWireColor;
+					Gizmos.DrawWireMesh(c.sharedMesh);
+					Gizmos.color = c.isTrigger ? cAT : cA;
+					Gizmos.DrawMesh(c.sharedMesh); 
+				}
+			}
+		}
+	}
+
+
+	void OnDrawGizmos()
+	{	
+		EditorDrawColliderGizmos();
+		EditorDrawSelectedNormals();
+	}
+
+	// -----------------------------------------------------------------------------------------------------------
 }
